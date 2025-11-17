@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "querygym"
-version = "0.1.0"
+version = "0.1.1"
 description = "LLM-based Query Reformulation Toolkit"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -32,6 +32,7 @@ dependencies = [
   "typer>=0.12.3",
   "pyyaml>=6.0.1",
   "openai>=1.40.0",
+  "tqdm>=4.65.0",
 ]
 
 [project.optional-dependencies]
