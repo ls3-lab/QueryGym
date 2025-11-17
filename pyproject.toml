@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "querygym"
-version = "0.1.1"
+version = "0.1.2"
 description = "LLM-based Query Reformulation Toolkit"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -12,8 +12,8 @@ license = {text = "MIT"}
 authors = [
   {name = "Radin Hamidi", email = "radin.h@gmail.com"},
   {name = "Amin Bigdeli", email = "aminbigdeli97@gmail.com"},
-  {name = "Mert Incesu"},
-  {name = "Negar Arabzadeh"},
+  {name = "Mert Incesu", email = "mert.incesu03@gmail.com"},
+  {name = "Negar Arabzadeh", email = "ngr.arabzadeh@gmail.com"}
 ]
 keywords = ["information-retrieval", "query-reformulation", "llm", "nlp"]
 classifiers = [
