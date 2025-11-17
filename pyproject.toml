@@ -9,7 +9,12 @@ description = "LLM-based Query Reformulation Toolkit"
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}
-authors = [{name = "Your Name"}]
+authors = [
+  {name = "Radin Hamidi", email = "radin.h@gmail.com"},
+  {name = "Amin Bigdeli", email = "aminbigdeli97@gmail.com"},
+  {name = "Mert Incesu"},
+  {name = "Negar Arabzadeh"},
+]
 keywords = ["information-retrieval", "query-reformulation", "llm", "nlp"]
 classifiers = [
     "Development Status :: 3 - Alpha",
