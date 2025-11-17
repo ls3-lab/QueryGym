@@ -1,3 +1,5 @@
+[![Publish to PyPI](https://github.com/radinhamidi/queryGym/actions/workflows/publish.yml/badge.svg)](https://github.com/radinhamidi/queryGym/actions/workflows/publish.yml)
+
 # querygym
 
 A lightweight, reproducible toolkit for **LLM-based query reformulation**.
