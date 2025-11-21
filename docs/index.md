@@ -1,17 +1,11 @@
 <div align="center">
-  <img src="https://github.com/radinhamidi/QueryGym/blob/main/docs/querygym-logo.png" alt="QueryGym Logo" width="600">
+  <img src="querygym-logo.png" alt="QueryGym Logo" width="600">
 </div>
 
 # QueryGym
 
 A lightweight, reproducible toolkit for **LLM-based query reformulation**.
 
-- Single **Prompt Bank** (YAML) with metadata.
-- **Simple DataLoader**: Dependency-free file loading for queries, qrels, and contexts.
-- **Format Loaders**: Optional BEIR and MS MARCO format loaders in `querygym.loaders`.
-- **OpenAI-compatible** LLM client (works with any OpenAI API–compatible endpoint).
-- **Pyserini** optional: either pass contexts (JSONL) or pass a retriever instance to build contexts.
-- Export-only: emits reformulated queries; optionally generates a **bash** script for Pyserini + `trec_eval`.
 
 [![Publish to PyPI](https://github.com/radinhamidi/QueryGym/actions/workflows/publish.yml/badge.svg)](https://github.com/radinhamidi/QueryGym/actions/workflows/publish.yml)
 [![Build and Push Docker Images](https://github.com/radinhamidi/QueryGym/actions/workflows/docker.yml/badge.svg)](https://github.com/radinhamidi/QueryGym/actions/workflows/docker.yml)

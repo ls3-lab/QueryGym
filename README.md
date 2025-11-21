@@ -6,7 +6,7 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 <div align="center">
-  <img src="https://github.com/radinhamidi/QueryGym/blob/main/docs/querygym-logo.png" alt="QueryGym Logo" width="600">
+  <img src="https://raw.githubusercontent.com/radinhamidi/QueryGym/main/docs/querygym-logo.png" alt="QueryGym Logo" width="600">
 </div>
 
 # QueryGym
