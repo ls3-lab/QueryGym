@@ -1,0 +1,77 @@
+# CPU-only Dockerfile for querygym
+# This is the alternate/lightweight version
+# For GPU support (default), use the main Dockerfile or Dockerfile.gpu
+# Base: python:3.10-slim (Debian-based) for best compatibility
+
+# Stage 1: Builder stage
+FROM python:3.10-slim as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Upgrade pip and install build tools
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+
+# Install PyTorch (CPU version for smaller image)
+# Using CPU-only wheel reduces image size by ~2GB vs CUDA version
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+
+# Install querygym with all dependencies
+RUN pip install --no-cache-dir \
+    querygym[all] \
+    pyserini \
+    jupyter \
+    ipython
+
+# Stage 2: Runtime stage
+FROM python:3.10-slim
+
+LABEL maintainer="querygym team <radin.h@gmail.com>"
+LABEL description="querygym CPU: LLM-based Query Reformulation Toolkit (CPU-only)"
+LABEL org.opencontainers.image.source="https://github.com/radinhamidi/QueryGym"
+
+# Install runtime dependencies (Java for PySerini)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openjdk-17-jre-headless \
+    wget \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+
+# Set environment variables
+ENV PATH="/opt/venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+
+# Create working directory
+WORKDIR /workspace
+
+# Create directories for data and outputs
+RUN mkdir -p /workspace/data /workspace/outputs /workspace/notebooks
+
+# Set up a non-root user for security
+RUN useradd -m -u 1000 querygym && \
+    chown -R querygym:querygym /workspace
+
+USER querygym
+
+# Expose Jupyter port
+EXPOSE 8888
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD python -c "import querygym; import pyserini" || exit 1
+
+# Default command: Start bash (users can override)
+CMD ["/bin/bash"]

@@ -19,6 +19,25 @@ A lightweight, reproducible toolkit for **LLM-based query reformulation**.
 - **Pyserini** optional: either pass contexts (JSONL) or pass a retriever instance to build contexts.
 - Export-only: emits reformulated queries; optionally generates a **bash** script for Pyserini + `trec_eval`.
 
+## Installation
+
+### Option 1: Install from PyPI
+```bash
+pip install querygym
+```
+
+### Option 2: Use Docker (Recommended for Quick Start)
+```bash
+# Pull and run pre-built image
+docker pull ghcr.io/radinhamidi/querygym:latest
+docker run -it --gpus all ghcr.io/radinhamidi/querygym:latest
+
+# Or use docker-compose
+docker-compose run --rm querygym
+```
+
+📖 **Docker Setup:** See [DOCKER_SETUP.md](DOCKER_SETUP.md) for quick start or the [full Docker guide](https://querygym.readthedocs.io/en/latest/user-guide/docker/) for detailed usage.
+
 ## Quickstart
 
 ### Python API (Recommended)
@@ -79,4 +98,11 @@ queries = qg.loaders.msmarco.load_queries("queries.tsv")
 qrels = qg.loaders.msmarco.load_qrels("qrels.tsv")
 ```
 
-See [example scripts](scripts/README.md) for complete workflows.
+## Examples
+
+See the [examples/](examples/) directory for:
+- **[Code snippets](examples/snippets/)** - Quick reference examples
+- **[Docker examples](examples/docker/)** - Containerized workflows with Jupyter notebooks
+- **[QueryGym + Pyserini](examples/querygym_pyserini/)** - Complete retrieval pipelines
+
+Check [examples/README.md](examples/README.md) for the full guide.

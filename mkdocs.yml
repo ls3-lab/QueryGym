@@ -78,6 +78,7 @@ nav:
       - CLI Usage: user-guide/cli.md
       - Loading Datasets: user-guide/datasets.md
       - Query Reformulation: user-guide/reformulation.md
+      - Docker Guide: user-guide/docker.md
       - Searcher Interface: user-guide/searcher.md
       - Prompt Bank: user-guide/prompts.md
   - API Reference:

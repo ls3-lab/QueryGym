@@ -1,0 +1,77 @@
+version: '3.8'
+
+# QueryGym Docker Compose - Uses pre-built images from GitHub Container Registry
+# No building required - just pull and run!
+
+services:
+  # GPU-enabled version (default)
+  querygym:
+    image: ghcr.io/radinhamidi/querygym:latest
+    container_name: querygym
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.openai.com/v1}
+    volumes:
+      - ./data:/workspace/data
+      - ./outputs:/workspace/outputs
+      - ./notebooks:/workspace/notebooks
+    ports:
+      - "8888:8888"
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+  # CPU-only version (lightweight) - Uncomment if you don't have GPU
+  # querygym-cpu:
+  #   image: ghcr.io/radinhamidi/querygym:cpu
+  #   container_name: querygym-cpu
+  #   environment:
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
+  #     - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.openai.com/v1}
+  #   volumes:
+  #     - ./data:/workspace/data
+  #     - ./outputs:/workspace/outputs
+  #     - ./notebooks:/workspace/notebooks
+  #   ports:
+  #     - "8889:8888"
+  #   stdin_open: true
+  #   tty: true
+  #   command: /bin/bash
+
+  # Jupyter notebook server (GPU-enabled)
+  jupyter:
+    image: ghcr.io/radinhamidi/querygym:latest
+    container_name: querygym-jupyter
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.openai.com/v1}
+    volumes:
+      - ./data:/workspace/data
+      - ./outputs:/workspace/outputs
+      - ./notebooks:/workspace/notebooks
+    ports:
+      - "8888:8888"
+    command: >
+      jupyter notebook
+      --ip=0.0.0.0
+      --port=8888
+      --no-browser
+      --allow-root
+      --NotebookApp.token=''
+      --NotebookApp.password=''

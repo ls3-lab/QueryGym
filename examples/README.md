@@ -1,33 +1,113 @@
-# queryGym Examples
+# QueryGym Examples
 
-Quick, focused examples showing core functionality.
+This directory contains practical examples and tutorials for using QueryGym in different scenarios.
 
-## Examples
+## 📁 Directory Structure
 
-1. **`01_load_from_file.py`** - Load queries and qrels from local files
-2. **`02_load_with_loaders.py`** - Load BEIR and MS MARCO datasets
-3. **`03_query_reformulation.py`** - Reformulate queries with LLMs
-4. **`04_context_reformulation.py`** - Reformulate using retrieved contexts
-5. **`05_using_adapters.py`** - Use Pyserini and PyTerrier adapters
+### 1. [snippets/](snippets/)
+**Quick code snippets** demonstrating core QueryGym functionality.
 
-## Run Examples
+Perfect for:
+- Learning the basics
+- Quick reference
+- Copy-paste solutions
 
+Examples include:
+- Loading data from files
+- Using format loaders (BEIR, MS MARCO)
+- Query reformulation
+- Context-based reformulation
+- Using search adapters
+
+### 2. [docker/](docker/)
+**Docker-based examples** for containerized workflows.
+
+Perfect for:
+- Quick start without installation
+- Reproducible environments
+- Jupyter notebook development
+
+Includes:
+- Ready-to-use `docker-compose.yml`
+- Interactive Jupyter notebook
+- Quick setup guide
+
+### 3. [querygym_pyserini/](querygym_pyserini/)
+**End-to-end retrieval workflows** integrating QueryGym with Pyserini.
+
+Perfect for:
+- Complete IR experiments
+- Indexing and retrieval pipelines
+- Evaluation workflows
+
+Includes:
+- Building indexes
+- Query reformulation + retrieval
+- Evaluation with trec_eval
+- Complete experiment scripts
+
+## 🚀 Quick Start
+
+### Option 1: Run with Docker (Easiest)
 ```bash
-cd examples
-conda activate querygym
-
-# Set API key for reformulation
-export OPENAI_API_KEY='sk-...'
-
-# Run any example
-python 01_load_from_file.py
-python 03_query_reformulation.py
+cd docker/
+docker-compose run --rm querygym
 ```
 
-## Data Files
+### Option 2: Run Python Snippets
+```bash
+# Install QueryGym first
+pip install querygym
 
-Examples use:
-- `tiny_queries.tsv` - Sample queries
-- `tiny_qrels.txt` - Sample relevance judgments
-- `tiny_contexts.jsonl` - Sample retrieved contexts
-- BEIR/MS MARCO data (download separately)
+# Run any snippet
+cd snippets/
+python 01_load_from_file.py
+```
+
+### Option 3: Full Retrieval Pipeline
+```bash
+cd querygym_pyserini/
+# Follow the README for complete setup
+```
+
+## 📚 Learning Path
+
+**Beginner:**
+1. Start with [snippets/](snippets/) to learn the basics
+2. Try [docker/](docker/) for a containerized environment
+
+**Intermediate:**
+3. Explore different reformulation methods in snippets
+4. Run Jupyter notebooks in Docker
+
+**Advanced:**
+5. Build complete pipelines with [querygym_pyserini/](querygym_pyserini/)
+6. Integrate with your own retrieval systems
+
+## 🔗 Additional Resources
+
+- **Documentation:** [https://querygym.readthedocs.io/](https://querygym.readthedocs.io/)
+- **Docker Setup:** [../DOCKER_SETUP.md](../DOCKER_SETUP.md)
+- **API Reference:** [https://querygym.readthedocs.io/en/latest/api/core/](https://querygym.readthedocs.io/en/latest/api/core/)
+- **GitHub:** [https://github.com/radinhamidi/QueryGym](https://github.com/radinhamidi/QueryGym)
+
+## 💡 Tips
+
+- **Start simple:** Begin with basic snippets before complex workflows
+- **Use Docker:** For quick experimentation without setup hassles
+- **Check READMEs:** Each subdirectory has its own detailed README
+- **Modify examples:** All examples are meant to be adapted to your needs
+
+## 🤝 Contributing Examples
+
+Have a useful example? We'd love to include it! Please:
+1. Add it to the appropriate subdirectory
+2. Include clear comments and documentation
+3. Test it works with the latest QueryGym version
+4. Submit a pull request
+
+## ❓ Need Help?
+
+- Check the [documentation](https://querygym.readthedocs.io/)
+- Open an [issue](https://github.com/radinhamidi/QueryGym/issues)
+- Join discussions on GitHub
