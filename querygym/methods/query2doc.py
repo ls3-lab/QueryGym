@@ -14,7 +14,7 @@ class Query2Doc(BaseReformulator):
     Modes:
         - "zs" (zero-shot): Generate passage directly [default]
         - "cot" (chain-of-thought): Zero-shot with reasoning
-        - "fs" (few-shot): Uses training examples from any dataset (dynamic)
+        - "fs", "fewshot", or "few-shot" (few-shot): Uses training examples from any dataset (dynamic)
     
     Few-Shot Config (via params or env vars):
         - dataset_type: "msmarco", "beir", or "generic" (uses appropriate loader)
@@ -208,7 +208,10 @@ class Query2Doc(BaseReformulator):
     def reformulate(self, q: QueryItem, contexts=None) -> ReformulationResult:
         """Generate pseudo-document for query using LLM."""
         # Get parameters
-        mode = str(self.cfg.params.get("mode", "zs"))
+        mode = str(self.cfg.params.get("mode", "zs")).lower()
+        # Normalize few-shot mode variants
+        if mode in ["fs", "fewshot", "few-shot"]:
+            mode = "fs"
         temperature = float(self.cfg.llm.get("temperature", 0.7))
         max_tokens = int(self.cfg.llm.get("max_tokens", 256))
         
@@ -216,7 +219,7 @@ class Query2Doc(BaseReformulator):
         
         try:
             # Select prompt based on mode
-            if mode == "fs" or mode == "fewshot":
+            if mode == "fs":
                 # Few-shot: dynamic MS MARCO examples
                 num_examples = int(self.cfg.params.get("num_examples", 4))
                 examples = self._select_few_shot_examples(num_examples)
