@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>QueryGym: Query Reformulation Methods Leaderboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --border-light: #f1f5f9;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f0f4f8;
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .header-section {
+            background: linear-gradient(to right, #667eea 0%, #764ba2 100%);
+            padding: 3rem 0;
+            color: white;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-section h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-section .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .header-section .fa-trophy {
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .main-container {
+            max-width: 1440px;
+            margin: -2rem auto 3rem;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .intro-card {
+            background: var(--bg-white);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .intro-card p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .leaderboard-card {
+            background: var(--bg-white);
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .table-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table thead {
+            background: #f8fafc;
+        }
+
+        .leaderboard-table thead th {
+            padding: 1rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #475569;
+            border-bottom: 2px solid #e2e8f0;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .leaderboard-table thead th.config-col {
+            text-align: left;
+            width: 1%;
+            background: #f1f5f9;
+        }
+
+        .leaderboard-table thead th.method-col {
+            text-align: left;
+            min-width: 160px;
+            width: 160px;
+            background: #f1f5f9;
+        }
+
+        .leaderboard-table thead th.metric-col {
+            min-width: 70px;
+            width: 70px;
+            background: #f8fafc;
+            color: #475569;
+            padding: 1rem 0.5rem;
+        }
+
+        .leaderboard-table thead th.separator-col + th {
+            border-left: 1px solid rgba(203, 213, 225, 0.4);
+        }
+
+        .leaderboard-table thead th.dataset-header.metric-col {
+            background: linear-gradient(to right, #dde4fc 0%, #d4dcfa 50%, #ccd5f8 100%) !important;
+            color: #3b4a9a !important;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 1rem 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.6);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .leaderboard-table thead tr:first-child th.dataset-header.metric-col:nth-child(5),
+        .leaderboard-table thead tr:first-child th.dataset-header.metric-col:nth-child(7) {
+            border-left: 1px solid rgba(203, 213, 225, 0.4);
+        }
+
+        .leaderboard-table thead th.dataset-header {
+            background: linear-gradient(to right, #dde4fc 0%, #d4dcfa 50%, #ccd5f8 100%) !important;
+            color: #3b4a9a !important;
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 1rem 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .leaderboard-table tbody tr {
+            transition: background-color 0.15s ease;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .leaderboard-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .leaderboard-table tbody tr.expanded-row {
+            background-color: #f8fafc;
+        }
+
+        .leaderboard-table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        .leaderboard-table tbody tr:not(.expandable-content) td.separator-col + td {
+            border-left: 1px solid rgba(203, 213, 225, 0.4);
+        }
+
+        .leaderboard-table tbody td.config-cell {
+            text-align: left;
+            font-weight: 500;
+            color: var(--text-primary);
+            border-right: 1px solid var(--border-light);
+        }
+
+        .leaderboard-table tbody td.method-name {
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+        }
+
+        .config-badges {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            width: fit-content;
+        }
+
+        .config-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            width: fit-content;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge-llm {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+
+        .badge-llm i {
+            margin-right: 0.4rem;
+            font-size: 0.7rem;
+            color: #1e40af;
+        }
+
+        .badge-retrieval {
+            background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+            color: #9f1239;
+            border: 1px solid #f9a8d4;
+        }
+
+        .badge-retrieval i {
+            margin-right: 0.4rem;
+            font-size: 0.7rem;
+            color: #9f1239;
+        }
+
+        .metric-value {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+            padding: 0.2rem 0.3rem;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 60px;
+        }
+
+        .expand-icon {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            color: var(--text-secondary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.75rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .expand-icon:hover {
+            background: #e2e8f0;
+            color: var(--text-primary);
+        }
+
+        .expand-icon.expanded {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .expandable-content {
+            background: #f8fafc;
+            border-top: 2px solid var(--border-color);
+            padding: 0;
+        }
+
+        .content-tabs {
+            border-bottom: 1px solid var(--border-color);
+            background: white;
+            padding: 0 1.5rem;
+            display: flex;
+            gap: 0;
+        }
+
+        .content-tab {
+            padding: 1rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .content-tab:hover {
+            color: var(--text-primary);
+            background: #f8fafc;
+        }
+
+        .content-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background: #f8fafc;
+        }
+
+        .tab-content {
+            padding: 2rem;
+            background: white;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        blockquote.mycode {
+            border-left: 3px solid var(--border-color);
+            margin-left: 0;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            padding-left: 1.25rem;
+            background: #f8fafc;
+            padding: 1rem 1.25rem;
+            border-radius: 4px;
+            text-align: left;
+        }
+
+        blockquote.mycode pre {
+            margin: 0;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        blockquote.mycode code {
+            color: var(--text-primary);
+            background: transparent;
+            padding: 0;
+        }
+
+        .command-label {
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .copy-code-button {
+            border-radius: 4px;
+            min-width: 50px;
+            background: var(--text-secondary);
+            color: white;
+            cursor: pointer;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-align: center;
+            padding: 0.4rem 0.75rem;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .copy-code-button:hover {
+            background: var(--primary-color);
+        }
+
+        blockquote.mycode {
+            position: relative;
+        }
+
+        .notes-section {
+            background: var(--bg-white);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .notes-section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .notes-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .notes-section li {
+            padding: 0.75rem 0;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-light);
+            font-size: 0.9rem;
+        }
+
+        .notes-section li:last-child {
+            border-bottom: none;
+        }
+
+        .notes-section li strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .highlight-box {
+            display: inline-block;
+            background: #dcfce7;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-weight: 500;
+            color: #166534;
+            font-size: 0.875rem;
+        }
+
+        .programmatic-section {
+            background: var(--bg-white);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .programmatic-section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .separator-col {
+            display: none;
+        }
+
+        @media (max-width: 1400px) {
+            .leaderboard-table {
+                font-size: 0.8rem;
+            }
+            
+            .leaderboard-table tbody td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="container text-center">
+            <h1><i class="fas fa-trophy me-2"></i>QueryGym Leaderboard</h1>
+            <p class="subtitle">Query Reformulation Methods Performance Evaluation</p>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Introduction Card -->
+        <div class="intro-card">
+            <p>
+                The leaderboard below provides comprehensive performance metrics for QueryGym query reformulation methods 
+                across different LLM configurations and retrieval backends. Each row represents a unique method configuration. 
+                Click on any row to expand and view detailed commands for reproducing the results.
+            </p>
+        </div>
+
+        <!-- Leaderboard Card -->
+        <div class="leaderboard-card">
+            <div class="table-header">
+                <h2><i class="fas fa-chart-line me-2"></i>Performance Metrics</h2>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th class="config-col">Configuration</th>
+                            <th class="method-col">Method</th>
+                            <th class="dataset-header metric-col" colspan="3">TREC DL 2019</th>
+                            <th class="separator-col"></th>
+                            <th class="dataset-header metric-col" colspan="3">TREC DL 2020</th>
+                            <th class="separator-col"></th>
+                            <th class="dataset-header metric-col" colspan="3">DL HARD</th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th class="metric-col">AP</th>
+                            <th class="metric-col">nDCG@10</th>
+                            <th class="metric-col">R@1K</th>
+                            <th class="separator-col"></th>
+                            <th class="metric-col">AP</th>
+                            <th class="metric-col">nDCG@10</th>
+                            <th class="metric-col">R@1K</th>
+                            <th class="separator-col"></th>
+                            <th class="metric-col">AP</th>
+                            <th class="metric-col">nDCG@10</th>
+                            <th class="metric-col">R@1K</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Configuration: GPT-4 + BM25 -->
+                        <tr class="accordion-row" data-target="row1">
+                            <td class="config-cell" rowspan="4">
+                                <div class="config-badges">
+                                    <span class="config-badge badge-llm"><i class="fas fa-brain"></i>GPT-4</span>
+                                    <span class="config-badge badge-retrieval"><i class="fas fa-search"></i>BM25</span>
+                                </div>
+                            </td>
+                            <td class="method-name">
+                                <div class="expand-icon" data-row="row1" style="display: inline-flex; margin-right: 0.5rem;">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                GenQR
+                            </td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                        </tr>
+                        <tr class="expandable-content" id="row1-content" style="display: none;">
+                            <td colspan="13">
+                                <div class="content-tabs">
+                                    <button class="content-tab active" data-tab="row1-tab1">TREC DL 2019</button>
+                                    <button class="content-tab" data-tab="row1-tab2">TREC DL 2020</button>
+                                    <button class="content-tab" data-tab="row1-tab3">DL HARD</button>
+                                </div>
+                                <div class="tab-content">
+                                    <div class="tab-pane active" id="row1-tab1">
+                                        <div class="command-label">Command to reproduce results on TREC DL 2019:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row1-tab1-cmd">Copy</button>
+                                            <pre id="row1-tab1-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.dev \
+  --method genqr \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --output-dir runs/genqr-gpt4-bm25</code></pre>
+                                        </blockquote>
+                                    </div>
+                                    <div class="tab-pane" id="row1-tab2">
+                                        <div class="command-label">Command to reproduce results on TREC DL 2020:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row1-tab2-cmd">Copy</button>
+                                            <pre id="row1-tab2-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.dev \
+  --method genqr \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --output-dir runs/genqr-gpt4-bm25</code></pre>
+                                        </blockquote>
+                                    </div>
+                                    <div class="tab-pane" id="row1-tab3">
+                                        <div class="command-label">Command to reproduce results on DL HARD:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row1-tab3-cmd">Copy</button>
+                                            <pre id="row1-tab3-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset dl-hard \
+  --method genqr \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --output-dir runs/genqr-gpt4-bm25</code></pre>
+                                        </blockquote>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr class="accordion-row" data-target="row2">
+                            <td class="method-name">
+                                <div class="expand-icon" data-row="row2" style="display: inline-flex; margin-right: 0.5rem;">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                GenQR Ensemble
+                            </td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                        </tr>
+                        <tr class="expandable-content" id="row2-content" style="display: none;">
+                            <td colspan="13">
+                                <div class="content-tabs">
+                                    <button class="content-tab active" data-tab="row2-tab1">TREC DL 2019</button>
+                                    <button class="content-tab" data-tab="row2-tab2">TREC DL 2020</button>
+                                    <button class="content-tab" data-tab="row2-tab3">DL HARD</button>
+                                </div>
+                                <div class="tab-content">
+                                    <div class="tab-pane active" id="row2-tab1">
+                                        <div class="command-label">Command to reproduce results on TREC DL 2019:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row2-tab1-cmd">Copy</button>
+                                            <pre id="row2-tab1-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.dev \
+  --method genqr_ensemble \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --params '{"repeat_query_weight": 5}' \
+  --output-dir runs/genqr_ensemble-gpt4-bm25</code></pre>
+                                        </blockquote>
+                                    </div>
+                                    <div class="tab-pane" id="row2-tab2">
+                                        <div class="command-label">Command to reproduce results on TREC DL 2020:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row2-tab2-cmd">Copy</button>
+                                            <pre id="row2-tab2-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.dev \
+  --method genqr_ensemble \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --params '{"repeat_query_weight": 5}' \
+  --output-dir runs/genqr_ensemble-gpt4-bm25</code></pre>
+                                        </blockquote>
+                                    </div>
+                                    <div class="tab-pane" id="row2-tab3">
+                                        <div class="command-label">Command to reproduce results on DL HARD:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row2-tab3-cmd">Copy</button>
+                                            <pre id="row2-tab3-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset dl-hard \
+  --method genqr_ensemble \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --params '{"repeat_query_weight": 5}' \
+  --output-dir runs/genqr_ensemble-gpt4-bm25</code></pre>
+                                        </blockquote>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr class="accordion-row" data-target="row3">
+                            <td class="method-name">
+                                <div class="expand-icon" data-row="row3" style="display: inline-flex; margin-right: 0.5rem;">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                Query2Doc
+                            </td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                        </tr>
+                        <tr class="expandable-content" id="row3-content" style="display: none;">
+                            <td colspan="13">
+                                <div class="content-tabs">
+                                    <button class="content-tab active" data-tab="row3-tab1">TREC DL 2019</button>
+                                    <button class="content-tab" data-tab="row3-tab2">TREC DL 2020</button>
+                                    <button class="content-tab" data-tab="row3-tab3">DL HARD</button>
+                                </div>
+                                <div class="tab-content">
+                                    <div class="tab-pane active" id="row3-tab1">
+                                        <div class="command-label">Command to reproduce results on TREC DL 2019:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row3-tab1-cmd">Copy</button>
+                                            <pre id="row3-tab1-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.dev \
+  --method query2doc \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --params '{"mode": "zs"}' \
+  --output-dir runs/query2doc-gpt4-bm25</code></pre>
+                                        </blockquote>
+                                    </div>
+                                    <div class="tab-pane" id="row3-tab2">
+                                        <div class="command-label">Command to reproduce results on TREC DL 2020:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row3-tab2-cmd">Copy</button>
+                                            <pre id="row3-tab2-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.dev \
+  --method query2doc \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --params '{"mode": "zs"}' \
+  --output-dir runs/query2doc-gpt4-bm25</code></pre>
+                                        </blockquote>
+                                    </div>
+                                    <div class="tab-pane" id="row3-tab3">
+                                        <div class="command-label">Command to reproduce results on DL HARD:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row3-tab3-cmd">Copy</button>
+                                            <pre id="row3-tab3-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset dl-hard \
+  --method query2doc \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --params '{"mode": "zs"}' \
+  --output-dir runs/query2doc-gpt4-bm25</code></pre>
+                                        </blockquote>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr class="accordion-row" data-target="row4">
+                            <td class="method-name">
+                                <div class="expand-icon" data-row="row4" style="display: inline-flex; margin-right: 0.5rem;">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                MuGI
+                            </td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                        </tr>
+                        <tr class="expandable-content" id="row4-content" style="display: none;">
+                            <td colspan="13">
+                                <div class="content-tabs">
+                                    <button class="content-tab active" data-tab="row4-tab1">TREC DL 2019</button>
+                                    <button class="content-tab" data-tab="row4-tab2">TREC DL 2020</button>
+                                    <button class="content-tab" data-tab="row4-tab3">DL HARD</button>
+                                </div>
+                                <div class="tab-content">
+                                    <div class="tab-pane active" id="row4-tab1">
+                                        <div class="command-label">Command to reproduce results on TREC DL 2019:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row4-tab1-cmd">Copy</button>
+                                            <pre id="row4-tab1-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.dev \
+  --method mugi \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --params '{"num_docs": 5, "adaptive_times": 6, "mode": "zs"}' \
+  --output-dir runs/mugi-gpt4-bm25</code></pre>
+                                        </blockquote>
+                                    </div>
+                                    <div class="tab-pane" id="row4-tab2">
+                                        <div class="command-label">Command to reproduce results on TREC DL 2020:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row4-tab2-cmd">Copy</button>
+                                            <pre id="row4-tab2-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.dev \
+  --method mugi \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --params '{"num_docs": 5, "adaptive_times": 6, "mode": "zs"}' \
+  --output-dir runs/mugi-gpt4-bm25</code></pre>
+                                        </blockquote>
+                                    </div>
+                                    <div class="tab-pane" id="row4-tab3">
+                                        <div class="command-label">Command to reproduce results on DL HARD:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row4-tab3-cmd">Copy</button>
+                                            <pre id="row4-tab3-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset dl-hard \
+  --method mugi \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --params '{"num_docs": 5, "adaptive_times": 6, "mode": "zs"}' \
+  --output-dir runs/mugi-gpt4-bm25</code></pre>
+                                        </blockquote>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Configuration: GPT-4 + BM25+RM3 -->
+                        <tr class="accordion-row" data-target="row5">
+                            <td class="config-cell" rowspan="1">
+                                <div class="config-badges">
+                                    <span class="config-badge badge-llm"><i class="fas fa-brain"></i>GPT-4</span>
+                                    <span class="config-badge badge-retrieval"><i class="fas fa-search"></i>BM25+RM3</span>
+                                </div>
+                            </td>
+                            <td class="method-name">
+                                <div class="expand-icon" data-row="row5" style="display: inline-flex; margin-right: 0.5rem;">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                Query2Doc
+                            </td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                        </tr>
+                        <tr class="expandable-content" id="row5-content" style="display: none;">
+                            <td colspan="13">
+                                <div class="content-tabs">
+                                    <button class="content-tab active" data-tab="row5-tab1">TREC DL 2019</button>
+                                    <button class="content-tab" data-tab="row5-tab2">TREC DL 2020</button>
+                                    <button class="content-tab" data-tab="row5-tab3">DL HARD</button>
+                                </div>
+                                <div class="tab-content">
+                                    <div class="tab-pane active" id="row5-tab1">
+                                        <div class="command-label">Command to reproduce results on TREC DL 2019:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row5-tab1-cmd">Copy</button>
+                                            <pre id="row5-tab1-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.dev \
+  --method query2doc \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --params '{"mode": "zs"}' \
+  --output-dir runs/query2doc-gpt4-bm25rm3</code></pre>
+                                        </blockquote>
+                                    </div>
+                                    <div class="tab-pane" id="row5-tab2">
+                                        <div class="command-label">Command to reproduce results on TREC DL 2020:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row5-tab2-cmd">Copy</button>
+                                            <pre id="row5-tab2-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.dev \
+  --method query2doc \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --params '{"mode": "zs"}' \
+  --output-dir runs/query2doc-gpt4-bm25rm3</code></pre>
+                                        </blockquote>
+                                    </div>
+                                    <div class="tab-pane" id="row5-tab3">
+                                        <div class="command-label">Command to reproduce results on DL HARD:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row5-tab3-cmd">Copy</button>
+                                            <pre id="row5-tab3-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset dl-hard \
+  --method query2doc \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --params '{"mode": "zs"}' \
+  --output-dir runs/query2doc-gpt4-bm25rm3</code></pre>
+                                        </blockquote>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Configuration: Qwen-32B + BM25 -->
+                        <tr class="accordion-row" data-target="row6">
+                            <td class="config-cell" rowspan="1">
+                                <div class="config-badges">
+                                    <span class="config-badge badge-llm"><i class="fas fa-brain"></i>Qwen-32B</span>
+                                    <span class="config-badge badge-retrieval"><i class="fas fa-search"></i>BM25</span>
+                                </div>
+                            </td>
+                            <td class="method-name">
+                                <div class="expand-icon" data-row="row6" style="display: inline-flex; margin-right: 0.5rem;">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                Query2Doc
+                            </td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">-</span></td>
+                        </tr>
+                        <tr class="expandable-content" id="row6-content" style="display: none;">
+                            <td colspan="13">
+                                <div class="content-tabs">
+                                    <button class="content-tab active" data-tab="row6-tab1">TREC DL 2019</button>
+                                    <button class="content-tab" data-tab="row6-tab2">TREC DL 2020</button>
+                                    <button class="content-tab" data-tab="row6-tab3">DL HARD</button>
+                                </div>
+                                <div class="tab-content">
+                                    <div class="tab-pane active" id="row6-tab1">
+                                        <div class="command-label">Command to reproduce results on TREC DL 2019:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row6-tab1-cmd">Copy</button>
+                                            <pre id="row6-tab1-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.dev \
+  --method query2doc \
+  --model Qwen-32B \
+  --base-url http://192.168.1.8:8000/v1 \
+  --api-key EMPTY \
+  --params '{"mode": "zs"}' \
+  --output-dir runs/query2doc-qwen32b-bm25</code></pre>
+                                        </blockquote>
+                                    </div>
+                                    <div class="tab-pane" id="row6-tab2">
+                                        <div class="command-label">Command to reproduce results on TREC DL 2020:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row6-tab2-cmd">Copy</button>
+                                            <pre id="row6-tab2-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.dev \
+  --method query2doc \
+  --model Qwen-32B \
+  --base-url http://192.168.1.8:8000/v1 \
+  --api-key EMPTY \
+  --params '{"mode": "zs"}' \
+  --output-dir runs/query2doc-qwen32b-bm25</code></pre>
+                                        </blockquote>
+                                    </div>
+                                    <div class="tab-pane" id="row6-tab3">
+                                        <div class="command-label">Command to reproduce results on DL HARD:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row6-tab3-cmd">Copy</button>
+                                            <pre id="row6-tab3-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset dl-hard \
+  --method query2doc \
+  --model Qwen-32B \
+  --base-url http://192.168.1.8:8000/v1 \
+  --api-key EMPTY \
+  --params '{"mode": "zs"}' \
+  --output-dir runs/query2doc-qwen32b-bm25</code></pre>
+                                        </blockquote>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Notes Section -->
+        <div class="notes-section">
+            <h3><i class="fas fa-info-circle me-2"></i>Notes</h3>
+            <ul>
+                <li><strong>AP</strong>: Average Precision (AP@100)</li>
+                <li><strong>nDCG@10</strong>: Normalized Discounted Cumulative Gain at rank 10</li>
+                <li><strong>R@1K</strong>: Recall at rank 1000</li>
+                <li>All results are reproducible using the commands shown in the expanded rows</li>
+                <li>Configuration column shows the LLM and retrieval backend used for all methods in that group</li>
+            </ul>
+        </div>
+
+        <!-- Programmatic Execution Section -->
+        <div class="programmatic-section">
+            <h3><i class="fas fa-code me-2"></i>Programmatic Execution</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                All experimental runs shown in the above table can be programmatically executed using the QueryGym pipeline scripts.
+                The pipeline command runs the complete workflow: reformulation, retrieval, and evaluation.
+            </p>
+            
+            <div class="command-label">Example pipeline command:</div>
+            <blockquote class="mycode">
+                <pre><code>python scripts/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.dev \
+  --method query2doc \
+  --model gpt-4 \
+  --base-url https://api.openai.com/v1 \
+  --api-key YOUR_API_KEY \
+  --output-dir runs/query2doc-gpt4-bm25</code></pre>
+            </blockquote>
+
+            <p style="color: var(--text-secondary); margin-top: 1.5rem;">
+                For more information, see the <a href="scripts/querygym_pyserini/README.md" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">QueryGym Pyserini Pipeline documentation</a>.
+            </p>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Expand/Collapse functionality
+        document.querySelectorAll('.expand-icon').forEach(icon => {
+            icon.addEventListener('click', function() {
+                const rowId = this.getAttribute('data-row');
+                const contentRow = document.getElementById(rowId + '-content');
+                const parentRow = this.closest('tr');
+                
+                if (contentRow.style.display === 'none') {
+                    contentRow.style.display = 'table-row';
+                    parentRow.classList.add('expanded-row');
+                    this.classList.add('expanded');
+                    this.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                } else {
+                    contentRow.style.display = 'none';
+                    parentRow.classList.remove('expanded-row');
+                    this.classList.remove('expanded');
+                    this.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                }
+            });
+        });
+
+        // Tab switching functionality
+        document.querySelectorAll('.content-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                const tabContainer = this.closest('.expandable-content');
+                
+                // Update active tab
+                tabContainer.querySelectorAll('.content-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update active pane
+                const tabContent = tabContainer.querySelector('.tab-content');
+                tabContent.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                tabContent.querySelector('#' + tabId).classList.add('active');
+            });
+        });
+
+        // Copy button functionality
+        document.querySelectorAll('.copy-code-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-copy');
+                const codeElement = document.getElementById(targetId);
+                const text = codeElement.textContent;
+                
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalText = this.textContent;
+                    this.textContent = 'Copied!';
+                    this.style.background = '#10b981';
+                    
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                        this.style.background = '';
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                    this.textContent = 'Error';
+                    setTimeout(() => {
+                        this.textContent = 'Copy';
+                    }, 2000);
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
+
