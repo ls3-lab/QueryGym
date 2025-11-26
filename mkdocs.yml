@@ -1,6 +1,6 @@
-site_name: querygym Documentation
+site_name: QueryGym Documentation
 site_description: LLM-based Query Reformulation Toolkit
-site_author: Radin Hamidi, Amin Bigdeli, Mert Incesu, Negar Arabzadeh
+site_author: Amin Bigdeli, Radin Hamidi Rad, Mert Incesu, Negar Arabzadeh
 site_url: https://querygym.readthedocs.io
 
 repo_name: radinhamidi/QueryGym

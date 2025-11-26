@@ -1,11 +1,14 @@
-# GitHub Pages deployment for standalone HTML pages (leaderboard, etc.)
+# GitHub Pages deployment - Main website with README as homepage
 name: Deploy to GitHub Pages
 
 on:
   push:
     branches: ["main"]
     paths:
+      - 'README.md'
       - 'docs/leaderboard.html'
+      - 'docs/querygym-logo.png'
+      - '_config.yml'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -28,25 +31,29 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Create pages directory
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Install Jekyll
+        run: |
+          gem install jekyll bundler
+
+      - name: Prepare site
         run: |
           mkdir -p _site
+          # Copy leaderboard
           cp docs/leaderboard.html _site/leaderboard.html
-          # Create a simple index that redirects to ReadTheDocs
-          cat > _site/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <title>QueryGym</title>
-            <meta http-equiv="refresh" content="0; url=https://querygym.readthedocs.io/">
-            <link rel="canonical" href="https://querygym.readthedocs.io/">
-          </head>
-          <body>
-            <p>Redirecting to <a href="https://querygym.readthedocs.io/">QueryGym Documentation</a>...</p>
-          </body>
-          </html>
-          EOF
+          # Copy logo for the site
+          cp docs/querygym-logo.png _site/querygym-logo.png 2>/dev/null || true
+
+      - name: Build with Jekyll
+        run: |
+          jekyll build
+        env:
+          JEKYLL_ENV: production
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

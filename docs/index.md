@@ -89,6 +89,8 @@ pip install querygym[dev]
 - [CLI Usage](user-guide/cli.md)
 - [API Reference](api/core.md)
 
+> 📊 **Looking for benchmarks?** Visit the [Leaderboard](https://radinhamidi.github.io/QueryGym/leaderboard.html) on our main site.
+
 ## Citation
 
 If you use QueryGym in your research, please cite:

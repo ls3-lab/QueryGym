@@ -1,0 +1,39 @@
+# Jekyll configuration for GitHub Pages
+title: QueryGym
+description: A lightweight, reproducible toolkit for LLM-based query reformulation
+url: "https://radinhamidi.github.io"
+baseurl: "/QueryGym"
+
+# Theme - Cayman is clean and professional
+remote_theme: pages-themes/cayman@v0.2.0
+plugins:
+  - jekyll-remote-theme
+
+# Exclude files from build
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - .git
+  - .github
+  - tests
+  - querygym
+  - examples
+  - scripts
+  - "*.py"
+  - "*.toml"
+  - Makefile
+  - Dockerfile
+  - Dockerfile.cpu
+  - docker-compose.yml
+  - .dockerignore
+  - .gitignore
+  - requirements*.txt
+  - docs/
+
+# Include specific files
+include:
+  - README.md
+  - index.md
+  - LICENSE

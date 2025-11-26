@@ -9,14 +9,27 @@
   <img src="https://raw.githubusercontent.com/radinhamidi/QueryGym/main/docs/querygym-logo.png" alt="QueryGym Logo" width="600">
 </div>
 
-A lightweight, reproducible toolkit for **LLM-based query reformulation**.
+<p align="center">
+  <strong>A lightweight, reproducible toolkit for LLM-based query reformulation</strong>
+</p>
 
-- Single **Prompt Bank** (YAML) with metadata.
-- **Simple DataLoader**: Dependency-free file loading for queries, qrels, and contexts.
-- **Format Loaders**: Optional BEIR and MS MARCO format loaders in `querygym.loaders`.
-- **OpenAI-compatible** LLM client (works with any OpenAI API–compatible endpoint).
-- **Pyserini** optional: either pass contexts (JSONL) or pass a retriever instance to build contexts.
-- Export-only: emits reformulated queries; optionally generates a **bash** script for Pyserini + `trec_eval`.
+<p align="center">
+  <a href="https://querygym.readthedocs.io/">📚 Documentation</a> •
+  <a href="https://radinhamidi.github.io/QueryGym/leaderboard.html">📊 Leaderboard</a> •
+  <a href="https://pypi.org/project/querygym/">📦 PyPI</a> •
+  <a href="https://arxiv.org/abs/2511.15996">📄 Paper</a>
+</p>
+
+---
+
+## Features
+
+- Single **Prompt Bank** (YAML) with metadata
+- **Simple DataLoader**: Dependency-free file loading for queries, qrels, and contexts
+- **Format Loaders**: Optional BEIR and MS MARCO format loaders in `querygym.loaders`
+- **OpenAI-compatible** LLM client (works with any OpenAI API–compatible endpoint)
+- **Pyserini** optional: either pass contexts (JSONL) or pass a retriever instance to build contexts
+- Export-only: emits reformulated queries; optionally generates a **bash** script for Pyserini + `trec_eval`
 
 ## Installation
 
@@ -100,10 +113,6 @@ import querygym as qg
 queries = qg.loaders.msmarco.load_queries("queries.tsv")
 qrels = qg.loaders.msmarco.load_qrels("qrels.tsv")
 ```
-
-## Leaderboard
-
-📊 **[View the Leaderboard](https://radinhamidi.github.io/QueryGym/leaderboard.html)** - Performance benchmarks across different methods, LLMs, and datasets.
 
 ## Examples
 
