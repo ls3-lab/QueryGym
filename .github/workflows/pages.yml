@@ -10,6 +10,7 @@ on:
       - 'docs/leaderboard.html'
       - 'docs/querygym-logo.png'
       - '_config.yml'
+      - '_layouts/**'
       - 'Gemfile'
       - '.github/workflows/pages.yml'
   workflow_dispatch:

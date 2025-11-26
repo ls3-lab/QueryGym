@@ -4,10 +4,9 @@ description: A lightweight, reproducible toolkit for LLM-based query reformulati
 url: "https://radinhamidi.github.io"
 baseurl: "/QueryGym"
 
-# Theme - Cayman is clean and professional
-remote_theme: pages-themes/cayman@v0.2.0
-plugins:
-  - jekyll-remote-theme
+# Markdown settings
+markdown: kramdown
+highlighter: rouge
 
 # Exclude files from build
 exclude:

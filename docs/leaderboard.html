@@ -26,6 +26,7 @@
             --primary-dark: #1e40af;
             --bg-light: #f8fafc;
             --bg-white: #ffffff;
+            --bg-body: #f0f4f8;
             --text-primary: #1e293b;
             --text-secondary: #64748b;
             --border-color: #e2e8f0;
@@ -33,21 +34,83 @@
             --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --code-bg: #f8fafc;
+            --table-row-hover: #f8fafc;
+            --header-gradient: linear-gradient(to right, #667eea 0%, #764ba2 100%);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #60a5fa;
+            --primary-dark: #3b82f6;
+            --bg-light: #1e293b;
+            --bg-white: #0f172a;
+            --bg-body: #020617;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --border-light: #1e293b;
+            --code-bg: #1e293b;
+            --table-row-hover: #1e293b;
+            --header-gradient: linear-gradient(to right, #4338ca 0%, #6b21a8 100%);
         }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #f0f4f8;
+            background: var(--bg-body);
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .header-section {
-            background: linear-gradient(to right, #667eea 0%, #764ba2 100%);
+            background: var(--header-gradient);
             padding: 3rem 0;
             color: white;
             box-shadow: var(--shadow-lg);
+            position: relative;
+        }
+
+        .header-controls {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .header-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            text-decoration: none;
+        }
+
+        .theme-toggle {
+            padding: 0.5rem;
+            width: 40px;
+            height: 40px;
+            justify-content: center;
+        }
+
+        .theme-toggle i {
+            font-size: 1.1rem;
         }
 
         .header-section h1 {
@@ -99,7 +162,7 @@
         }
 
         .table-header {
-            background: #f8fafc;
+            background: var(--bg-light);
             padding: 1.5rem;
             border-bottom: 2px solid var(--border-color);
         }
@@ -117,7 +180,7 @@
         }
 
         .leaderboard-table thead {
-            background: #f8fafc;
+            background: var(--bg-light);
         }
 
         .leaderboard-table thead th {
@@ -126,8 +189,8 @@
             font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #475569;
-            border-bottom: 2px solid #e2e8f0;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--border-color);
             text-align: center;
             vertical-align: middle;
         }
@@ -135,21 +198,21 @@
         .leaderboard-table thead th.config-col {
             text-align: left;
             width: 1%;
-            background: #f1f5f9;
+            background: var(--border-light);
         }
 
         .leaderboard-table thead th.method-col {
             text-align: left;
             min-width: 160px;
             width: 160px;
-            background: #f1f5f9;
+            background: var(--border-light);
         }
 
         .leaderboard-table thead th.metric-col {
             min-width: 70px;
             width: 70px;
-            background: #f8fafc;
-            color: #475569;
+            background: var(--bg-light);
+            color: var(--text-secondary);
             padding: 1rem 0.5rem;
         }
 
@@ -188,11 +251,11 @@
         }
 
         .leaderboard-table tbody tr:hover {
-            background-color: #f8fafc;
+            background-color: var(--table-row-hover);
         }
 
         .leaderboard-table tbody tr.expanded-row {
-            background-color: #f8fafc;
+            background-color: var(--table-row-hover);
         }
 
         .leaderboard-table tbody td {
@@ -280,7 +343,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #f1f5f9;
+            background: var(--border-light);
             color: var(--text-secondary);
             border-radius: 4px;
             cursor: pointer;
@@ -290,7 +353,7 @@
         }
 
         .expand-icon:hover {
-            background: #e2e8f0;
+            background: var(--border-color);
             color: var(--text-primary);
         }
 
@@ -301,14 +364,14 @@
         }
 
         .expandable-content {
-            background: #f8fafc;
+            background: var(--bg-light);
             border-top: 2px solid var(--border-color);
             padding: 0;
         }
 
         .content-tabs {
             border-bottom: 1px solid var(--border-color);
-            background: white;
+            background: var(--bg-white);
             padding: 0 1.5rem;
             display: flex;
             gap: 0;
@@ -328,18 +391,18 @@
 
         .content-tab:hover {
             color: var(--text-primary);
-            background: #f8fafc;
+            background: var(--bg-light);
         }
 
         .content-tab.active {
             color: var(--primary-color);
             border-bottom-color: var(--primary-color);
-            background: #f8fafc;
+            background: var(--bg-light);
         }
 
         .tab-content {
             padding: 2rem;
-            background: white;
+            background: var(--bg-white);
         }
 
         .tab-pane {
@@ -356,7 +419,7 @@
             margin-top: 1rem;
             margin-bottom: 1rem;
             padding-left: 1.25rem;
-            background: #f8fafc;
+            background: var(--code-bg);
             padding: 1rem 1.25rem;
             border-radius: 4px;
             text-align: left;
@@ -496,6 +559,15 @@
 
     <!-- Header Section -->
     <div class="header-section">
+        <div class="header-controls">
+            <a href="./" class="header-btn">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <button class="header-btn theme-toggle" id="themeToggle" title="Toggle dark mode">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
         <div class="container text-center">
             <h1><i class="fas fa-trophy me-2"></i>QueryGym Leaderboard</h1>
             <p class="subtitle">Query Reformulation Methods Performance Evaluation</p>
@@ -1111,6 +1183,34 @@
                     }, 2000);
                 });
             });
+        });
+
+        // Dark mode toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        
+        // Check for saved theme preference or default to light
+        const savedTheme = localStorage.getItem('querygym-theme') || 'light';
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('querygym-theme', newTheme);
+            
+            if (newTheme === 'dark') {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
         });
     </script>
 

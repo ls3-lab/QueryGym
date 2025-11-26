@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ page.title | default: site.title }}</title>
+    <meta name="description" content="{{ page.description | default: site.description }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+      :root {
+        --primary-color: #667eea;
+        --primary-dark: #764ba2;
+        --bg-body: #ffffff;
+        --bg-code: #f6f8fa;
+        --text-primary: #24292f;
+        --text-secondary: #57606a;
+        --border-color: #d0d7de;
+        --header-gradient: linear-gradient(to right, #667eea 0%, #764ba2 100%);
+        --link-color: #0969da;
+      }
+
+      [data-theme="dark"] {
+        --primary-color: #818cf8;
+        --primary-dark: #a78bfa;
+        --bg-body: #0d1117;
+        --bg-code: #161b22;
+        --text-primary: #c9d1d9;
+        --text-secondary: #8b949e;
+        --border-color: #30363d;
+        --header-gradient: linear-gradient(to right, #4338ca 0%, #6b21a8 100%);
+        --link-color: #58a6ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+        color: var(--text-primary);
+        background-color: var(--bg-body);
+        margin: 0;
+        padding: 0;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      a {
+        color: var(--link-color);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .page-header {
+        background: var(--header-gradient);
+        padding: 2rem 1rem;
+        text-align: center;
+        color: #fff;
+        position: relative;
+      }
+
+      .header-controls {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .header-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 6px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .header-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        text-decoration: none;
+      }
+
+      .project-name {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      .project-tagline {
+        margin: 0.5rem 0 0;
+        opacity: 0.9;
+        font-size: 1.1rem;
+        font-weight: 400;
+      }
+
+      .main-content {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+      }
+
+      .main-content h1,
+      .main-content h2,
+      .main-content h3,
+      .main-content h4,
+      .main-content h5,
+      .main-content h6 {
+        color: var(--text-primary);
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+      }
+
+      .main-content h1 { font-size: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+      .main-content h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3rem; }
+      .main-content h3 { font-size: 1.25rem; }
+
+      .main-content p {
+        margin-bottom: 1rem;
+      }
+
+      .main-content ul,
+      .main-content ol {
+        margin-bottom: 1rem;
+        padding-left: 2rem;
+      }
+
+      .main-content li {
+        margin-bottom: 0.5rem;
+      }
+
+      .main-content code {
+        background: var(--bg-code);
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-size: 0.9em;
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      }
+
+      .main-content pre {
+        background: var(--bg-code);
+        padding: 1rem;
+        border-radius: 6px;
+        overflow-x: auto;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border-color);
+      }
+
+      .main-content pre code {
+        background: transparent;
+        padding: 0;
+      }
+
+      .main-content img {
+        max-width: 100%;
+        height: auto;
+      }
+
+      .main-content blockquote {
+        margin: 1rem 0;
+        padding: 0.5rem 1rem;
+        border-left: 4px solid var(--primary-color);
+        background: var(--bg-code);
+        color: var(--text-secondary);
+      }
+
+      .main-content hr {
+        border: none;
+        border-top: 1px solid var(--border-color);
+        margin: 2rem 0;
+      }
+
+      .main-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+      }
+
+      .main-content th,
+      .main-content td {
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        text-align: left;
+      }
+
+      .main-content th {
+        background: var(--bg-code);
+        font-weight: 600;
+      }
+
+      .site-footer {
+        border-top: 1px solid var(--border-color);
+        margin-top: 2rem;
+        padding: 2rem 1rem;
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+      }
+
+      @media screen and (min-width: 64em) {
+        .page-header {
+          padding: 3rem 2rem;
+        }
+        .project-name {
+          font-size: 2.5rem;
+        }
+        .main-content {
+          padding: 2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="page-header">
+      <div class="header-controls">
+        <button class="header-btn" id="themeToggle" title="Toggle dark mode">
+          <i class="fas fa-moon"></i>
+        </button>
+      </div>
+      <h1 class="project-name">{{ site.title | default: "QueryGym" }}</h1>
+      <h2 class="project-tagline">{{ site.description | default: "A lightweight, reproducible toolkit for LLM-based query reformulation" }}</h2>
+    </header>
+
+    <main class="main-content">
+      {{ content }}
+    </main>
+
+    <footer class="site-footer">
+      <span>QueryGym is maintained by <a href="https://github.com/radinhamidi">radinhamidi</a></span>
+    </footer>
+
+    <script>
+      // Dark mode toggle
+      const themeToggle = document.getElementById('themeToggle');
+      const themeIcon = themeToggle.querySelector('i');
+      
+      // Check for saved theme preference or default to light
+      const savedTheme = localStorage.getItem('querygym-theme') || 'light';
+      if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        themeIcon.classList.remove('fa-moon');
+        themeIcon.classList.add('fa-sun');
+      }
+      
+      themeToggle.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('querygym-theme', newTheme);
+        
+        if (newTheme === 'dark') {
+          themeIcon.classList.remove('fa-moon');
+          themeIcon.classList.add('fa-sun');
+        } else {
+          themeIcon.classList.remove('fa-sun');
+          themeIcon.classList.add('fa-moon');
+        }
+      });
+    </script>
+  </body>
+</html>
