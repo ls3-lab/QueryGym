@@ -19,7 +19,7 @@ This pipeline combines:
 ### **Full Pipeline**
 
 ```bash
-python scripts/querygym_pyserini/pipeline.py \
+python examples/querygym_pyserini/pipeline.py \
   --dataset msmarco-v1-passage.trecdl2019 \
   --method query2doc \
   --model your-model-name \
@@ -31,13 +31,13 @@ python scripts/querygym_pyserini/pipeline.py \
 ### **List Available Datasets**
 
 ```bash
-python scripts/querygym_pyserini/pipeline.py --list-datasets
+python examples/querygym_pyserini/pipeline.py --list-datasets
 ```
 
 ### **Show Dataset Info**
 
 ```bash
-python scripts/querygym_pyserini/pipeline.py \
+python examples/querygym_pyserini/pipeline.py \
   --dataset-info msmarco-v1-passage.trecdl2019
 ```
 
@@ -46,7 +46,7 @@ python scripts/querygym_pyserini/pipeline.py \
 ### **1. Query Reformulation Only**
 
 ```bash
-python scripts/querygym_pyserini/reformulate_queries.py \
+python examples/querygym_pyserini/reformulate_queries.py \
   --dataset msmarco-v1-passage.trecdl2019 \
   --method query2doc \
   --model your-model-name \
@@ -69,7 +69,7 @@ python scripts/querygym_pyserini/reformulate_queries.py \
 ### **2. Document Retrieval Only**
 
 ```bash
-python scripts/querygym_pyserini/retrieve.py \
+python examples/querygym_pyserini/retrieve.py \
   --dataset msmarco-v1-passage.trecdl2019 \
   --queries outputs/dl19_query2doc/queries/reformulated_queries.tsv \
   --output-dir outputs/dl19_query2doc \
@@ -84,7 +84,7 @@ python scripts/querygym_pyserini/retrieve.py \
 ### **3. Evaluation Only**
 
 ```bash
-python scripts/querygym_pyserini/evaluate.py \
+python examples/querygym_pyserini/evaluate.py \
   --dataset msmarco-v1-passage.trecdl2019 \
   --run outputs/dl19_query2doc/runs/run.txt \
   --output-dir outputs/dl19_query2doc
@@ -96,7 +96,7 @@ python scripts/querygym_pyserini/evaluate.py \
 
 ```bash
 # Only reformulation and retrieval
-python scripts/querygym_pyserini/pipeline.py \
+python examples/querygym_pyserini/pipeline.py \
   --dataset beir-v1.0.0-nfcorpus \
   --method query2doc \
   --model your-model-name \
@@ -110,7 +110,7 @@ python scripts/querygym_pyserini/pipeline.py \
 
 ```bash
 # Skip reformulation, run retrieval and evaluation
-python scripts/querygym_pyserini/pipeline.py \
+python examples/querygym_pyserini/pipeline.py \
   --dataset msmarco-v1-passage.trecdl2019 \
   --method query2doc \
   --model your-model-name \
@@ -125,7 +125,7 @@ python scripts/querygym_pyserini/pipeline.py \
 ```bash
 # Test multiple methods on same dataset
 for method in genqr genqr_ensemble query2doc; do
-  python scripts/querygym_pyserini/pipeline.py \
+  python examples/querygym_pyserini/pipeline.py \
     --dataset beir-v1.0.0-nfcorpus \
     --method $method \
     --model your-model-name \
@@ -272,7 +272,7 @@ curl http://your-llm-endpoint/v1/models
 
 ### **Example 1: TREC DL 2019 with Query2Doc**
 ```bash
-python scripts/querygym_pyserini/pipeline.py \
+python examples/querygym_pyserini/pipeline.py \
   --dataset msmarco-v1-passage.trecdl2019 \
   --method query2doc \
   --model your-model-name \
@@ -290,7 +290,7 @@ recall.1000             : 0.8234
 
 ### **Example 2: NFCorpus with Query2Doc**
 ```bash
-python scripts/querygym_pyserini/pipeline.py \
+python examples/querygym_pyserini/pipeline.py \
   --dataset beir-v1.0.0-nfcorpus \
   --method query2doc \
   --model your-model-name \
@@ -312,7 +312,7 @@ API_KEY="your-api-key"
 
 for METHOD in genqr genqr_ensemble query2doc; do
   echo "Running $METHOD..."
-  python scripts/querygym_pyserini/pipeline.py \
+  python examples/querygym_pyserini/pipeline.py \
     --dataset $DATASET \
     --method $METHOD \
     --model $MODEL \

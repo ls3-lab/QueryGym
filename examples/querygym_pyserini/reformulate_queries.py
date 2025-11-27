@@ -6,7 +6,7 @@ This script loads queries from Pyserini topics, reformulates them using QueryGym
 and saves the reformulated queries for retrieval.
 
 Usage:
-    python scripts/querygym_pyserini/reformulate_queries.py \
+    python examples/querygym_pyserini/reformulate_queries.py \
         --dataset msmarco-v1-passage.trecdl2019 \
         --method query2doc \
         --model your-model-name \
@@ -24,7 +24,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parents[2]))
 
 import querygym as qg
-from scripts.querygym_pyserini.utils import (
+from examples.querygym_pyserini.utils import (
     get_dataset_config,
     load_pyserini_topics,
     setup_logging,
@@ -222,13 +222,13 @@ def main():
         epilog="""
 Examples:
   # Basic usage
-  python scripts/querygym_pyserini/reformulate_queries.py \\
+  python examples/querygym_pyserini/reformulate_queries.py \\
       --dataset msmarco-v1-passage.trecdl2019 \\
       --method query2doc \\
       --model your-model-name
 
   # With custom LLM config
-  python scripts/querygym_pyserini/reformulate_queries.py \\
+  python examples/querygym_pyserini/reformulate_queries.py \\
       --dataset beir-v1.0.0-nfcorpus \\
       --method query2doc \\
       --model your-model-name \\
@@ -236,7 +236,7 @@ Examples:
       --max-tokens 256
 
   # List available datasets
-  python scripts/querygym_pyserini/reformulate_queries.py --list-datasets
+  python examples/querygym_pyserini/reformulate_queries.py --list-datasets
         """
     )
     
@@ -316,7 +316,7 @@ Examples:
     
     # Handle --list-datasets
     if args.list_datasets:
-        from scripts.querygym_pyserini.utils import list_available_datasets
+        from examples.querygym_pyserini.utils import list_available_datasets
         datasets = list_available_datasets(args.registry_path)
         print("\nAvailable datasets:")
         print("="*60)

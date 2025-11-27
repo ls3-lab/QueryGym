@@ -9,7 +9,7 @@ This script orchestrates the complete pipeline:
 4. Evaluate results using trec_eval
 
 Usage:
-    python scripts/querygym_pyserini/pipeline.py \
+    python examples/querygym_pyserini/pipeline.py \
         --dataset msmarco-v1-passage.trecdl2019 \
         --method query2doc \
         --model your-model-name \
@@ -26,16 +26,16 @@ import sys
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parents[2]))
 
-from scripts.querygym_pyserini.utils import (
+from examples.querygym_pyserini.utils import (
     setup_logging,
     format_time,
     print_dataset_info,
     list_available_datasets,
     save_config
 )
-from scripts.querygym_pyserini import reformulate_queries
-from scripts.querygym_pyserini import retrieve
-from scripts.querygym_pyserini import evaluate
+from examples.querygym_pyserini import reformulate_queries
+from examples.querygym_pyserini import retrieve
+from examples.querygym_pyserini import evaluate
 
 
 def run_pipeline(
@@ -239,14 +239,14 @@ def main():
         epilog="""
 Examples:
   # Full pipeline
-  python scripts/querygym_pyserini/pipeline.py \\
+  python examples/querygym_pyserini/pipeline.py \\
       --dataset msmarco-v1-passage.trecdl2019 \\
       --method query2doc \\
       --model your-model-name \\
       --output-dir outputs/dl19_query2doc
 
   # Only reformulation and retrieval
-  python scripts/querygym_pyserini/pipeline.py \\
+  python examples/querygym_pyserini/pipeline.py \\
       --dataset beir-v1.0.0-nfcorpus \\
       --method query2doc \\
       --model your-model-name \\
@@ -254,7 +254,7 @@ Examples:
       --output-dir outputs/nfcorpus_q2d
 
   # Resume from retrieval (queries already reformulated)
-  python scripts/querygym_pyserini/pipeline.py \\
+  python examples/querygym_pyserini/pipeline.py \\
       --dataset msmarco-v1-passage.trecdl2019 \\
       --method query2doc \\
       --model your-model-name \\
@@ -262,7 +262,7 @@ Examples:
       --output-dir outputs/dl19_query2doc
 
   # List available datasets
-  python scripts/querygym_pyserini/pipeline.py --list-datasets
+  python examples/querygym_pyserini/pipeline.py --list-datasets
         """
     )
     

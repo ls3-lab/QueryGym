@@ -6,7 +6,7 @@ This script performs document retrieval using Pyserini with BM25,
 using reformulated queries and dataset configurations from the registry.
 
 Usage:
-    python scripts/querygym_pyserini/retrieve.py \
+    python examples/querygym_pyserini/retrieve.py \
         --dataset msmarco-v1-passage.trecdl2019 \
         --queries outputs/dl19_genqr/queries/reformulated_queries.tsv \
         --output-dir outputs/dl19_genqr
@@ -23,7 +23,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parents[2]))
 
 import querygym as qg
-from scripts.querygym_pyserini.utils import (
+from examples.querygym_pyserini.utils import (
     get_dataset_config,
     setup_logging,
     create_output_dirs,
@@ -199,13 +199,13 @@ def main():
         epilog="""
 Examples:
   # Basic usage
-  python scripts/querygym_pyserini/retrieve.py \\
+  python examples/querygym_pyserini/retrieve.py \\
       --dataset msmarco-v1-passage.trecdl2019 \\
       --queries outputs/dl19_genqr/queries/reformulated_queries.tsv \\
       --output-dir outputs/dl19_genqr
 
   # Custom top-k and threads
-  python scripts/querygym_pyserini/retrieve.py \\
+  python examples/querygym_pyserini/retrieve.py \\
       --dataset beir-v1.0.0-nfcorpus \\
       --queries outputs/nfcorpus_genqr/queries/reformulated_queries.tsv \\
       --output-dir outputs/nfcorpus_genqr \\

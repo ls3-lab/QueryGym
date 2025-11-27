@@ -6,7 +6,7 @@ This script evaluates retrieval results using Pyserini's evaluation tools
 with qrels and metrics automatically loaded from the dataset registry.
 
 Usage:
-    python scripts/querygym_pyserini/evaluate.py \
+    python examples/querygym_pyserini/evaluate.py \
         --dataset msmarco-v1-passage.trecdl2019 \
         --run outputs/dl19_genqr/runs/run.txt \
         --output-dir outputs/dl19_genqr
@@ -24,7 +24,7 @@ import re
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parents[2]))
 
-from scripts.querygym_pyserini.utils import (
+from examples.querygym_pyserini.utils import (
     get_dataset_config,
     setup_logging,
     create_output_dirs,
@@ -266,13 +266,13 @@ def main():
         epilog="""
 Examples:
   # Basic usage
-  python scripts/querygym_pyserini/evaluate.py \\
+  python examples/querygym_pyserini/evaluate.py \\
       --dataset msmarco-v1-passage.trecdl2019 \\
       --run outputs/dl19_genqr/runs/run.txt \\
       --output-dir outputs/dl19_genqr
 
   # BEIR dataset
-  python scripts/querygym_pyserini/evaluate.py \\
+  python examples/querygym_pyserini/evaluate.py \\
       --dataset beir-v1.0.0-nfcorpus \\
       --run outputs/nfcorpus_genqr/runs/run.txt \\
       --output-dir outputs/nfcorpus_genqr
