@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Docker support with pre-built images on GitHub Container Registry (GHCR)
-  - GPU-enabled image (`ghcr.io/radinhamidi/querygym:latest`)
-  - CPU-only image (`ghcr.io/radinhamidi/querygym:cpu`)
+  - GPU-enabled image (`ghcr.io/ls3-lab/querygym:latest`)
+  - CPU-only image (`ghcr.io/ls3-lab/querygym:cpu`)
   - Multi-platform support (linux/amd64, linux/arm64 for CPU)
 - Docker Compose configuration for easy setup
 - Comprehensive Docker documentation and examples
@@ -100,8 +100,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Export to TSV/JSONL formats
 - Script generation for Pyserini + trec_eval
 
-[Unreleased]: https://github.com/radinhamidi/QueryGym/compare/v0.1.3...HEAD
-[0.1.3]: https://github.com/radinhamidi/QueryGym/compare/v0.1.2...v0.1.3
-[0.1.2]: https://github.com/radinhamidi/QueryGym/compare/v0.1.1...v0.1.2
-[0.1.1]: https://github.com/radinhamidi/QueryGym/compare/v0.1.0...v0.1.1
-[0.1.0]: https://github.com/radinhamidi/QueryGym/releases/tag/v0.1.0
+[Unreleased]: https://github.com/ls3-lab/QueryGym/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/ls3-lab/QueryGym/compare/v0.1.2...v0.1.3
+[0.1.2]: https://github.com/ls3-lab/QueryGym/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/ls3-lab/QueryGym/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/ls3-lab/QueryGym/releases/tag/v0.1.0

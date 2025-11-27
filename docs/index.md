@@ -7,8 +7,8 @@
 A lightweight, reproducible toolkit for **LLM-based query reformulation**.
 
 
-[![Publish to PyPI](https://github.com/radinhamidi/QueryGym/actions/workflows/publish.yml/badge.svg)](https://github.com/radinhamidi/QueryGym/actions/workflows/publish.yml)
-[![Build and Push Docker Images](https://github.com/radinhamidi/QueryGym/actions/workflows/docker.yml/badge.svg)](https://github.com/radinhamidi/QueryGym/actions/workflows/docker.yml)
+[![Publish to PyPI](https://github.com/ls3-lab/QueryGym/actions/workflows/publish.yml/badge.svg)](https://github.com/ls3-lab/QueryGym/actions/workflows/publish.yml)
+[![Build and Push Docker Images](https://github.com/ls3-lab/QueryGym/actions/workflows/docker.yml/badge.svg)](https://github.com/ls3-lab/QueryGym/actions/workflows/docker.yml)
 [![PyPI version](https://badge.fury.io/py/querygym.svg)](https://pypi.org/project/querygym/)
 ![PyPI - Downloads](https://img.shields.io/pypi/dw/querygym?color=blueviolet&label=downloads)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
@@ -55,7 +55,7 @@ pip install querygym
 ### Use Docker (Quick Start)
 ```bash
 # Pull pre-built image
-docker pull ghcr.io/radinhamidi/querygym:latest
+docker pull ghcr.io/ls3-lab/querygym:latest
 
 # Run with Docker Compose
 docker compose run --rm querygym
@@ -89,7 +89,7 @@ pip install querygym[dev]
 - [CLI Usage](user-guide/cli.md)
 - [API Reference](api/core.md)
 
-> 📊 **Looking for benchmarks?** Visit the [Leaderboard](https://radinhamidi.github.io/QueryGym/leaderboard.html) on our main site.
+> 📊 **Looking for benchmarks?** Visit the [Leaderboard](https://ls3-lab.github.io/QueryGym/leaderboard.html) on our main site.
 
 ## Citation
 

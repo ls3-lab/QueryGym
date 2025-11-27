@@ -32,7 +32,7 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 ### Reporting Bugs
 
-- Check if the issue already exists in [GitHub Issues](https://github.com/radinhamidi/QueryGym/issues)
+- Check if the issue already exists in [GitHub Issues](https://github.com/ls3-lab/QueryGym/issues)
 - If not, create a new issue using the **Bug Report** template
 - Include as much detail as possible: steps to reproduce, expected vs actual behavior, environment info
 
@@ -160,7 +160,7 @@ make test
 
 ## Questions?
 
-- Open a [Discussion](https://github.com/radinhamidi/QueryGym/discussions) for general questions
+- Open a [Discussion](https://github.com/ls3-lab/QueryGym/discussions) for general questions
 - Check existing issues and discussions first
 - Join our community!
 

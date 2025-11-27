@@ -18,7 +18,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-See the full license text in the [LICENSE](https://github.com/radinhamidi/QueryGym/blob/main/LICENSE) file.
+See the full license text in the [LICENSE](https://github.com/ls3-lab/QueryGym/blob/main/LICENSE) file.
 
 ## Third-Party Licenses
 

@@ -3,8 +3,8 @@ site_description: LLM-based Query Reformulation Toolkit
 site_author: Amin Bigdeli, Radin Hamidi Rad, Mert Incesu, Negar Arabzadeh
 site_url: https://querygym.readthedocs.io
 
-repo_name: radinhamidi/QueryGym
-repo_url: https://github.com/radinhamidi/QueryGym
+repo_name: ls3-lab/QueryGym
+repo_url: https://github.com/ls3-lab/QueryGym
 edit_uri: edit/main/docs/
 
 theme:
@@ -97,7 +97,7 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/radinhamidi/QueryGym
+      link: https://github.com/ls3-lab/QueryGym
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/querygym/
 

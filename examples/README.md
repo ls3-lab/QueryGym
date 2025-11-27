@@ -89,7 +89,7 @@ cd querygym_pyserini/
 - **Documentation:** [https://querygym.readthedocs.io](https://querygym.readthedocs.io/)
 - **Docker Setup:** [DOCKER_SETUP.md](../../DOCKER_SETUP.md) in the root directory
 - **API Reference:** [https://querygym.readthedocs.io/en/latest/api/core/](https://querygym.readthedocs.io/en/latest/api/core/)
-- **GitHub:** [https://github.com/radinhamidi/QueryGym](https://github.com/radinhamidi/QueryGym)
+- **GitHub:** [https://github.com/ls3-lab/QueryGym](https://github.com/ls3-lab/QueryGym)
 
 ## 💡 Tips
 
@@ -111,5 +111,5 @@ See the [Contributing section](../README.md#contributing) in the main README for
 ## ❓ Need Help?
 
 - Check the [documentation](https://querygym.readthedocs.io/)
-- Open an [issue](https://github.com/radinhamidi/QueryGym/issues)
+- Open an [issue](https://github.com/ls3-lab/QueryGym/issues)
 - Join discussions on GitHub

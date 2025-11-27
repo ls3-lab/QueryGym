@@ -1,5 +1,5 @@
-[![Publish to PyPI](https://github.com/radinhamidi/QueryGym/actions/workflows/publish.yml/badge.svg)](https://github.com/radinhamidi/QueryGym/actions/workflows/publish.yml)
-[![Build and Push Docker Images](https://github.com/radinhamidi/QueryGym/actions/workflows/docker.yml/badge.svg)](https://github.com/radinhamidi/QueryGym/actions/workflows/docker.yml)
+[![Publish to PyPI](https://github.com/ls3-lab/QueryGym/actions/workflows/publish.yml/badge.svg)](https://github.com/ls3-lab/QueryGym/actions/workflows/publish.yml)
+[![Build and Push Docker Images](https://github.com/ls3-lab/QueryGym/actions/workflows/docker.yml/badge.svg)](https://github.com/ls3-lab/QueryGym/actions/workflows/docker.yml)
 [![PyPI version](https://badge.fury.io/py/querygym.svg)](https://pypi.org/project/querygym/)
 ![PyPI - Downloads](https://img.shields.io/pypi/dw/querygym?color=blueviolet&label=downloads)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
@@ -7,7 +7,7 @@
 
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/radinhamidi/QueryGym/main/docs/querygym-logo.png" alt="QueryGym Logo" width="600">
+  <img src="https://raw.githubusercontent.com/ls3-lab/QueryGym/main/docs/querygym-logo.png" alt="QueryGym Logo" width="600">
 </div>
 
 <p align="center">
@@ -16,7 +16,7 @@
 
 <p align="center">
   <a href="https://querygym.readthedocs.io/">📚 Documentation</a> •
-  <a href="https://radinhamidi.github.io/QueryGym/leaderboard.html">📊 Leaderboard</a> •
+  <a href="https://ls3-lab.github.io/QueryGym/leaderboard.html">📊 Leaderboard</a> •
   <a href="https://pypi.org/project/querygym/">📦 PyPI</a> •
   <a href="https://arxiv.org/abs/2511.15996">📄 Paper</a>
 </p>
@@ -42,12 +42,12 @@ pip install querygym
 ### Option 2: Use Docker (Recommended for Quick Start)
 ```bash
 # GPU version (default)
-docker pull ghcr.io/radinhamidi/querygym:latest
-docker run -it --gpus all ghcr.io/radinhamidi/querygym:latest
+docker pull ghcr.io/ls3-lab/querygym:latest
+docker run -it --gpus all ghcr.io/ls3-lab/querygym:latest
 
 # CPU version (lightweight)
-docker pull ghcr.io/radinhamidi/querygym:cpu
-docker run -it ghcr.io/radinhamidi/querygym:cpu
+docker pull ghcr.io/ls3-lab/querygym:cpu
+docker run -it ghcr.io/ls3-lab/querygym:cpu
 
 # Or use Docker Compose
 docker compose run --rm querygym
@@ -138,7 +138,7 @@ We welcome contributions! Here's how you can help:
 3. Pull templates via `PromptBank.render(prompt_id, query=...)`
 
 ### Reporting Issues
-- Found a bug? [Open an issue](https://github.com/radinhamidi/QueryGym/issues)
+- Found a bug? [Open an issue](https://github.com/ls3-lab/QueryGym/issues)
 - Have a feature request? We'd love to hear it!
 
 For detailed development guidelines, see the [Contributing Guide](https://querygym.readthedocs.io/en/latest/development/contributing/) in our documentation.

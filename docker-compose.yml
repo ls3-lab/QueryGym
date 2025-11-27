@@ -6,7 +6,7 @@ version: '3.8'
 services:
   # GPU-enabled version (default)
   querygym:
-    image: ghcr.io/radinhamidi/querygym:latest
+    image: ghcr.io/ls3-lab/querygym:latest
     container_name: querygym
     deploy:
       resources:
@@ -31,7 +31,7 @@ services:
 
   # CPU-only version (lightweight) - Uncomment if you don't have GPU
   # querygym-cpu:
-  #   image: ghcr.io/radinhamidi/querygym:cpu
+  #   image: ghcr.io/ls3-lab/querygym:cpu
   #   container_name: querygym-cpu
   #   environment:
   #     - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -48,7 +48,7 @@ services:
 
   # Jupyter notebook server (GPU-enabled)
   jupyter:
-    image: ghcr.io/radinhamidi/querygym:latest
+    image: ghcr.io/ls3-lab/querygym:latest
     container_name: querygym-jupyter
     deploy:
       resources:

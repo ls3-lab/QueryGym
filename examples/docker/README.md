@@ -122,7 +122,7 @@ The compose file mounts these directories:
 
 - [Full Docker Guide](https://querygym.readthedocs.io/en/latest/user-guide/docker/)
 - [QueryGym Documentation](https://querygym.readthedocs.io/)
-- [GitHub Repository](https://github.com/radinhamidi/QueryGym)
+- [GitHub Repository](https://github.com/ls3-lab/QueryGym)
 
 ## 🐛 Troubleshooting
 

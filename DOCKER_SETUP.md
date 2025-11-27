@@ -8,7 +8,7 @@
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/radinhamidi/QueryGym.git
+git clone https://github.com/ls3-lab/QueryGym.git
 cd QueryGym
 
 # 2. Set your API key
@@ -24,8 +24,8 @@ docker compose up jupyter
 ### Option 2: Direct Docker Run
 
 ```bash
-docker pull ghcr.io/radinhamidi/querygym:latest
-docker run -it --rm --gpus all ghcr.io/radinhamidi/querygym:latest
+docker pull ghcr.io/ls3-lab/querygym:latest
+docker run -it --rm --gpus all ghcr.io/ls3-lab/querygym:latest
 ```
 
 See the [full Docker guide](https://querygym.readthedocs.io/en/latest/user-guide/docker/) for more examples.
@@ -67,7 +67,7 @@ The `Makefile` is for **local development only**. End users should use pre-built
 
 ## Images
 
-- **GPU (default):** `ghcr.io/radinhamidi/querygym:latest`
-- **CPU (lightweight):** `ghcr.io/radinhamidi/querygym:cpu`
+- **GPU (default):** `ghcr.io/ls3-lab/querygym:latest`
+- **CPU (lightweight):** `ghcr.io/ls3-lab/querygym:cpu`
 
 Images are automatically built and published on every release.

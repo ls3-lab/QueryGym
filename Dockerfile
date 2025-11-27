@@ -8,7 +8,7 @@ FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
 
 LABEL maintainer="querygym team <radin.h@gmail.com>"
 LABEL description="querygym: LLM-based Query Reformulation Toolkit with GPU support"
-LABEL org.opencontainers.image.source="https://github.com/radinhamidi/QueryGym"
+LABEL org.opencontainers.image.source="https://github.com/ls3-lab/QueryGym"
 
 # Install Python and system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \

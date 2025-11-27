@@ -36,7 +36,7 @@ FROM python:3.10-slim
 
 LABEL maintainer="querygym team <radin.h@gmail.com>"
 LABEL description="querygym CPU: LLM-based Query Reformulation Toolkit (CPU-only)"
-LABEL org.opencontainers.image.source="https://github.com/radinhamidi/QueryGym"
+LABEL org.opencontainers.image.source="https://github.com/ls3-lab/QueryGym"
 
 # Install runtime dependencies (Java for PySerini)
 RUN apt-get update && apt-get install -y --no-install-recommends \

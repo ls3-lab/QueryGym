@@ -59,7 +59,7 @@ For contributing to querygym:
 
 ```bash
 # Clone the repository
-git clone https://github.com/radinhamidi/QueryGym.git
+git clone https://github.com/ls3-lab/QueryGym.git
 cd QueryGym
 
 # Install in editable mode with dev dependencies

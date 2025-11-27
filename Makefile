@@ -4,7 +4,7 @@
 # This is for developers/contributors who need to build images locally
 # 
 # End users should use pre-built images:
-#   docker pull ghcr.io/radinhamidi/querygym:latest
+#   docker pull ghcr.io/ls3-lab/querygym:latest
 #   docker-compose up
 
 # Default target

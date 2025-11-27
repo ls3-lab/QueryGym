@@ -1,7 +1,7 @@
 # Jekyll configuration for GitHub Pages
 title: QueryGym
 description: A lightweight, reproducible toolkit for LLM-based query reformulation
-url: "https://radinhamidi.github.io"
+url: "https://ls3-lab.github.io"
 baseurl: "/QueryGym"
 
 # Markdown settings

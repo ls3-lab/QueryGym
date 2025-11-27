@@ -12,11 +12,11 @@ Pre-built container images are available on GitHub Container Registry. No buildi
 
 ## 📦 Available Images
 
-All images are published to GitHub Container Registry: `ghcr.io/radinhamidi/querygym`
+All images are published to GitHub Container Registry: `ghcr.io/ls3-lab/querygym`
 
 ### GPU-Enabled Image (Default - Recommended)
 ```bash
-docker pull ghcr.io/radinhamidi/querygym:latest
+docker pull ghcr.io/ls3-lab/querygym:latest
 ```
 - **Size:** ~6 GB
 - **Base:** NVIDIA CUDA 12.1 on Ubuntu 22.04
@@ -26,7 +26,7 @@ docker pull ghcr.io/radinhamidi/querygym:latest
 
 ### CPU-Only Image (Lightweight Alternative)
 ```bash
-docker pull ghcr.io/radinhamidi/querygym:cpu
+docker pull ghcr.io/ls3-lab/querygym:cpu
 ```
 - **Size:** ~2.5 GB
 - **Base:** Python 3.10 on Debian Slim
@@ -40,7 +40,7 @@ docker pull ghcr.io/radinhamidi/querygym:cpu
 
 ```bash
 # Pull the image
-docker pull ghcr.io/radinhamidi/querygym:latest
+docker pull ghcr.io/ls3-lab/querygym:latest
 
 # Run interactive shell
 docker run -it --rm \
@@ -48,7 +48,7 @@ docker run -it --rm \
   -v $(pwd)/data:/workspace/data \
   -v $(pwd)/outputs:/workspace/outputs \
   -e OPENAI_API_KEY=$OPENAI_API_KEY \
-  ghcr.io/radinhamidi/querygym:latest
+  ghcr.io/ls3-lab/querygym:latest
 
 # Or start Jupyter notebook
 docker run -it --rm \
@@ -57,7 +57,7 @@ docker run -it --rm \
   -v $(pwd)/data:/workspace/data \
   -v $(pwd)/notebooks:/workspace/notebooks \
   -e OPENAI_API_KEY=$OPENAI_API_KEY \
-  ghcr.io/radinhamidi/querygym:latest \
+  ghcr.io/ls3-lab/querygym:latest \
   jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=''
 # Open http://localhost:8888
 ```
@@ -66,14 +66,14 @@ docker run -it --rm \
 
 ```bash
 # Pull the image
-docker pull ghcr.io/radinhamidi/querygym:cpu
+docker pull ghcr.io/ls3-lab/querygym:cpu
 
 # Run interactive shell (no --gpus flag needed)
 docker run -it --rm \
   -v $(pwd)/data:/workspace/data \
   -v $(pwd)/outputs:/workspace/outputs \
   -e OPENAI_API_KEY=$OPENAI_API_KEY \
-  ghcr.io/radinhamidi/querygym:cpu
+  ghcr.io/ls3-lab/querygym:cpu
 ```
 
 ## 📁 Directory Structure
@@ -120,7 +120,7 @@ docker run -it --rm \
   -v $(pwd)/outputs:/workspace/outputs \
   -v $(pwd)/my_experiment.py:/workspace/my_experiment.py \
   -e OPENAI_API_KEY=$OPENAI_API_KEY \
-  ghcr.io/radinhamidi/querygym:latest \
+  ghcr.io/ls3-lab/querygym:latest \
   python my_experiment.py
 ```
 
@@ -133,7 +133,7 @@ docker run -it --rm \
   -v $(pwd)/data:/workspace/data \
   -v $(pwd)/outputs:/workspace/outputs \
   -e OPENAI_API_KEY=$OPENAI_API_KEY \
-  ghcr.io/radinhamidi/querygym:latest
+  ghcr.io/ls3-lab/querygym:latest
 
 # Inside container
 python
@@ -151,7 +151,7 @@ docker run -it --rm \
   --gpus all \
   -v $(pwd)/data:/workspace/data \
   -v $(pwd)/indexes:/workspace/indexes \
-  ghcr.io/radinhamidi/querygym:latest
+  ghcr.io/ls3-lab/querygym:latest
 
 # Inside container
 python -c "
@@ -173,7 +173,7 @@ docker run -it --rm \
   -v $(pwd)/notebooks:/workspace/notebooks \
   -v $(pwd)/data:/workspace/data \
   -e OPENAI_API_KEY=$OPENAI_API_KEY \
-  ghcr.io/radinhamidi/querygym:latest \
+  ghcr.io/ls3-lab/querygym:latest \
   jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=''
 
 # Open http://localhost:8888 in your browser
@@ -185,7 +185,7 @@ docker run -it --rm \
 # Run with GPU support
 docker run -it --rm \
   --gpus all \
-  ghcr.io/radinhamidi/querygym:latest \
+  ghcr.io/ls3-lab/querygym:latest \
   python -c "
 import torch
 print(f'CUDA available: {torch.cuda.is_available()}')
@@ -204,8 +204,8 @@ Images are automatically built and published when:
 
 You can always get the latest version:
 ```bash
-docker pull ghcr.io/radinhamidi/querygym:latest
-docker pull ghcr.io/radinhamidi/querygym:cpu
+docker pull ghcr.io/ls3-lab/querygym:latest
+docker pull ghcr.io/ls3-lab/querygym:cpu
 ```
 
 ## 🔧 Environment Variables
