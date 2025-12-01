@@ -85,7 +85,7 @@ class BaseReformulator:
     
     # Concatenation strategy configuration
     CONCATENATION_STRATEGY = "query_repeat_plus_generated"  # Default strategy
-    DEFAULT_QUERY_REPEATS = 3  # Default number of query repetitions
+    DEFAULT_QUERY_REPEATS = 5  # Default number of query repetitions
 
     def __init__(self, cfg: MethodConfig, llm_client, prompt_resolver):
         """Initialize the reformulator.

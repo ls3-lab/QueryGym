@@ -38,6 +38,7 @@ class Query2Doc(BaseReformulator):
     """
     VERSION = "1.0"
     CONCATENATION_STRATEGY = "query_repeat_plus_generated"
+    DEFAULT_QUERY_REPEATS = 5
     
     def __init__(self, cfg, llm_client, prompt_resolver):
         super().__init__(cfg, llm_client, prompt_resolver)
