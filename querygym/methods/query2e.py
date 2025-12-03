@@ -13,11 +13,16 @@ class Query2E(BaseReformulator):
     
     Modes:
         - zs (zero-shot): Simple keyword generation
-        - fs (few-shot): Uses dynamic training examples for keyword generation
+        - fs (few-shot): Uses training examples for keyword generation
     
     Formula: (query × 5) + keywords
     
-    Few-Shot Config (via params or env vars):
+    Few-Shot Examples (3 ways to provide):
+        1. Via --ctx-jsonl CLI flag (JSONL file with {"query": "...", "passage": "..."} per line)
+        2. Via params["examples"] (list of {"query": "...", "passage": "..."} dicts)
+        3. Auto-generate from training data (if no examples provided)
+    
+    Few-Shot Auto-Generation Config (via params or env vars):
         - dataset_type: "msmarco", "beir", or "generic" (uses appropriate loader)
         - num_examples: Number of few-shot examples (default: 4)
         
@@ -44,6 +49,8 @@ class Query2E(BaseReformulator):
     def __init__(self, cfg, llm_client, prompt_resolver):
         super().__init__(cfg, llm_client, prompt_resolver)
         self._fewshot_data = None
+        # User-provided examples (set via set_examples() or params["examples"])
+        self._provided_examples = cfg.params.get("examples", None)
     
     def _load_fewshot_data(self):
         """Lazy load training data for few-shot mode (supports MS MARCO, BEIR, or generic datasets)."""
@@ -215,6 +222,94 @@ class Query2E(BaseReformulator):
         
         return examples_text
 
+    def _parse_keywords(self, raw_output: str) -> List[str]:
+        """
+        Parse keywords from LLM output, handling various formats:
+        - Comma-separated: "keyword1, keyword2, keyword3"
+        - Bullet points: "- keyword1\n- keyword2"
+        - Numbered lists: "1. keyword1\n2. keyword2"
+        - Mixed formats
+        
+        Returns:
+            List of cleaned keyword strings
+        """
+        import re
+        
+        if not raw_output or not raw_output.strip():
+            return []
+        
+        # Normalize the text
+        text = raw_output.strip()
+        
+        # Remove common prefixes like "Keywords:", "Here are the keywords:", etc.
+        text = re.sub(r'^(keywords|here are|the keywords|list of keywords)[:\s]*', '', text, flags=re.IGNORECASE)
+        
+        keywords = []
+        
+        # Check if it's a bullet/numbered list format
+        if '\n' in text or text.strip().startswith('-') or re.match(r'^\d+\.', text.strip()):
+            # Split by newlines
+            lines = text.split('\n')
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                
+                # Remove bullet points: -, *, •, ▪, etc.
+                line = re.sub(r'^[\-\*•▪→►]\s*', '', line)
+                
+                # Remove numbered prefixes: 1., 1), (1), etc.
+                line = re.sub(r'^[\(\[]?\d+[\)\]\.:\-]?\s*', '', line)
+                
+                # If line contains commas, it might be multiple keywords
+                if ',' in line:
+                    for part in line.split(','):
+                        part = part.strip()
+                        if part:
+                            keywords.append(part)
+                elif line:
+                    keywords.append(line)
+        else:
+            # Assume comma-separated format
+            for part in text.split(','):
+                part = part.strip()
+                if part:
+                    keywords.append(part)
+        
+        # Clean each keyword
+        cleaned_keywords = []
+        for kw in keywords:
+            # Remove quotes
+            kw = kw.strip('"\'`')
+            # Remove trailing punctuation
+            kw = kw.rstrip('.,;:!?')
+            # Remove leading/trailing whitespace
+            kw = kw.strip()
+            # Skip empty or very short keywords
+            if kw and len(kw) > 1:
+                cleaned_keywords.append(kw)
+        
+        return cleaned_keywords
+
+    def set_examples(self, examples: List[Tuple[str, str]]) -> None:
+        """
+        Set user-provided examples for few-shot mode.
+        
+        Args:
+            examples: List of (query, passage) tuples or list of dicts with 'query' and 'passage' keys
+            
+        Example:
+            >>> reformulator.set_examples([
+            ...     ("how long is flea life cycle?", "The life cycle of a flea..."),
+            ...     ("cost of flooring?", "The cost of interior concrete..."),
+            ... ])
+        """
+        # Convert dict format to tuple format if needed
+        if examples and isinstance(examples[0], dict):
+            self._provided_examples = [(ex["query"], ex["passage"]) for ex in examples]
+        else:
+            self._provided_examples = examples
+
     def reformulate(self, q: QueryItem, contexts=None) -> ReformulationResult:
         # Get mode parameter
         mode = str(self.cfg.params.get("mode", "zs"))  # Default to zero-shot
@@ -226,9 +321,24 @@ class Query2E(BaseReformulator):
         try:
             # Select prompt based on mode
             if mode in ["fs", "fewshot"]:
-                # Few-shot: dynamic training examples
+                # Few-shot: use provided examples or auto-generate from training data
                 num_examples = int(self.cfg.params.get("num_examples", 4))
-                examples = self._select_few_shot_examples(num_examples)
+                
+                if self._provided_examples:
+                    # Use user-provided examples
+                    # Convert dict format to tuple format if needed
+                    if isinstance(self._provided_examples[0], dict):
+                        examples = [(ex["query"], ex["passage"]) for ex in self._provided_examples]
+                    else:
+                        examples = self._provided_examples
+                    # Limit to num_examples if more provided
+                    examples = examples[:num_examples]
+                    metadata["examples_source"] = "provided"
+                else:
+                    # Auto-generate from training data (original behavior)
+                    examples = self._select_few_shot_examples(num_examples)
+                    metadata["examples_source"] = "auto_generated"
+                
                 examples_text = self._format_examples(examples)
                 
                 msgs = self.prompts.render("q2e.fs.v1", query=q.text, examples=examples_text)
@@ -243,7 +353,9 @@ class Query2E(BaseReformulator):
             
             # Generate keywords
             out = self.llm.chat(msgs, temperature=temperature, max_tokens=max_tokens)
-            terms = [t.strip() for t in out.replace("\n", " ").split(",") if t.strip()]
+            
+            # Parse keywords using robust parser
+            terms = self._parse_keywords(out)
             
             # Limit to max 20 keywords
             max_keywords = int(self.cfg.params.get("max_keywords", 20))

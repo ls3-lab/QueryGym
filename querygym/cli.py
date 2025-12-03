@@ -96,15 +96,34 @@ def run(method: str = typer.Option(...),
     if num_examples is not None:
         params["num_examples"] = num_examples
     
+    # Handle context/examples loading based on method
+    ctx_map = None
+    if ctx_jsonl:
+        if method == "query2e":
+            # For Q2E: load as examples (query-passage pairs)
+            # Auto-set mode to "fs" if not explicitly set to "zs"
+            if mode not in ["zs", "zeroshot"]:
+                from .data.dataloader import DataLoader
+                examples = DataLoader.load_examples(ctx_jsonl)
+                params["examples"] = examples
+                # Auto-set mode to fs if not already set
+                if mode is None:
+                    params["mode"] = "fs"
+                    typer.echo(f"Auto-setting mode to 'fs' (few-shot) since examples provided")
+                typer.echo(f"Loaded {len(examples)} few-shot examples from {ctx_jsonl}")
+            else:
+                typer.echo(f"Warning: --ctx-jsonl ignored for Q2E in zero-shot mode")
+        else:
+            # For other methods (LameR, CSQE): load as per-query contexts
+            from .data.dataloader import UnifiedContextSource
+            ctx_src = UnifiedContextSource(mode="file", path=ctx_jsonl)
+            ctx_map = ctx_src.load(list(UnifiedQuerySource(backend="local", format="tsv", path=queries_tsv).iter()))
+    
     mc = MethodConfig(name=method, params=params, llm=cfg["llm"],
                       seed=cfg.get("seed",42), retries=cfg.get("retries",2))
     src = UnifiedQuerySource(backend="local", format="tsv", path=queries_tsv)
     queries = list(src.iter())
-    ctx_map = None
-    if ctx_jsonl:
-        from .data.dataloader import UnifiedContextSource
-        ctx_src = UnifiedContextSource(mode="file", path=ctx_jsonl)
-        ctx_map = ctx_src.load(queries)
+    
     # Pass ctx_map as-is (None if not provided, dict if provided)
     results = run_method(method_name=method, cfg=mc, queries=queries,
                          prompt_bank_path=str(prompt_bank), ctx_map=ctx_map)

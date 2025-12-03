@@ -210,7 +210,9 @@
   template:
     user: |
       Answer the following query:
+      
       {query}
+
       Give the rationale before answering
 
 - id: qa_expand.subq.v1

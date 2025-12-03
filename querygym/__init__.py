@@ -175,6 +175,30 @@ def load_contexts(path: str, **kwargs):
     return DataLoader.load_contexts(path, **kwargs)
 
 
+def load_examples(path: str, **kwargs):
+    """
+    Load few-shot examples from a JSONL file.
+    
+    Used for methods like Query2E that need (query, passage) pairs as demonstrations.
+    
+    Args:
+        path: Path to examples JSONL file
+        **kwargs: Additional parameters for DataLoader.load_examples()
+    
+    Returns:
+        List of dicts with 'query' and 'passage' keys
+    
+    Example:
+        >>> examples = qg.load_examples("examples.jsonl")
+        >>> reformulator = qg.create_reformulator("query2e", params={"mode": "fs", "examples": examples})
+        
+    JSONL format:
+        {"query": "how long is flea life cycle?", "passage": "The life cycle of a flea..."}
+        {"query": "cost of flooring?", "passage": "The cost of interior concrete..."}
+    """
+    return DataLoader.load_examples(path, **kwargs)
+
+
 __all__ = [
     # Version
     "__version__",
@@ -222,6 +246,7 @@ __all__ = [
     "load_queries",
     "load_qrels",
     "load_contexts",
+    "load_examples",
     
     # Retrieval
     "Retriever",

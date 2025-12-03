@@ -275,6 +275,71 @@ class DataLoader:
         return contexts
     
     @staticmethod
+    def load_examples(
+        path: Union[str, Path],
+        query_key: str = "query",
+        passage_key: str = "passage"
+    ) -> List[Dict[str, str]]:
+        """
+        Load few-shot examples from a JSONL file.
+        
+        Used by methods like Query2E that need (query, passage) pairs as demonstrations.
+        
+        Args:
+            path: Path to examples JSONL file
+            query_key: JSON key for query text
+            passage_key: JSON key for passage text
+            
+        Returns:
+            List of dicts with 'query' and 'passage' keys
+            
+        Example:
+            >>> examples = DataLoader.load_examples("examples.jsonl")
+            >>> # Returns: [{"query": "...", "passage": "..."}, ...]
+            
+        JSONL format:
+            {"query": "how long is flea life cycle?", "passage": "The life cycle of a flea..."}
+            {"query": "cost of flooring?", "passage": "The cost of interior concrete..."}
+        """
+        path = Path(path)
+        
+        if not path.exists():
+            raise FileNotFoundError(f"Examples file not found: {path}")
+        
+        examples: List[Dict[str, str]] = []
+        warned_missing_keys = False
+        
+        with open(path, "r", encoding="utf-8") as f:
+            for line_num, line in enumerate(f, 1):
+                if not line.strip():
+                    continue
+                
+                try:
+                    obj = json.loads(line)
+                except json.JSONDecodeError as e:
+                    warnings.warn(f"Invalid JSON at line {line_num} in {path}: {e}")
+                    continue
+                
+                # Check for required keys
+                if query_key not in obj or passage_key not in obj:
+                    if not warned_missing_keys:
+                        warnings.warn(
+                            f"Missing keys '{query_key}' or '{passage_key}' in {path}"
+                        )
+                        warned_missing_keys = True
+                    continue
+                
+                examples.append({
+                    "query": str(obj[query_key]),
+                    "passage": str(obj[passage_key])
+                })
+        
+        if not examples:
+            raise ValueError(f"No valid examples found in {path}")
+        
+        return examples
+    
+    @staticmethod
     def save_queries(
         queries: List[QueryItem],
         path: Union[str, Path],
