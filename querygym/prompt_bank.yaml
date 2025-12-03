@@ -457,3 +457,32 @@
       You will begin by examining the initially retrieved documents and identifying the ones that are relevant, even partially, to the query. Once the relevant documents are identified, you will extract the key sentences from each document that contribute to their relevance.
   notes: |
     CSQE (Context-based Sentence-level Query Expansion) with few-shot example. Extracts key relevant sentences from retrieved documents to enhance the query. Includes one example demonstration for better performance.
+
+- id: q2e.zs.v1
+  method_family: q2e
+  version: 1
+  introduced_by: "Q2E Zero-Shot Prompt"
+  license: "CC-BY-4.0"
+  authors: ["queryGym Team"]
+  tags: ["keywords"]
+  template:
+    user: |
+      Write a list of keywords for the following query: {query}
+  notes: |
+    Zero-shot Q2E reformulation prompt
+
+- id: q2e.fs.v1
+  method_family: q2e
+  version: 1
+  introduced_by: "Q2E Few-Shot Prompt"
+  license: "CC-BY-4.0"
+  authors: ["queryGym Team"]
+  tags: ["keywords", "context-based"]
+  template:
+    user: |
+      Write a list of keywords for the given query:
+      {examples}
+      Query: {query}
+      Keywords:
+  notes: |
+    Few-shot Q2E reformulation prompt
