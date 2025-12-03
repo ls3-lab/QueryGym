@@ -177,11 +177,10 @@
   authors: ["queryGym Team"]
   tags: ["pseudo-document", "zs"]
   template:
-    system: |
-      Write a short, relevant passage to the user's query.
     user: |
-      Query: "{query}"
-      Write a 3-5 sentence passage that would be highly relevant.
+      Write a passage that answers the given query:
+      Query: {query}
+      Passage: 
 
 - id: query2doc.fewshot.v1
   method_family: query2doc
@@ -191,8 +190,6 @@
   authors: ["queryGym Team"]
   tags: ["pseudo-document", "fewshot", "msmarco"]
   template:
-    system: |
-      You are a helpful assistant that generates informative passages to answer queries.
     user: |
       Write a passage that answers the given query: 
       
@@ -211,11 +208,10 @@
   authors: ["queryGym Team"]
   tags: ["pseudo-document", "cot"]
   template:
-    system: |
-      Reason briefly then write a concise relevant passage.
     user: |
-      Think step-by-step about the information need for: "{query}"
-      Then write a 3-5 sentence passage that would be highly relevant.
+      Answer the following query:
+      {query}
+      Give the rationale before answering
 
 - id: qa_expand.subq.v1
   method_family: qa_expand
