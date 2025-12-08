@@ -61,7 +61,7 @@ jobs:
           tags: |
             type=semver,pattern={{version}}${{ matrix.tag-suffix }}
             type=semver,pattern={{major}}.{{minor}}${{ matrix.tag-suffix }}
-            type=sha,prefix={{branch}}-,suffix=${{ matrix.tag-suffix }}
+            type=sha,prefix=sha-,suffix=${{ matrix.tag-suffix }},enable=${{ github.event_name != 'release' }}
             type=raw,value=latest${{ matrix.tag-suffix }},enable={{is_default_branch}}
             ${{ matrix.extra-tags }}
           labels: |
