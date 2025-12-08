@@ -121,6 +121,7 @@ See the [examples](examples/) directory for:
 - **[Code snippets](examples/snippets/)** - Quick reference examples
 - **[Docker examples](examples/docker/)** - Containerized workflows with Jupyter notebooks
 - **[QueryGym + Pyserini](examples/querygym_pyserini/)** - Complete retrieval pipelines
+- **[Methods Reference](docs/user-guide/methods-reference.md)** - Complete guide to all query reformulation methods
 
 Check [examples/README.md](examples/README.md) for the full guide.
 
