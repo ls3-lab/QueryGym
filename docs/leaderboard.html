@@ -216,6 +216,62 @@
             padding: 1rem 0.5rem;
         }
 
+        .leaderboard-table thead th.sortable {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: background-color 0.2s ease;
+        }
+
+        .leaderboard-table thead th.sortable:hover {
+            background: var(--border-color);
+        }
+
+        .leaderboard-table thead th.sortable .sort-indicator {
+            display: inline-block;
+            margin-left: 0.5rem;
+            opacity: 0.5;
+            font-size: 0.7rem;
+        }
+
+        .leaderboard-table thead th.sortable.sort-asc .sort-indicator,
+        .leaderboard-table thead th.sortable.sort-desc .sort-indicator {
+            opacity: 1;
+        }
+
+        .leaderboard-table thead th.sortable.sort-asc .sort-indicator::after {
+            content: ' ▲';
+        }
+
+        .leaderboard-table thead th.sortable.sort-desc .sort-indicator::after {
+            content: ' ▼';
+        }
+
+        .leaderboard-table thead th.sortable {
+            position: relative;
+        }
+
+        .leaderboard-table thead th.sortable::after {
+            content: '⇅';
+            display: inline-block;
+            margin-left: 0.25rem;
+            opacity: 0.4;
+            font-size: 0.7rem;
+            font-weight: normal;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            vertical-align: middle;
+        }
+
+        .leaderboard-table thead th.sortable:hover::after {
+            opacity: 0.8;
+            transform: scale(1.1);
+        }
+
+        .leaderboard-table thead th.sortable.sort-asc::after,
+        .leaderboard-table thead th.sortable.sort-desc::after {
+            opacity: 0;
+        }
+
         .leaderboard-table thead th.separator-col + th {
             border-left: 1px solid rgba(203, 213, 225, 0.4);
         }
@@ -606,7 +662,8 @@
             <p>
                 The leaderboard below provides comprehensive performance metrics for QueryGym query reformulation methods 
                 across different LLM configurations and retrieval backends. Each row represents a unique method configuration. 
-                Click on any row to expand and view detailed commands for reproducing the results.
+                <strong>Click on any metric column header (⇅) to sort methods by that metric.</strong> Click on any row to expand 
+                and view detailed commands for reproducing the results.
             </p>
         </div>
 
@@ -631,17 +688,17 @@
                         <tr>
                             <th></th>
                             <th></th>
-                            <th class="metric-col">AP</th>
-                            <th class="metric-col">nDCG@10</th>
-                            <th class="metric-col">R@1K</th>
+                            <th class="metric-col sortable" data-sort="dl19-ap" title="Click to sort by AP (TREC DL 2019)">AP<span class="sort-indicator"></span></th>
+                            <th class="metric-col sortable" data-sort="dl19-ndcg" title="Click to sort by nDCG@10 (TREC DL 2019)">nDCG@10<span class="sort-indicator"></span></th>
+                            <th class="metric-col sortable" data-sort="dl19-recall" title="Click to sort by R@1K (TREC DL 2019)">R@1K<span class="sort-indicator"></span></th>
                             <th class="separator-col"></th>
-                            <th class="metric-col">AP</th>
-                            <th class="metric-col">nDCG@10</th>
-                            <th class="metric-col">R@1K</th>
+                            <th class="metric-col sortable" data-sort="dl20-ap" title="Click to sort by AP (TREC DL 2020)">AP<span class="sort-indicator"></span></th>
+                            <th class="metric-col sortable" data-sort="dl20-ndcg" title="Click to sort by nDCG@10 (TREC DL 2020)">nDCG@10<span class="sort-indicator"></span></th>
+                            <th class="metric-col sortable" data-sort="dl20-recall" title="Click to sort by R@1K (TREC DL 2020)">R@1K<span class="sort-indicator"></span></th>
                             <th class="separator-col"></th>
-                            <th class="metric-col">AP</th>
-                            <th class="metric-col">nDCG@10</th>
-                            <th class="metric-col">R@1K</th>
+                            <th class="metric-col sortable" data-sort="dlhard-ap" title="Click to sort by AP (DL HARD)">AP<span class="sort-indicator"></span></th>
+                            <th class="metric-col sortable" data-sort="dlhard-ndcg" title="Click to sort by nDCG@10 (DL HARD)">nDCG@10<span class="sort-indicator"></span></th>
+                            <th class="metric-col sortable" data-sort="dlhard-recall" title="Click to sort by R@1K (DL HARD)">R@1K<span class="sort-indicator"></span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1293,6 +1350,103 @@
                     setTimeout(() => {
                         this.textContent = 'Copy';
                     }, 2000);
+                });
+            });
+        });
+
+        // Sorting functionality
+        const sortMap = {
+            'dl19-ap': 2,
+            'dl19-ndcg': 3,
+            'dl19-recall': 4,
+            'dl20-ap': 6,
+            'dl20-ndcg': 7,
+            'dl20-recall': 8,
+            'dlhard-ap': 10,
+            'dlhard-ndcg': 11,
+            'dlhard-recall': 12
+        };
+
+        let currentSort = { column: null, direction: 'desc' };
+
+        document.querySelectorAll('.sortable').forEach(header => {
+            header.addEventListener('click', function() {
+                const sortKey = this.getAttribute('data-sort');
+                const columnIndex = sortMap[sortKey];
+                const tbody = document.querySelector('.leaderboard-table tbody');
+                
+                // Get all accordion rows (main data rows)
+                const accordionRows = Array.from(tbody.querySelectorAll('tr.accordion-row'));
+                
+                // Find the row with config cell and extract it
+                let configCell = null;
+                let rowspan = null;
+                accordionRows.forEach(row => {
+                    const cell = row.querySelector('td.config-cell');
+                    if (cell) {
+                        configCell = cell.cloneNode(true);
+                        rowspan = parseInt(cell.getAttribute('rowspan') || '1');
+                        // Remove config cell from original row temporarily
+                        cell.remove();
+                    }
+                });
+                
+                // Determine sort direction
+                if (currentSort.column === sortKey) {
+                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.column = sortKey;
+                    currentSort.direction = 'desc';
+                }
+
+                // Remove sort indicators from all headers
+                document.querySelectorAll('.sortable').forEach(h => {
+                    h.classList.remove('sort-asc', 'sort-desc');
+                });
+
+                // Add sort indicator to current header
+                this.classList.add('sort-' + currentSort.direction);
+
+                // Create pairs of accordion row and its expandable content
+                // After removing config cell, all rows have same structure, so use columnIndex - 1
+                const rowPairs = accordionRows.map(row => {
+                    const target = row.getAttribute('data-target');
+                    const expandable = document.getElementById(target + '-content');
+                    // After config cell removal, metrics are at columnIndex - 1
+                    const valueCell = row.cells[columnIndex - 1];
+                    return {
+                        accordion: row,
+                        expandable: expandable || null,
+                        value: parseFloat(valueCell?.querySelector('.metric-value')?.textContent || 0)
+                    };
+                });
+
+                // Sort pairs by metric value
+                rowPairs.sort((a, b) => {
+                    if (currentSort.direction === 'asc') {
+                        return a.value - b.value;
+                    } else {
+                        return b.value - a.value;
+                    }
+                });
+
+                // Remove all rows from tbody
+                const allRows = Array.from(tbody.querySelectorAll('tr'));
+                allRows.forEach(row => row.remove());
+
+                // Re-insert sorted pairs with config cell in first row
+                rowPairs.forEach((pair, index) => {
+                    if (index === 0 && configCell && rowspan) {
+                        // Insert config cell as first cell in first row
+                        const newConfigCell = configCell.cloneNode(true);
+                        newConfigCell.setAttribute('rowspan', rowspan);
+                        pair.accordion.insertBefore(newConfigCell, pair.accordion.cells[0]);
+                    }
+                    
+                    tbody.appendChild(pair.accordion);
+                    if (pair.expandable) {
+                        tbody.appendChild(pair.expandable);
+                    }
                 });
             });
         });
