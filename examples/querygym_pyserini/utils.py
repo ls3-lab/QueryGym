@@ -9,11 +9,18 @@ This module provides common functions for:
 - Creating output directories
 """
 
+import json
 import yaml
 import logging
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 from datetime import datetime
+
+try:
+    from pyserini.search import get_topics, get_qrels
+except ImportError:
+    get_topics = None
+    get_qrels = None
 
 
 def load_dataset_registry(registry_path: str = "dataset_registry.yaml") -> Dict[str, Any]:
@@ -89,9 +96,7 @@ def load_pyserini_topics(topic_name: str) -> Dict[str, Dict[str, str]]:
         >>> topics = load_pyserini_topics("dl19-passage")
         >>> print(topics[264014]['title'])  # "how long is life cycle of flea"
     """
-    try:
-        from pyserini.search import get_topics
-    except ImportError:
+    if get_topics is None:
         raise ImportError(
             "Pyserini is required for loading topics. Install with: pip install pyserini"
         )
@@ -117,9 +122,7 @@ def load_pyserini_qrels(qrels_name: str) -> Dict[str, Dict[str, int]]:
         >>> qrels = load_pyserini_qrels("dl19-passage")
         >>> print(qrels['264014']['7067032'])  # relevance score
     """
-    try:
-        from pyserini.search import get_qrels
-    except ImportError:
+    if get_qrels is None:
         raise ImportError(
             "Pyserini is required for loading qrels. Install with: pip install pyserini"
         )
@@ -227,8 +230,6 @@ def save_config(config: Dict[str, Any], output_path: Path) -> None:
     Example:
         >>> save_config({"method": "genqr", "model": "qwen2.5:7b"}, Path("config.json"))
     """
-    import json
-    
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
     with open(output_path, 'w') as f:
@@ -247,8 +248,6 @@ def load_config(config_path: Path) -> Dict[str, Any]:
     Returns:
         Configuration dictionary
     """
-    import json
-    
     with open(config_path, 'r') as f:
         config = json.load(f)
     
@@ -296,13 +295,147 @@ def list_available_datasets(registry_path: str = "dataset_registry.yaml") -> Lis
     return sorted(datasets.keys())
 
 
+def load_reformulation_config(config_path: str) -> Dict[str, Any]:
+    """
+    Load reformulation configuration from YAML file.
+    
+    Args:
+        config_path: Path to reformulation config YAML file (can be relative or absolute)
+        
+    Returns:
+        Dictionary containing the configuration
+        
+    Example:
+        >>> config = load_reformulation_config("reformulation_config.yaml")
+        >>> method_config = config['methods']['genqr']
+    """
+    config_file = Path(config_path)
+    
+    # If path is relative and doesn't exist, try relative to script directory
+    if not config_file.is_absolute() and not config_file.exists():
+        # Try relative to the utils.py location (examples/querygym_pyserini/)
+        script_dir = Path(__file__).parent
+        alt_path = script_dir / config_path
+        if alt_path.exists():
+            config_file = alt_path
+        # Also try relative to project root
+        elif (Path.cwd() / config_path).exists():
+            config_file = Path.cwd() / config_path
+    
+    if not config_file.exists():
+        # Try one more time with common locations
+        script_dir = Path(__file__).parent
+        common_paths = [
+            script_dir / config_path,  # Same directory as script
+            Path.cwd() / config_path,  # Current working directory
+            Path.cwd() / "examples" / "querygym_pyserini" / config_path,  # Relative to project root
+        ]
+        for path in common_paths:
+            if path.exists():
+                config_file = path
+                break
+    
+    if not config_file.exists():
+        raise FileNotFoundError(
+            f"Reformulation config not found: {config_path}\n"
+            f"Tried locations:\n"
+            f"  - {Path(config_path).absolute()}\n"
+            f"  - {Path(__file__).parent / config_path}\n"
+            f"  - {Path.cwd() / config_path}\n"
+            f"  - {Path.cwd() / 'examples' / 'querygym_pyserini' / config_path}"
+        )
+    
+    with open(config_file, 'r') as f:
+        config = yaml.safe_load(f)
+    
+    return config
+
+
+def get_method_config_from_yaml(
+    config_path: str,
+    method: str,
+    cli_overrides: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """
+    Get configuration for a specific method from YAML config file.
+    Merges global defaults, method-specific config, and CLI overrides.
+    
+    Args:
+        config_path: Path to reformulation config YAML file
+        method: Method name (e.g., "genqr", "query2doc")
+        cli_overrides: Dictionary of CLI arguments that override config values
+        
+    Returns:
+        Dictionary with keys: 'model', 'llm_config', 'method_params'
+        
+    Example:
+        >>> config = get_method_config_from_yaml(
+        ...     "reformulation_config.yaml",
+        ...     "genqr",
+        ...     cli_overrides={"model": "custom-model"}
+        ... )
+    """
+    if cli_overrides is None:
+        cli_overrides = {}
+    
+    # Load config file
+    full_config = load_reformulation_config(config_path)
+    
+    # Start with global defaults
+    global_config = full_config.get('global', {})
+    global_llm = global_config.get('llm', {})
+    global_retrieval = global_config.get('retrieval', {})
+    
+    # Get method-specific config
+    methods_config = full_config.get('methods', {})
+    method_config = methods_config.get(method, {})
+    
+    # Build final config, merging in order: global -> method -> CLI
+    final_config = {
+        'model': cli_overrides.get('model') or method_config.get('model') or global_llm.get('model'),
+        'llm_config': {},
+        'method_params': {}
+    }
+    
+    # Merge LLM config
+    llm_config = global_llm.copy()
+    llm_config.update(method_config.get('llm', {}))
+    
+    # Apply CLI overrides to LLM config
+    if 'base_url' in cli_overrides:
+        llm_config['base_url'] = cli_overrides['base_url']
+    if 'api_key' in cli_overrides:
+        llm_config['api_key'] = cli_overrides['api_key']
+    if 'temperature' in cli_overrides:
+        llm_config['temperature'] = cli_overrides['temperature']
+    if 'max_tokens' in cli_overrides:
+        llm_config['max_tokens'] = cli_overrides['max_tokens']
+    
+    final_config['llm_config'] = llm_config
+    
+    # Merge method params
+    method_params = method_config.get('params', {}).copy()
+    
+    # Add retrieval params from global config if not in method params
+    if 'retrieval_k' not in method_params and 'retrieval_k' in global_retrieval:
+        method_params['retrieval_k'] = global_retrieval['retrieval_k']
+    
+    # Apply CLI overrides to method params
+    if 'retrieval_k' in cli_overrides:
+        method_params['retrieval_k'] = cli_overrides['retrieval_k']
+    
+    final_config['method_params'] = method_params
+    
+    return final_config
+
+
 def print_dataset_info(dataset_name: str, registry_path: str = "dataset_registry.yaml") -> None:
     """
     Print information about a dataset.
     
     Args:
         dataset_name: Name of the dataset
-        registry_path: Path to dataset_registry.yaml
+        registry_path: Path to dataset registry
     """
     config = get_dataset_config(dataset_name, registry_path)
     

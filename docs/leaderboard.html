@@ -293,13 +293,21 @@
         .config-badge {
             display: inline-flex;
             align-items: center;
-            padding: 0.4rem 0.8rem;
+            flex-direction: column;
+            padding: 0.5rem 0.8rem;
             border-radius: 20px;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             font-weight: 500;
             width: fit-content;
-            white-space: nowrap;
+            min-width: 170px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .config-badge small {
+            display: block;
+            margin-top: 0.2rem;
+            line-height: 1.2;
         }
 
         .badge-llm {
@@ -310,8 +318,12 @@
 
         .badge-llm i {
             margin-right: 0.4rem;
-            font-size: 0.7rem;
+            font-size: 0.85rem;
             color: #1e40af;
+        }
+        
+        .config-badge span[style*="display: flex"] i {
+            margin-right: 0.4rem;
         }
 
         .badge-retrieval {
@@ -322,7 +334,7 @@
 
         .badge-retrieval i {
             margin-right: 0.4rem;
-            font-size: 0.7rem;
+            font-size: 0.85rem;
             color: #9f1239;
         }
 
@@ -367,6 +379,9 @@
             background: var(--bg-light);
             border-top: 2px solid var(--border-color);
             padding: 0;
+            overflow-x: auto;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         .content-tabs {
@@ -403,6 +418,9 @@
         .tab-content {
             padding: 2rem;
             background: var(--bg-white);
+            overflow-x: auto;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         .tab-pane {
@@ -423,6 +441,9 @@
             padding: 1rem 1.25rem;
             border-radius: 4px;
             text-align: left;
+            overflow-x: auto;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         blockquote.mycode pre {
@@ -432,6 +453,10 @@
             font-size: 0.875rem;
             line-height: 1.6;
             overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
         }
 
         blockquote.mycode code {
@@ -620,31 +645,79 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Configuration: GPT-4 + BM25 -->
+                        <!-- Configuration: GPT-4.1-mini + BM25 -->
                         <tr class="accordion-row" data-target="row1">
-                            <td class="config-cell" rowspan="4">
+                            <td class="config-cell" rowspan="7">
                                 <div class="config-badges">
-                                    <span class="config-badge badge-llm"><i class="fas fa-brain"></i>GPT-4</span>
-                                    <span class="config-badge badge-retrieval"><i class="fas fa-search"></i>BM25</span>
+                                    <span class="config-badge badge-llm">
+                                        <span style="display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-brain"></i>GPT-4.1-mini
+                                        </span>
+                                        <small style="font-size: 0.65rem; opacity: 0.85;">temp=1.0, max_tokens=128</small>
+                                    </span>
+                                    <span class="config-badge badge-retrieval">
+                                        <span style="display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-search"></i>BM25
+                                        </span>
+                                        <small style="font-size: 0.65rem; opacity: 0.85;">k1=0.9, b=0.4</small>
+                                    </span>
                                 </div>
                             </td>
                             <td class="method-name">
                                 <div class="expand-icon" data-row="row1" style="display: inline-flex; margin-right: 0.5rem;">
                                     <i class="fas fa-chevron-down"></i>
                                 </div>
-                                GenQR
+                                Query2Doc (ZS)
                             </td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">0.4508</span></td>
+                            <td><span class="metric-value">0.6709</span></td>
+                            <td><span class="metric-value">0.8746</span></td>
                             <td class="separator-col"></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">0.4325</span></td>
+                            <td><span class="metric-value">0.6323</span></td>
+                            <td><span class="metric-value">0.8864</span></td>
                             <td class="separator-col"></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">0.2276</span></td>
+                            <td><span class="metric-value">0.3303</span></td>
+                            <td><span class="metric-value">0.7704</span></td>
+                        </tr>
+                        <tr class="accordion-row" data-target="row2">
+                            <td class="method-name">
+                                <div class="expand-icon" data-row="row2" style="display: inline-flex; margin-right: 0.5rem;">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                Query2Doc (FS)
+                            </td>
+                            <td><span class="metric-value">0.4418</span></td>
+                            <td><span class="metric-value">0.6532</span></td>
+                            <td><span class="metric-value">0.8521</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">0.4051</span></td>
+                            <td><span class="metric-value">0.6111</span></td>
+                            <td><span class="metric-value">0.8869</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">0.2260</span></td>
+                            <td><span class="metric-value">0.3388</span></td>
+                            <td><span class="metric-value">0.7842</span></td>
+                        </tr>
+                        <tr class="accordion-row" data-target="row3">
+                            <td class="method-name">
+                                <div class="expand-icon" data-row="row3" style="display: inline-flex; margin-right: 0.5rem;">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                Query2Doc (CoT)
+                            </td>
+                            <td><span class="metric-value">0.4145</span></td>
+                            <td><span class="metric-value">0.6128</span></td>
+                            <td><span class="metric-value">0.8495</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">0.3801</span></td>
+                            <td><span class="metric-value">0.5894</span></td>
+                            <td><span class="metric-value">0.8846</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">0.2225</span></td>
+                            <td><span class="metric-value">0.3191</span></td>
+                            <td><span class="metric-value">0.7524</span></td>
                         </tr>
                         <tr class="expandable-content" id="row1-content" style="display: none;">
                             <td colspan="13">
@@ -658,63 +731,45 @@
                                         <div class="command-label">Command to reproduce results on TREC DL 2019:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row1-tab1-cmd">Copy</button>
-                                            <pre id="row1-tab1-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset msmarco-v1-passage.dev \
-  --method genqr \
-  --model gpt-4 \
-  --base-url https://api.openai.com/v1 \
-  --api-key YOUR_API_KEY \
-  --output-dir runs/genqr-gpt4-bm25</code></pre>
+                                            <pre id="row1-tab1-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --dataset msmarco-v1-passage.trecdl2019 \
+    --method query2doc \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --output-dir outputs/dl19_query2doc_zs</code></pre>
                                         </blockquote>
                                     </div>
                                     <div class="tab-pane" id="row1-tab2">
                                         <div class="command-label">Command to reproduce results on TREC DL 2020:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row1-tab2-cmd">Copy</button>
-                                            <pre id="row1-tab2-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset msmarco-v1-passage.dev \
-  --method genqr \
-  --model gpt-4 \
-  --base-url https://api.openai.com/v1 \
-  --api-key YOUR_API_KEY \
-  --output-dir runs/genqr-gpt4-bm25</code></pre>
+                                            <pre id="row1-tab2-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --dataset msmarco-v1-passage.trecdl2020 \
+    --method query2doc \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --output-dir outputs/dl20_query2doc_zs</code></pre>
                                         </blockquote>
                                     </div>
                                     <div class="tab-pane" id="row1-tab3">
                                         <div class="command-label">Command to reproduce results on DL HARD:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row1-tab3-cmd">Copy</button>
-                                            <pre id="row1-tab3-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset dl-hard \
-  --method genqr \
-  --model gpt-4 \
-  --base-url https://api.openai.com/v1 \
-  --api-key YOUR_API_KEY \
-  --output-dir runs/genqr-gpt4-bm25</code></pre>
+                                            <pre id="row1-tab3-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --queries-file path/to/queries.tsv \
+    --qrels-file path/to/qrels.trec \
+    --index-name msmarco-v1-passage \
+    --method query2doc \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --output-dir outputs/dlhard_query2doc_zs</code></pre>
                                         </blockquote>
                                     </div>
                                 </div>
                             </td>
-                        </tr>
-
-                        <tr class="accordion-row" data-target="row2">
-                            <td class="method-name">
-                                <div class="expand-icon" data-row="row2" style="display: inline-flex; margin-right: 0.5rem;">
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                                GenQR Ensemble
-                            </td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td class="separator-col"></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td class="separator-col"></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
                         </tr>
                         <tr class="expandable-content" id="row2-content" style="display: none;">
                             <td colspan="13">
@@ -728,66 +783,54 @@
                                         <div class="command-label">Command to reproduce results on TREC DL 2019:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row2-tab1-cmd">Copy</button>
-                                            <pre id="row2-tab1-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset msmarco-v1-passage.dev \
-  --method genqr_ensemble \
-  --model gpt-4 \
-  --base-url https://api.openai.com/v1 \
-  --api-key YOUR_API_KEY \
-  --params '{"repeat_query_weight": 5}' \
-  --output-dir runs/genqr_ensemble-gpt4-bm25</code></pre>
+                                            <pre id="row2-tab1-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --dataset msmarco-v1-passage.trecdl2019 \
+    --method query2doc \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --method-params '{"mode":"fs","num_examples":4,"dataset_type":"msmarco",' \
+    '"collection_path":"path/to/collection.tsv",' \
+    '"train_queries_path":"path/to/queries.train.tsv","train_qrels_path":"path/to/qrels.train.tsv"}' \
+    --output-dir outputs/dl19_query2doc</code></pre>
                                         </blockquote>
                                     </div>
                                     <div class="tab-pane" id="row2-tab2">
                                         <div class="command-label">Command to reproduce results on TREC DL 2020:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row2-tab2-cmd">Copy</button>
-                                            <pre id="row2-tab2-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset msmarco-v1-passage.dev \
-  --method genqr_ensemble \
-  --model gpt-4 \
-  --base-url https://api.openai.com/v1 \
-  --api-key YOUR_API_KEY \
-  --params '{"repeat_query_weight": 5}' \
-  --output-dir runs/genqr_ensemble-gpt4-bm25</code></pre>
+                                            <pre id="row2-tab2-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --dataset msmarco-v1-passage.trecdl2020 \
+    --method query2doc \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --method-params '{"mode":"fs","num_examples":4,"dataset_type":"msmarco",' \
+    '"collection_path":"path/to/collection.tsv",' \
+    '"train_queries_path":"path/to/queries.train.tsv","train_qrels_path":"path/to/qrels.train.tsv"}' \
+    --output-dir outputs/dl20_query2doc</code></pre>
                                         </blockquote>
                                     </div>
                                     <div class="tab-pane" id="row2-tab3">
                                         <div class="command-label">Command to reproduce results on DL HARD:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row2-tab3-cmd">Copy</button>
-                                            <pre id="row2-tab3-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset dl-hard \
-  --method genqr_ensemble \
-  --model gpt-4 \
-  --base-url https://api.openai.com/v1 \
-  --api-key YOUR_API_KEY \
-  --params '{"repeat_query_weight": 5}' \
-  --output-dir runs/genqr_ensemble-gpt4-bm25</code></pre>
+                                            <pre id="row2-tab3-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --queries-file path/to/queries.tsv \
+    --qrels-file path/to/qrels.trec \
+    --index-name msmarco-v1-passage \
+    --method query2doc \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --method-params '{"mode":"fs","num_examples":4,"dataset_type":"msmarco",' \
+    '"collection_path":"path/to/collection.tsv",' \
+    '"train_queries_path":"path/to/queries.train.tsv","train_qrels_path":"path/to/qrels.train.tsv"}' \
+    --output-dir outputs/dlhard_query2doc</code></pre>
                                         </blockquote>
                                     </div>
                                 </div>
                             </td>
-                        </tr>
-
-                        <tr class="accordion-row" data-target="row3">
-                            <td class="method-name">
-                                <div class="expand-icon" data-row="row3" style="display: inline-flex; margin-right: 0.5rem;">
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
-                                Query2Doc
-                            </td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td class="separator-col"></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td class="separator-col"></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
                         </tr>
                         <tr class="expandable-content" id="row3-content" style="display: none;">
                             <td colspan="13">
@@ -801,66 +844,67 @@
                                         <div class="command-label">Command to reproduce results on TREC DL 2019:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row3-tab1-cmd">Copy</button>
-                                            <pre id="row3-tab1-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset msmarco-v1-passage.dev \
-  --method query2doc \
-  --model gpt-4 \
-  --base-url https://api.openai.com/v1 \
-  --api-key YOUR_API_KEY \
-  --params '{"mode": "zs"}' \
-  --output-dir runs/query2doc-gpt4-bm25</code></pre>
+                                            <pre id="row3-tab1-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --dataset msmarco-v1-passage.trecdl2019 \
+    --method query2doc \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --method-params '{"mode":"cot"}' \
+    --output-dir outputs/dl19_query2doc_cot</code></pre>
                                         </blockquote>
                                     </div>
                                     <div class="tab-pane" id="row3-tab2">
                                         <div class="command-label">Command to reproduce results on TREC DL 2020:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row3-tab2-cmd">Copy</button>
-                                            <pre id="row3-tab2-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset msmarco-v1-passage.dev \
-  --method query2doc \
-  --model gpt-4 \
-  --base-url https://api.openai.com/v1 \
-  --api-key YOUR_API_KEY \
-  --params '{"mode": "zs"}' \
-  --output-dir runs/query2doc-gpt4-bm25</code></pre>
+                                            <pre id="row3-tab2-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --dataset msmarco-v1-passage.trecdl2020 \
+    --method query2doc \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --method-params '{"mode":"cot"}' \
+    --output-dir outputs/dl20_query2doc_cot</code></pre>
                                         </blockquote>
                                     </div>
                                     <div class="tab-pane" id="row3-tab3">
                                         <div class="command-label">Command to reproduce results on DL HARD:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row3-tab3-cmd">Copy</button>
-                                            <pre id="row3-tab3-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset dl-hard \
-  --method query2doc \
-  --model gpt-4 \
-  --base-url https://api.openai.com/v1 \
-  --api-key YOUR_API_KEY \
-  --params '{"mode": "zs"}' \
-  --output-dir runs/query2doc-gpt4-bm25</code></pre>
+                                            <pre id="row3-tab3-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --queries-file path/to/queries.tsv \
+    --qrels-file path/to/qrels.trec \
+    --index-name msmarco-v1-passage \
+    --method query2doc \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --method-params '{"mode":"cot"}' \
+    --output-dir outputs/dlhard_query2doc_cot</code></pre>
                                         </blockquote>
                                     </div>
                                 </div>
                             </td>
                         </tr>
-
                         <tr class="accordion-row" data-target="row4">
                             <td class="method-name">
                                 <div class="expand-icon" data-row="row4" style="display: inline-flex; margin-right: 0.5rem;">
                                     <i class="fas fa-chevron-down"></i>
                                 </div>
-                                MuGI
+                                Query2E (ZS)
                             </td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">0.3709</span></td>
+                            <td><span class="metric-value">0.5679</span></td>
+                            <td><span class="metric-value">0.8384</span></td>
                             <td class="separator-col"></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">0.3436</span></td>
+                            <td><span class="metric-value">0.5624</span></td>
+                            <td><span class="metric-value">0.8373</span></td>
                             <td class="separator-col"></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">0.1845</span></td>
+                            <td><span class="metric-value">0.3179</span></td>
+                            <td><span class="metric-value">0.7642</span></td>
                         </tr>
                         <tr class="expandable-content" id="row4-content" style="display: none;">
                             <td colspan="13">
@@ -874,73 +918,71 @@
                                         <div class="command-label">Command to reproduce results on TREC DL 2019:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row4-tab1-cmd">Copy</button>
-                                            <pre id="row4-tab1-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset msmarco-v1-passage.dev \
-  --method mugi \
-  --model gpt-4 \
-  --base-url https://api.openai.com/v1 \
-  --api-key YOUR_API_KEY \
-  --params '{"num_docs": 5, "adaptive_times": 6, "mode": "zs"}' \
-  --output-dir runs/mugi-gpt4-bm25</code></pre>
+                                            <pre id="row4-tab1-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --queries-file path/to/original_queries.tsv \
+    --qrels-file path/to/qrels.trec \
+    --index-name msmarco-v1-passage \
+    --method query2e \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --method-params '{"mode":"zs"}' \
+    --output-dir outputs/dl19_query2e_zs</code></pre>
                                         </blockquote>
                                     </div>
                                     <div class="tab-pane" id="row4-tab2">
                                         <div class="command-label">Command to reproduce results on TREC DL 2020:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row4-tab2-cmd">Copy</button>
-                                            <pre id="row4-tab2-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset msmarco-v1-passage.dev \
-  --method mugi \
-  --model gpt-4 \
-  --base-url https://api.openai.com/v1 \
-  --api-key YOUR_API_KEY \
-  --params '{"num_docs": 5, "adaptive_times": 6, "mode": "zs"}' \
-  --output-dir runs/mugi-gpt4-bm25</code></pre>
+                                            <pre id="row4-tab2-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --queries-file path/to/original_queries.tsv \
+    --qrels-file path/to/qrels.trec \
+    --index-name msmarco-v1-passage \
+    --method query2e \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --method-params '{"mode":"zs"}' \
+    --output-dir outputs/dl20_query2e_zs</code></pre>
                                         </blockquote>
                                     </div>
                                     <div class="tab-pane" id="row4-tab3">
                                         <div class="command-label">Command to reproduce results on DL HARD:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row4-tab3-cmd">Copy</button>
-                                            <pre id="row4-tab3-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset dl-hard \
-  --method mugi \
-  --model gpt-4 \
-  --base-url https://api.openai.com/v1 \
-  --api-key YOUR_API_KEY \
-  --params '{"num_docs": 5, "adaptive_times": 6, "mode": "zs"}' \
-  --output-dir runs/mugi-gpt4-bm25</code></pre>
+                                            <pre id="row4-tab3-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --queries-file path/to/original_queries.tsv \
+    --qrels-file path/to/qrels.trec \
+    --index-name msmarco-v1-passage \
+    --method query2e \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --method-params '{"mode":"zs"}' \
+    --output-dir outputs/dlhard_query2e_zs</code></pre>
                                         </blockquote>
                                     </div>
                                 </div>
                             </td>
                         </tr>
-
-                        <!-- Configuration: GPT-4 + BM25+RM3 -->
                         <tr class="accordion-row" data-target="row5">
-                            <td class="config-cell" rowspan="1">
-                                <div class="config-badges">
-                                    <span class="config-badge badge-llm"><i class="fas fa-brain"></i>GPT-4</span>
-                                    <span class="config-badge badge-retrieval"><i class="fas fa-search"></i>BM25+RM3</span>
-                                </div>
-                            </td>
                             <td class="method-name">
                                 <div class="expand-icon" data-row="row5" style="display: inline-flex; margin-right: 0.5rem;">
                                     <i class="fas fa-chevron-down"></i>
                                 </div>
-                                Query2Doc
+                                CSQE
                             </td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">0.4007</span></td>
+                            <td><span class="metric-value">0.5962</span></td>
+                            <td><span class="metric-value">0.8506</span></td>
                             <td class="separator-col"></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">0.3542</span></td>
+                            <td><span class="metric-value">0.5298</span></td>
+                            <td><span class="metric-value">0.8431</span></td>
                             <td class="separator-col"></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">0.2170</span></td>
+                            <td><span class="metric-value">0.3194</span></td>
+                            <td><span class="metric-value">0.7276</span></td>
                         </tr>
                         <tr class="expandable-content" id="row5-content" style="display: none;">
                             <td colspan="13">
@@ -954,73 +996,67 @@
                                         <div class="command-label">Command to reproduce results on TREC DL 2019:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row5-tab1-cmd">Copy</button>
-                                            <pre id="row5-tab1-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset msmarco-v1-passage.dev \
-  --method query2doc \
-  --model gpt-4 \
-  --base-url https://api.openai.com/v1 \
-  --api-key YOUR_API_KEY \
-  --params '{"mode": "zs"}' \
-  --output-dir runs/query2doc-gpt4-bm25rm3</code></pre>
+                                            <pre id="row5-tab1-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --dataset msmarco-v1-passage.trecdl2019 \
+    --method csqe \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 1024 \
+    --method-params '{"retrieval_k":10,"gen_num":2}' \
+    --output-dir outputs/dl19_csqe</code></pre>
                                         </blockquote>
                                     </div>
                                     <div class="tab-pane" id="row5-tab2">
                                         <div class="command-label">Command to reproduce results on TREC DL 2020:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row5-tab2-cmd">Copy</button>
-                                            <pre id="row5-tab2-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset msmarco-v1-passage.dev \
-  --method query2doc \
-  --model gpt-4 \
-  --base-url https://api.openai.com/v1 \
-  --api-key YOUR_API_KEY \
-  --params '{"mode": "zs"}' \
-  --output-dir runs/query2doc-gpt4-bm25rm3</code></pre>
+                                            <pre id="row5-tab2-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --dataset msmarco-v1-passage.trecdl2020 \
+    --method csqe \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 1024 \
+    --method-params '{"retrieval_k":10,"gen_num":2}' \
+    --output-dir outputs/dl20_csqe</code></pre>
                                         </blockquote>
                                     </div>
                                     <div class="tab-pane" id="row5-tab3">
                                         <div class="command-label">Command to reproduce results on DL HARD:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row5-tab3-cmd">Copy</button>
-                                            <pre id="row5-tab3-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset dl-hard \
-  --method query2doc \
-  --model gpt-4 \
-  --base-url https://api.openai.com/v1 \
-  --api-key YOUR_API_KEY \
-  --params '{"mode": "zs"}' \
-  --output-dir runs/query2doc-gpt4-bm25rm3</code></pre>
+                                            <pre id="row5-tab3-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --queries-file path/to/original_queries.tsv \
+    --qrels-file path/to/qrels.trec \
+    --index-name msmarco-v1-passage \
+    --method csqe \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 1024 \
+    --method-params '{"retrieval_k":10,"gen_num":2}' \
+    --output-dir outputs/dlhard_csqe</code></pre>
                                         </blockquote>
                                     </div>
                                 </div>
                             </td>
                         </tr>
-
-                        <!-- Configuration: Qwen-32B + BM25 -->
                         <tr class="accordion-row" data-target="row6">
-                            <td class="config-cell" rowspan="1">
-                                <div class="config-badges">
-                                    <span class="config-badge badge-llm"><i class="fas fa-brain"></i>Qwen-32B</span>
-                                    <span class="config-badge badge-retrieval"><i class="fas fa-search"></i>BM25</span>
-                                </div>
-                            </td>
                             <td class="method-name">
                                 <div class="expand-icon" data-row="row6" style="display: inline-flex; margin-right: 0.5rem;">
                                     <i class="fas fa-chevron-down"></i>
                                 </div>
-                                Query2Doc
+                                LameR
                             </td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">0.4185</span></td>
+                            <td><span class="metric-value">0.6587</span></td>
+                            <td><span class="metric-value">0.8611</span></td>
                             <td class="separator-col"></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">0.4432</span></td>
+                            <td><span class="metric-value">0.6353</span></td>
+                            <td><span class="metric-value">0.8839</span></td>
                             <td class="separator-col"></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
-                            <td><span class="metric-value">-</span></td>
+                            <td><span class="metric-value">0.2562</span></td>
+                            <td><span class="metric-value">0.3623</span></td>
+                            <td><span class="metric-value">0.7887</span></td>
                         </tr>
                         <tr class="expandable-content" id="row6-content" style="display: none;">
                             <td colspan="13">
@@ -1034,42 +1070,118 @@
                                         <div class="command-label">Command to reproduce results on TREC DL 2019:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row6-tab1-cmd">Copy</button>
-                                            <pre id="row6-tab1-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset msmarco-v1-passage.dev \
-  --method query2doc \
-  --model Qwen-32B \
-  --base-url http://192.168.1.8:8000/v1 \
-  --api-key EMPTY \
-  --params '{"mode": "zs"}' \
-  --output-dir runs/query2doc-qwen32b-bm25</code></pre>
+                                            <pre id="row6-tab1-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --dataset msmarco-v1-passage.trecdl2019 \
+    --method lamer \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --method-params '{"retrieval_k":10,"gen_passages":5}' \
+    --output-dir outputs/dl19_lamer</code></pre>
                                         </blockquote>
                                     </div>
                                     <div class="tab-pane" id="row6-tab2">
                                         <div class="command-label">Command to reproduce results on TREC DL 2020:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row6-tab2-cmd">Copy</button>
-                                            <pre id="row6-tab2-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset msmarco-v1-passage.dev \
-  --method query2doc \
-  --model Qwen-32B \
-  --base-url http://192.168.1.8:8000/v1 \
-  --api-key EMPTY \
-  --params '{"mode": "zs"}' \
-  --output-dir runs/query2doc-qwen32b-bm25</code></pre>
+                                            <pre id="row6-tab2-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --dataset msmarco-v1-passage.trecdl2020 \
+    --method lamer \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --method-params '{"retrieval_k":10,"gen_passages":5}' \
+    --output-dir outputs/dl20_lamer</code></pre>
                                         </blockquote>
                                     </div>
                                     <div class="tab-pane" id="row6-tab3">
                                         <div class="command-label">Command to reproduce results on DL HARD:</div>
                                         <blockquote class="mycode">
                                             <button class="copy-code-button" data-copy="row6-tab3-cmd">Copy</button>
-                                            <pre id="row6-tab3-cmd"><code>python scripts/querygym_pyserini/pipeline.py \
-  --dataset dl-hard \
-  --method query2doc \
-  --model Qwen-32B \
-  --base-url http://192.168.1.8:8000/v1 \
-  --api-key EMPTY \
-  --params '{"mode": "zs"}' \
-  --output-dir runs/query2doc-qwen32b-bm25</code></pre>
+                                            <pre id="row6-tab3-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --queries-file path/to/original_queries.tsv \
+    --qrels-file path/to/qrels.trec \
+    --index-name msmarco-v1-passage \
+    --method lamer \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --method-params '{"retrieval_k":10,"gen_passages":5}' \
+    --output-dir outputs/dlhard_lamer</code></pre>
+                                        </blockquote>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="accordion-row" data-target="row7">
+                            <td class="method-name">
+                                <div class="expand-icon" data-row="row7" style="display: inline-flex; margin-right: 0.5rem;">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                MuGI
+                            </td>
+                            <td><span class="metric-value">0.4766</span></td>
+                            <td><span class="metric-value">0.6903</span></td>
+                            <td><span class="metric-value">0.8822</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">0.4353</span></td>
+                            <td><span class="metric-value">0.6300</span></td>
+                            <td><span class="metric-value">0.8985</span></td>
+                            <td class="separator-col"></td>
+                            <td><span class="metric-value">0.2393</span></td>
+                            <td><span class="metric-value">0.3515</span></td>
+                            <td><span class="metric-value">0.7974</span></td>
+                        </tr>
+                        <tr class="expandable-content" id="row7-content" style="display: none;">
+                            <td colspan="13">
+                                <div class="content-tabs">
+                                    <button class="content-tab active" data-tab="row7-tab1">TREC DL 2019</button>
+                                    <button class="content-tab" data-tab="row7-tab2">TREC DL 2020</button>
+                                    <button class="content-tab" data-tab="row7-tab3">DL HARD</button>
+                                </div>
+                                <div class="tab-content">
+                                    <div class="tab-pane active" id="row7-tab1">
+                                        <div class="command-label">Command to reproduce results on TREC DL 2019:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row7-tab1-cmd">Copy</button>
+                                            <pre id="row7-tab1-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --dataset msmarco-v1-passage.trecdl2019 \
+    --method mugi \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --method-params '{"num_docs":5,"parallel":true,"mode":"zs"}' \
+    --output-dir outputs/dl19_mugi_zs</code></pre>
+                                        </blockquote>
+                                    </div>
+                                    <div class="tab-pane" id="row7-tab2">
+                                        <div class="command-label">Command to reproduce results on TREC DL 2020:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row7-tab2-cmd">Copy</button>
+                                            <pre id="row7-tab2-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --dataset msmarco-v1-passage.trecdl2020 \
+    --method mugi \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --method-params '{"num_docs":5,"parallel":true,"mode":"zs"}' \
+    --output-dir outputs/dl20_mugi_zs</code></pre>
+                                        </blockquote>
+                                    </div>
+                                    <div class="tab-pane" id="row7-tab3">
+                                        <div class="command-label">Command to reproduce results on DL HARD:</div>
+                                        <blockquote class="mycode">
+                                            <button class="copy-code-button" data-copy="row7-tab3-cmd">Copy</button>
+                                            <pre id="row7-tab3-cmd"><code>python examples/querygym_pyserini/pipeline.py \
+    --queries-file path/to/original_queries.tsv \
+    --qrels-file path/to/qrels.trec \
+    --index-name msmarco-v1-passage \
+    --method mugi \
+    --model gpt-4.1-mini \
+    --temperature 1.0 \
+    --max-tokens 128 \
+    --method-params '{"num_docs":5,"parallel":true,"mode":"zs"}' \
+    --output-dir outputs/dlhard_mugi_zs</code></pre>
                                         </blockquote>
                                     </div>
                                 </div>

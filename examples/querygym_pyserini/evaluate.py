@@ -63,23 +63,35 @@ def parse_trec_eval_output(output: str) -> Dict[str, float]:
 
 
 def run_pyserini_eval(
-    qrels_name: str,
-    run_file: Path,
-    metrics: List[str]
+    qrels_name: str = None,
+    run_file: Path = None,
+    metrics: List[str] = None,
+    qrels_file: Path = None
 ) -> Dict[str, Any]:
     """
     Run evaluation using Pyserini's trec_eval wrapper.
     
     Args:
-        qrels_name: Pyserini qrels name (e.g., "dl19-passage")
+        qrels_name: Pyserini qrels name (e.g., "dl19-passage") - used if qrels_file not provided
         run_file: Path to run file
         metrics: List of metrics to evaluate
+        qrels_file: Path to qrels file (alternative to qrels_name)
         
     Returns:
         Dictionary containing evaluation results
     """
+    # Determine qrels source
+    if qrels_file:
+        qrels_source = str(qrels_file)
+        logging.info(f"Using qrels file: {qrels_file}")
+    elif qrels_name:
+        qrels_source = qrels_name
+        logging.info(f"Using Pyserini qrels: {qrels_name}")
+    else:
+        raise ValueError("Either qrels_name or qrels_file must be provided")
+    
     logging.info("Running Pyserini evaluation...")
-    logging.info(f"Qrels: {qrels_name}")
+    logging.info(f"Qrels: {qrels_source}")
     logging.info(f"Run: {run_file}")
     logging.info(f"Metrics: {', '.join(metrics)}")
     
@@ -101,8 +113,8 @@ def run_pyserini_eval(
         # Add metric flag
         cmd.extend(['-m', metric])
         
-        # Add qrels name and run file
-        cmd.extend([qrels_name, str(run_file)])
+        # Add qrels source (name or file path) and run file
+        cmd.extend([qrels_source, str(run_file)])
         
         logging.debug(f"Command: {' '.join(cmd)}")
         
@@ -143,10 +155,12 @@ def run_pyserini_eval(
 
 
 def evaluate_run(
-    dataset_name: str,
-    run_file: Path,
-    output_dir: Path,
-    registry_path: str = "dataset_registry.yaml"
+    dataset_name: str = None,
+    run_file: Path = None,
+    output_dir: Path = None,
+    registry_path: str = "dataset_registry.yaml",
+    qrels_file: Path = None,
+    metrics: List[str] = None
 ) -> Dict[str, Any]:
     """
     Evaluate retrieval results.
@@ -166,22 +180,38 @@ def evaluate_run(
     
     start_time = time.time()
     
-    # Get dataset configuration
-    logging.info(f"Loading dataset: {dataset_name}")
-    dataset_config = get_dataset_config(dataset_name, registry_path)
+    # Get configuration - either from registry or use provided files
+    if dataset_name:
+        # Get dataset configuration from registry
+        logging.info(f"Loading dataset: {dataset_name}")
+        dataset_config = get_dataset_config(dataset_name, registry_path)
+        qrels_name = dataset_config['qrels']['name']
+        eval_metrics = dataset_config['output']['eval_metrics']
+        qrels_file = None
+    else:
+        # Use provided qrels file
+        if not qrels_file:
+            raise ValueError("Either dataset_name or qrels_file must be provided")
+        if not qrels_file.exists():
+            raise FileNotFoundError(f"Qrels file not found: {qrels_file}")
+        qrels_name = None
+        eval_metrics = metrics if metrics else ['map', 'ndcg_cut.10', 'recall.1000']  # Default metrics
+        logging.info(f"Using qrels file: {qrels_file}")
+        logging.info(f"Using default metrics: {', '.join(eval_metrics)}")
     
-    qrels_name = dataset_config['qrels']['name']
-    metrics = dataset_config['output']['eval_metrics']
-    
-    logging.info(f"Qrels: {qrels_name}")
-    logging.info(f"Metrics: {', '.join(metrics)}")
+    logging.info(f"Metrics: {', '.join(eval_metrics)}")
     
     # Create output directories
     dirs = create_output_dirs(output_dir)
     
-    # Run Pyserini evaluation (Pyserini loads qrels automatically)
+    # Run Pyserini evaluation
     eval_start = time.time()
-    eval_results = run_pyserini_eval(qrels_name, run_file, metrics)
+    eval_results = run_pyserini_eval(
+        qrels_name=qrels_name,
+        qrels_file=qrels_file,
+        run_file=run_file,
+        metrics=eval_metrics
+    )
     eval_time = time.time() - eval_start
     
     logging.info(f"Evaluation complete in {format_time(eval_time)}")

@@ -1,0 +1,139 @@
+# QueryGym Reformulation Configuration
+# 
+# This file defines configurations for all reformulation methods.
+# Use this file with:
+#   - reformulate_queries.py: --config reformulation_config.yaml
+#   - pipeline.py: --config reformulation_config.yaml
+#
+# Structure:
+#   - Each method has its own section
+#   - Global defaults can be set at the top level
+#   - Method-specific configs override defaults
+#   - CLI arguments override config file values
+
+# Global defaults (applied to all methods unless overridden)
+global:
+  # LLM Configuration
+  llm:
+    base_url: "http://127.0.0.1:11434/v1"  # Ollama default, adjust as needed
+    api_key: "ollama"  # Use "ollama" for Ollama, "EMPTY" for vLLM, or your API key
+    temperature: 1.0
+    max_tokens: 128
+  
+  # Retrieval Configuration (for context-based methods)
+  retrieval:
+    k: 1000  # Number of documents to retrieve per query
+    threads: 16  # Number of threads for parallel retrieval
+    retrieval_k: 10  # Number of documents to use as context for reformulation
+
+# Method-specific configurations
+methods:
+  
+  # GenQR: Generic Query Reformulation
+  genqr:
+    enabled: true
+    model: "qwen2.5:7b"  # Override global model if needed
+    llm:
+      temperature: 0.8
+      max_tokens: 256
+    params:
+      n_generations: 5  # Number of times to generate reformulations
+  
+  # GenQR Ensemble: Ensemble of multiple keyword expansion prompts
+  genqr_ensemble:
+    enabled: true
+    model: "qwen2.5:7b"
+    llm:
+      temperature: 0.92  # Paper recommendation
+      max_tokens: 256
+    params:
+      repeat_query_weight: 5  # Number of query repetitions in final output
+      # variant_ids: []  # Optional: specify which variants to use (default: all 10)
+      # parallel: false  # Optional: enable parallel generation (default: false)
+  
+  # Query2Doc: Generates pseudo-documents for the query
+  query2doc:
+    enabled: true
+    model: "qwen2.5:7b"
+    llm:
+      temperature: 1.0
+      max_tokens: 128  # Longer for document generation
+    params: {
+      "mode": "fs",
+        "num_examples": 4,
+        "dataset_type": "msmarco",
+        "collection_path": "path/to/collection.tsv",
+        "train_queries_path": "path/to/queries.train.tsv",
+        "train_qrels_path": "path/to/qrels.train.tsv"
+    }  # No special parameters
+  
+  # QA Expand: Question-answer based expansion
+  qa_expand:
+    enabled: true
+    model: "qwen2.5:7b"
+    llm:
+      temperature: 1.0
+      max_tokens: 256
+    params: {}  # No special parameters
+  
+  # MuGI: Multi-granularity information expansion
+  mugi:
+    enabled: true
+    model: "qwen2.5:7b"
+    llm:
+      temperature: 1.0
+      max_tokens: 256
+    params: {}  # No special parameters
+  
+  # Query2E: Query to entity expansion
+  query2e:
+    enabled: true
+    model: "qwen2.5:7b"
+    llm:
+      temperature: 1.0
+      max_tokens: 128
+    params: {}  # No special parameters
+  
+  # LameR: Context-based passage synthesis (requires retrieval)
+  lamer:
+    enabled: true
+    model: "qwen2.5:7b"
+    llm:
+      temperature: 1.0
+      max_tokens: 128
+    params:
+      retrieval_k: 10  # Number of documents to retrieve for context
+      gen_passages: 5  # Number of passages to generate
+      # Note: Searcher is automatically configured from dataset registry
+  
+  # CSQE: Context-based sentence extraction (requires retrieval)
+  csqe:
+    enabled: true
+    model: "qwen2.5:7b"
+    llm:
+      temperature: 1.0
+      max_tokens: 1024  # Longer for sentence extraction
+    params:
+      retrieval_k: 10  # Number of documents to retrieve for context
+      gen_num: 2  # Number of expansions for both KEQE and CSQE (default: 2)
+      # Note: Searcher is automatically configured from dataset registry
+
+# Example: Multiple configurations for the same method
+# You can define multiple variants with different parameters:
+# 
+# genqr_variant1:
+#   enabled: true
+#   model: "qwen2.5:7b"
+#   llm:
+#     temperature: 0.7
+#   params:
+#     n_generations: 3
+#
+# genqr_variant2:
+#   enabled: true
+#   model: "llama3.1:8b"
+#   llm:
+#     temperature: 0.9
+#   params:
+#     n_generations: 7
+

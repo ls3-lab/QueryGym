@@ -23,6 +23,10 @@ import sys
 sys.path.insert(0, str(Path(__file__).parents[2]))
 
 import querygym as qg
+try:
+    from pyserini.search.lucene import LuceneSearcher
+except ImportError:
+    LuceneSearcher = None
 from examples.querygym_pyserini.utils import (
     get_dataset_config,
     setup_logging,
@@ -34,12 +38,13 @@ from examples.querygym_pyserini.utils import (
 
 
 def retrieve_documents(
-    dataset_name: str,
-    queries_file: Path,
-    output_dir: Path,
+    dataset_name: str = None,
+    queries_file: Path = None,
+    output_dir: Path = None,
     k: int = 1000,
     threads: int = 16,
-    registry_path: str = "dataset_registry.yaml"
+    registry_path: str = "dataset_registry.yaml",
+    index_name: str = None
 ) -> Dict[str, Any]:
     """
     Perform Pyserini retrieval.
@@ -61,13 +66,22 @@ def retrieve_documents(
     
     start_time = time.time()
     
-    # Get dataset configuration
-    logging.info(f"Loading dataset: {dataset_name}")
-    dataset_config = get_dataset_config(dataset_name, registry_path)
-    
-    index_name = dataset_config['index']['name']
-    bm25_k1 = dataset_config['bm25_weights']['k1']
-    bm25_b = dataset_config['bm25_weights']['b']
+    # Get index configuration - either from registry or use provided
+    if dataset_name:
+        # Get dataset configuration from registry
+        logging.info(f"Loading dataset: {dataset_name}")
+        dataset_config = get_dataset_config(dataset_name, registry_path)
+        index_name = dataset_config['index']['name']
+        bm25_k1 = dataset_config['bm25_weights']['k1']
+        bm25_b = dataset_config['bm25_weights']['b']
+    else:
+        # Use provided index_name and default BM25 weights
+        if not index_name:
+            raise ValueError("Either dataset_name or index_name must be provided")
+        bm25_k1 = 0.9  # Default BM25 k1
+        bm25_b = 0.4   # Default BM25 b
+        logging.info(f"Using provided index: {index_name}")
+        logging.info(f"Using default BM25 parameters: k1={bm25_k1}, b={bm25_b}")
     
     logging.info(f"Index: {index_name}")
     logging.info(f"BM25 parameters: k1={bm25_k1}, b={bm25_b}")
@@ -79,9 +93,8 @@ def retrieve_documents(
     
     # Create Pyserini searcher
     logging.info("Initializing Pyserini searcher...")
-    try:
-        from pyserini.search.lucene import LuceneSearcher
-    except ImportError:
+    
+    if LuceneSearcher is None:
         raise ImportError(
             "Pyserini is required for retrieval. Install with: pip install pyserini"
         )

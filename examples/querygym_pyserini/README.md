@@ -10,14 +10,38 @@ This pipeline combines:
 
 ## 📋 **Pipeline Steps**
 
-1. **Reformulate**: Load queries from Pyserini topics and reformulate using QueryGym
+1. **Reformulate**: Load queries (from Pyserini topics or TSV file) and reformulate using QueryGym
 2. **Retrieve**: Retrieve documents using Pyserini with BM25
 3. **Evaluate**: Evaluate results using trec_eval
+
+## 📦 **Dataset Input Options**
+
+The pipeline supports two ways to provide datasets:
+
+### **1. Registry-Based (Recommended)**
+Use datasets registered in `dataset_registry.yaml`:
+```bash
+--dataset msmarco-v1-passage.trecdl2019
+```
+
+### **2. File-Based**
+Use your own query/qrels files (not in registry):
+```bash
+--queries-file path/to/queries.tsv \
+--qrels-file path/to/qrels.trec \
+--index-name msmarco-v1-passage
+```
+
+**File Formats:**
+- **Queries**: TSV file with format `qid\tquery_text` (one per line)
+- **Qrels**: TREC format `qid Q0 docid relevance` (one per line)
+- **Index**: Pyserini prebuilt index name (e.g., `msmarco-v1-passage`)
 
 ## 🚀 **Quick Start**
 
 ### **Full Pipeline**
 
+**Using CLI Arguments:**
 ```bash
 python examples/querygym_pyserini/pipeline.py \
   --dataset msmarco-v1-passage.trecdl2019 \
@@ -27,6 +51,17 @@ python examples/querygym_pyserini/pipeline.py \
   --api-key your-api-key \
   --output-dir outputs/dl19_query2doc
 ```
+
+**Using Config File (Recommended for Complex Configurations):**
+```bash
+python examples/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.trecdl2019 \
+  --method query2doc \
+  --config reformulation_config.yaml \
+  --output-dir outputs/dl19_query2doc
+```
+
+**Note:** You can override config file values with CLI arguments. For example, `--model` and `--temperature` will override values in the config file.
 
 ### **List Available Datasets**
 
@@ -41,10 +76,25 @@ python examples/querygym_pyserini/pipeline.py \
   --dataset-info msmarco-v1-passage.trecdl2019
 ```
 
+### **File-Based Dataset**
+
+```bash
+python examples/querygym_pyserini/pipeline.py \
+  --queries-file path/to/queries.tsv \
+  --qrels-file path/to/qrels.trec \
+  --index-name msmarco-v1-passage \
+  --method query2doc \
+  --model your-model-name \
+  --base-url http://your-llm-endpoint/v1 \
+  --api-key your-api-key \
+  --output-dir outputs/custom_dataset
+```
+
 ## 📖 **Individual Steps**
 
 ### **1. Query Reformulation Only**
 
+**Registry-Based Dataset:**
 ```bash
 python examples/querygym_pyserini/reformulate_queries.py \
   --dataset msmarco-v1-passage.trecdl2019 \
@@ -52,6 +102,27 @@ python examples/querygym_pyserini/reformulate_queries.py \
   --model your-model-name \
   --base-url http://your-llm-endpoint/v1 \
   --api-key your-api-key \
+  --output-dir outputs/dl19_query2doc
+```
+
+**File-Based Dataset:**
+```bash
+python examples/querygym_pyserini/reformulate_queries.py \
+  --queries-file path/to/queries.tsv \
+  --index-name msmarco-v1-passage \
+  --method query2doc \
+  --model your-model-name \
+  --base-url http://your-llm-endpoint/v1 \
+  --api-key your-api-key \
+  --output-dir outputs/custom_query2doc
+```
+
+**Using Config File:**
+```bash
+python examples/querygym_pyserini/reformulate_queries.py \
+  --dataset msmarco-v1-passage.trecdl2019 \
+  --method query2doc \
+  --config reformulation_config.yaml \
   --output-dir outputs/dl19_query2doc
 ```
 
@@ -63,8 +134,26 @@ python examples/querygym_pyserini/reformulate_queries.py \
 - `--temperature`: LLM temperature (default: 1.0)
 - `--max-tokens`: Max tokens (default: 128)
 - `--retrieval-k`: Number of documents to retrieve for methods that need context (default: 10)
+- `--method-params`: Method-specific parameters as JSON string (e.g., `'{"mode":"fs","num_examples":4}'`)
 
-**Note:** If `--base-url` and `--api-key` are not provided, they will be read from `querygym/config/defaults.yaml`
+**Method Parameters Examples:**
+```bash
+# Query2Doc with Few-Shot mode
+--method-params '{"mode":"fs","num_examples":4,"dataset_type":"msmarco","collection_path":"path/to/collection.tsv","train_queries_path":"path/to/queries.train.tsv","train_qrels_path":"path/to/qrels.train.tsv"}'
+
+# Query2Doc with CoT mode
+--method-params '{"mode":"cot"}'
+
+# MuGI with zero-shot
+--method-params '{"num_docs":5,"parallel":true,"mode":"zs"}'
+
+# CSQE
+--method-params '{"retrieval_k":10,"gen_num":2}'
+```
+
+**Note:** 
+- If `--base-url` and `--api-key` are not provided, they will be read from `querygym/config/defaults.yaml`
+- For complex configurations, use `--config reformulation_config.yaml` instead of passing all parameters via CLI
 
 ### **2. Document Retrieval Only**
 
@@ -76,6 +165,8 @@ python examples/querygym_pyserini/retrieve.py \
   --k 1000 \
   --threads 16
 ```
+
+**Note:** The `--queries` argument refers to the reformulated queries file (TSV format). For file-based datasets, use the full pipeline (`pipeline.py`) which handles index configuration automatically.
 
 **Options:**
 - `--k`: Number of documents to retrieve per query (default: 1000)
@@ -90,7 +181,65 @@ python examples/querygym_pyserini/evaluate.py \
   --output-dir outputs/dl19_query2doc
 ```
 
+**Note:** For file-based datasets, use the full pipeline (`pipeline.py`) which handles qrels configuration automatically. The standalone `evaluate.py` script requires a registered dataset.
+
 ## 🔄 **Advanced Usage**
+
+### **Using Configuration Files**
+
+Instead of passing all parameters via CLI, you can use a YAML configuration file (`reformulation_config.yaml`). This is especially useful for:
+- Complex method parameters (e.g., Query2Doc Few-Shot with multiple paths)
+- Reusing configurations across experiments
+- Managing multiple method variants
+
+**Basic Usage:**
+```bash
+python examples/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.trecdl2019 \
+  --method query2doc \
+  --config reformulation_config.yaml \
+  --output-dir outputs/dl19_query2doc
+```
+
+**With CLI Overrides:**
+```bash
+# Override model and temperature from config file
+python examples/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.trecdl2019 \
+  --method query2doc \
+  --config reformulation_config.yaml \
+  --model custom-model-name \
+  --temperature 0.8 \
+  --output-dir outputs/dl19_query2doc
+```
+
+**Config File Structure:**
+```yaml
+global:
+  llm:
+    base_url: "http://your-llm-endpoint/v1"
+    api_key: "your-api-key"
+    temperature: 1.0
+    max_tokens: 128
+  retrieval:
+    retrieval_k: 10
+
+methods:
+  query2doc:
+    model: "qwen2.5:7b"
+    llm:
+      temperature: 1.0
+      max_tokens: 128
+    params:
+      mode: "fs"
+      num_examples: 4
+      dataset_type: "msmarco"
+      collection_path: "path/to/collection.tsv"
+      train_queries_path: "path/to/queries.train.tsv"
+      train_qrels_path: "path/to/qrels.train.tsv"
+```
+
+**See `reformulation_config.yaml` for complete examples of all methods.**
 
 ### **Run Specific Steps**
 
@@ -108,6 +257,7 @@ python examples/querygym_pyserini/pipeline.py \
 
 ### **Resume Pipeline**
 
+**Registry-Based:**
 ```bash
 # Skip reformulation, run retrieval and evaluation
 python examples/querygym_pyserini/pipeline.py \
@@ -118,6 +268,45 @@ python examples/querygym_pyserini/pipeline.py \
   --api-key your-api-key \
   --steps retrieve,evaluate \
   --output-dir outputs/dl19_query2doc
+```
+
+**File-Based:**
+```bash
+# Skip reformulation, run retrieval and evaluation
+python examples/querygym_pyserini/pipeline.py \
+  --queries-file path/to/queries.tsv \
+  --qrels-file path/to/qrels.trec \
+  --index-name msmarco-v1-passage \
+  --method query2doc \
+  --model your-model-name \
+  --base-url http://your-llm-endpoint/v1 \
+  --api-key your-api-key \
+  --steps retrieve,evaluate \
+  --output-dir outputs/custom_query2doc
+```
+
+### **Method Parameters**
+
+```bash
+# Query2Doc with Few-Shot mode
+python examples/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.trecdl2019 \
+  --method query2doc \
+  --model your-model-name \
+  --base-url http://your-llm-endpoint/v1 \
+  --api-key your-api-key \
+  --method-params '{"mode":"fs","num_examples":4,"dataset_type":"msmarco","collection_path":"path/to/collection.tsv","train_queries_path":"path/to/queries.train.tsv","train_qrels_path":"path/to/qrels.train.tsv"}' \
+  --output-dir outputs/dl19_query2doc_fs
+
+# Query2E with method parameters
+python examples/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.trecdl2019 \
+  --method query2e \
+  --model your-model-name \
+  --base-url http://your-llm-endpoint/v1 \
+  --api-key your-api-key \
+  --method-params '{"retrieval_k":10,"gen_num":2}' \
+  --output-dir outputs/dl19_query2e
 ```
 
 ### **Batch Experiments**
@@ -300,31 +489,40 @@ python examples/querygym_pyserini/pipeline.py \
   --output-dir outputs/nfcorpus_q2d
 ```
 
-### **Example 3: Compare Methods**
+### **Example 3: File-Based Dataset**
+
 ```bash
-# Create a comparison script
-cat > run_comparison.sh << 'EOF'
-#!/bin/bash
-DATASET="beir-v1.0.0-scifact"
-MODEL="your-model-name"
-BASE_URL="http://your-llm-endpoint/v1"
-API_KEY="your-api-key"
-
-for METHOD in genqr genqr_ensemble query2doc; do
-  echo "Running $METHOD..."
-  python examples/querygym_pyserini/pipeline.py \
-    --dataset $DATASET \
-    --method $METHOD \
-    --model $MODEL \
-    --base-url $BASE_URL \
-    --api-key $API_KEY \
-    --output-dir outputs/${DATASET}_${METHOD}
-done
-
-echo "Comparison complete!"
-EOF
-
-chmod +x run_comparison.sh
-./run_comparison.sh
+python examples/querygym_pyserini/pipeline.py \
+  --queries-file path/to/original_queries.tsv \
+  --qrels-file path/to/qrels.trec \
+  --index-name msmarco-v1-passage \
+  --method query2doc \
+  --model your-model-name \
+  --base-url http://your-llm-endpoint/v1 \
+  --api-key your-api-key \
+  --output-dir outputs/custom_query2doc
 ```
+
+**Note:** This is useful for custom datasets not in the registry. The queries file should be TSV format (`qid\tquery_text`), and qrels should be in TREC format.
+
+### **Example 4: Using Configuration File**
+
+```bash
+# Using config file for Query2Doc with Few-Shot mode
+python examples/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.trecdl2019 \
+  --method query2doc \
+  --config reformulation_config.yaml \
+  --output-dir outputs/dl19_query2doc_config
+
+# Override model from config file
+python examples/querygym_pyserini/pipeline.py \
+  --dataset msmarco-v1-passage.trecdl2019 \
+  --method query2doc \
+  --config reformulation_config.yaml \
+  --model gpt-4.1-mini \
+  --output-dir outputs/dl19_query2doc_gpt4
+```
+
+**Note:** The config file (`reformulation_config.yaml`) contains pre-configured settings for all methods, including complex method parameters. CLI arguments override config file values.
 

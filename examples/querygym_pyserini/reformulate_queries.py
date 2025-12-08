@@ -24,6 +24,10 @@ import sys
 sys.path.insert(0, str(Path(__file__).parents[2]))
 
 import querygym as qg
+try:
+    from pyserini.search.lucene import LuceneSearcher
+except ImportError:
+    LuceneSearcher = None
 from examples.querygym_pyserini.utils import (
     get_dataset_config,
     load_pyserini_topics,
@@ -31,18 +35,22 @@ from examples.querygym_pyserini.utils import (
     create_output_dirs,
     save_config,
     format_time,
-    print_dataset_info
+    print_dataset_info,
+    get_method_config_from_yaml,
+    list_available_datasets
 )
 
 
 def reformulate_queries(
-    dataset_name: str,
-    method: str,
-    model: str,
-    output_dir: Path,
-    llm_config: Dict[str, Any],
-    method_params: Dict[str, Any],
-    registry_path: str = "dataset_registry.yaml"
+    dataset_name: str = None,
+    method: str = None,
+    model: str = None,
+    output_dir: Path = None,
+    llm_config: Dict[str, Any] = None,
+    method_params: Dict[str, Any] = None,
+    registry_path: str = "dataset_registry.yaml",
+    queries_file: Path = None,
+    index_name: str = None
 ) -> Dict[str, Any]:
     """
     Main reformulation function.
@@ -65,29 +73,46 @@ def reformulate_queries(
     
     start_time = time.time()
     
-    # Get dataset configuration
-    logging.info(f"Loading dataset: {dataset_name}")
-    dataset_config = get_dataset_config(dataset_name, registry_path)
-    topic_name = dataset_config['topics']['name']
-    index_name = dataset_config['index']['name']
-    bm25_weights = dataset_config.get('bm25_weights', {})
-    
-    # Load queries from Pyserini topics
-    logging.info(f"Loading topics: {topic_name}")
-    topics = load_pyserini_topics(topic_name)
-    
-    # Convert Pyserini topics to QueryGym QueryItem format
-    queries = [
-        qg.QueryItem(qid=str(qid), text=topic['title'])
-        for qid, topic in topics.items()
-    ]
-    logging.info(f"Loaded {len(queries)} queries")
+    # Load queries - either from registry or file
+    if dataset_name:
+        # Get dataset configuration from registry
+        logging.info(f"Loading dataset: {dataset_name}")
+        dataset_config = get_dataset_config(dataset_name, registry_path)
+        topic_name = dataset_config['topics']['name']
+        index_name = dataset_config['index']['name']
+        bm25_weights = dataset_config.get('bm25_weights', {})
+        
+        # Load queries from Pyserini topics
+        logging.info(f"Loading topics: {topic_name}")
+        topics = load_pyserini_topics(topic_name)
+        
+        # Convert Pyserini topics to QueryGym QueryItem format
+        queries = [
+            qg.QueryItem(qid=str(qid), text=topic['title'])
+            for qid, topic in topics.items()
+        ]
+        logging.info(f"Loaded {len(queries)} queries from Pyserini topics")
+    else:
+        # Load queries from file
+        if not queries_file:
+            raise ValueError("Either dataset_name or queries_file must be provided")
+        if not queries_file.exists():
+            raise FileNotFoundError(f"Queries file not found: {queries_file}")
+        
+        logging.info(f"Loading queries from file: {queries_file}")
+        queries = qg.load_queries(str(queries_file), format='tsv')
+        logging.info(f"Loaded {len(queries)} queries from file")
+        
+        # Use provided index_name or default BM25 weights
+        bm25_weights = {'k1': 0.9, 'b': 0.4}  # Default BM25 weights
+        if not index_name:
+            raise ValueError("index_name must be provided when using queries_file")
     
     # Initialize Pyserini searcher for methods that need retrieval context
     searcher = None
     try:
-        from pyserini.search.lucene import LuceneSearcher
-        
+        if LuceneSearcher is None:
+            raise ImportError("Pyserini is required. Install with: pip install pyserini")
         logging.info(f"Initializing Pyserini searcher: {index_name}")
         
         # Create Pyserini searcher (auto-downloads if prebuilt index)
@@ -159,16 +184,29 @@ def reformulate_queries(
     # Prepare method params for metadata (exclude non-serializable searcher object)
     metadata_params = {k: v for k, v in method_params.items() if k != 'searcher'}
     
-    # Save metadata
-    metadata = {
-        'dataset': {
+    # Build dataset metadata - handle both registry-based and file-based inputs
+    if dataset_name:
+        dataset_metadata = {
             'name': dataset_name,
             'full_name': dataset_config.get('name', ''),
             'topics': topic_name,
             'index': index_name,
             'num_queries': len(queries),
             'bm25_weights': bm25_weights
-        },
+        }
+    else:
+        dataset_metadata = {
+            'name': None,
+            'full_name': queries_file.name if queries_file else 'custom',
+            'queries_file': str(queries_file) if queries_file else None,
+            'index': index_name,
+            'num_queries': len(queries),
+            'bm25_weights': bm25_weights
+        }
+    
+    # Save metadata
+    metadata = {
+        'dataset': dataset_metadata,
         'reformulation': {
             'method': method,
             'model': model,
@@ -234,6 +272,20 @@ Examples:
       --model your-model-name \\
       --temperature 0.7 \\
       --max-tokens 256
+
+  # Using config file (recommended for complex configurations)
+  python examples/querygym_pyserini/reformulate_queries.py \\
+      --dataset msmarco-v1-passage.trecdl2019 \\
+      --method query2doc \\
+      --config reformulation_config.yaml
+
+  # Config file with CLI overrides
+  python examples/querygym_pyserini/reformulate_queries.py \\
+      --dataset msmarco-v1-passage.trecdl2019 \\
+      --method genqr_ensemble \\
+      --config reformulation_config.yaml \\
+      --model custom-model-name \\
+      --temperature 0.8
 
   # List available datasets
   python examples/querygym_pyserini/reformulate_queries.py --list-datasets
@@ -305,6 +357,11 @@ Examples:
         help='Show info about a specific dataset and exit'
     )
     parser.add_argument(
+        '--config',
+        type=str,
+        help='Path to reformulation config YAML file (overrides individual parameters)'
+    )
+    parser.add_argument(
         '--log-level',
         type=str,
         default='INFO',
@@ -316,7 +373,6 @@ Examples:
     
     # Handle --list-datasets
     if args.list_datasets:
-        from examples.querygym_pyserini.utils import list_available_datasets
         datasets = list_available_datasets(args.registry_path)
         print("\nAvailable datasets:")
         print("="*60)
@@ -331,8 +387,13 @@ Examples:
         return
     
     # Validate required arguments
-    if not args.dataset or not args.method or not args.model:
-        parser.error("--dataset, --method, and --model are required (unless using --list-datasets or --dataset-info)")
+    # Model can come from config file, so it's only required if no config is provided
+    if not args.dataset or not args.method:
+        parser.error("--dataset and --method are required (unless using --list-datasets or --dataset-info)")
+    
+    # Model is required if no config file is provided
+    if not args.config and not args.model:
+        parser.error("--model is required when --config is not provided")
     
     # Set default output directory
     if args.output_dir is None:
@@ -348,25 +409,60 @@ Examples:
     # Log configuration
     logging.info(f"Dataset: {args.dataset}")
     logging.info(f"Method: {args.method}")
-    logging.info(f"Model: {args.model}")
     logging.info(f"Output: {args.output_dir}")
     
-    # Prepare configurations
-    llm_config = {
-        'temperature': args.temperature,
-        'max_tokens': args.max_tokens
-    }
-    
-    # Only include base_url and api_key if explicitly provided
-    if args.base_url:
-        llm_config['base_url'] = args.base_url
-    if args.api_key:
-        llm_config['api_key'] = args.api_key
-    
-    # Set method parameters
-    method_params = {
-        'retrieval_k': args.retrieval_k  # Number of docs to retrieve for context
-    }
+    # Load configuration from YAML if provided, otherwise use CLI args
+    if args.config:
+        logging.info(f"Loading configuration from: {args.config}")
+        cli_overrides = {
+            'model': args.model,
+            'base_url': args.base_url,
+            'api_key': args.api_key,
+            'temperature': args.temperature,
+            'max_tokens': args.max_tokens,
+            'retrieval_k': args.retrieval_k
+        }
+        # Remove None values
+        cli_overrides = {k: v for k, v in cli_overrides.items() if v is not None}
+        
+        method_config = get_method_config_from_yaml(
+            args.config,
+            args.method,
+            cli_overrides=cli_overrides
+        )
+        
+        model = method_config['model']
+        llm_config = method_config['llm_config']
+        method_params = method_config['method_params']
+        
+        if not model:
+            parser.error("Model must be specified either in config file or via --model")
+        
+        logging.info(f"Model: {model} (from config)")
+        logging.info(f"LLM config from config: {llm_config}")
+        logging.info(f"Method params from config: {method_params}")
+    else:
+        # Use CLI arguments directly
+        model = args.model
+        llm_config = {
+            'temperature': args.temperature,
+            'max_tokens': args.max_tokens
+        }
+        
+        # Only include base_url and api_key if explicitly provided
+        if args.base_url:
+            llm_config['base_url'] = args.base_url
+        if args.api_key:
+            llm_config['api_key'] = args.api_key
+        
+        # Set method parameters
+        method_params = {
+            'retrieval_k': args.retrieval_k  # Number of docs to retrieve for context
+        }
+        
+        logging.info(f"Model: {model} (from CLI)")
+        logging.info(f"LLM config: {llm_config}")
+        logging.info(f"Method params: {method_params}")
     
     try:
         # Run reformulation
