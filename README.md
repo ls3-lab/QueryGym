@@ -1,10 +1,10 @@
+[![Ask DeepWiki about this repo](https://deepwiki.com/badge.svg)](https://deepwiki.com/ls3-lab/QueryGym)
 [![Publish to PyPI](https://github.com/ls3-lab/QueryGym/actions/workflows/publish.yml/badge.svg)](https://github.com/ls3-lab/QueryGym/actions/workflows/publish.yml)
 [![Build and Push Docker Images](https://github.com/ls3-lab/QueryGym/actions/workflows/docker.yml/badge.svg)](https://github.com/ls3-lab/QueryGym/actions/workflows/docker.yml)
 [![PyPI version](https://badge.fury.io/py/querygym.svg)](https://pypi.org/project/querygym/)
 ![PyPI - Downloads](https://img.shields.io/pypi/dw/querygym?color=blueviolet&label=downloads)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/ls3-lab/QueryGym/main/docs/querygym-logo.png" alt="QueryGym Logo" width="600">
