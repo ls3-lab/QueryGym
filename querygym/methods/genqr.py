@@ -24,7 +24,7 @@ class GENQR(BaseReformulator):
         reformulations: List[str] = []
         
         for _ in range(n_generations):
-            msgs = self.prompts.render("genqr.v1", query=q.text)
+            msgs = self.prompts.render("genqr.keywords.v1", query=q.text)
             out = self.llm.chat(msgs, temperature=temperature, max_tokens=max_tokens)
             # Clean up the reformulation (remove quotes, extra whitespace)
             reformulation = out.strip().strip('"').strip("'").replace("\n", " ")
