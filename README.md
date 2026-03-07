@@ -32,6 +32,23 @@
 - **Pyserini** optional: either pass contexts (JSONL) or pass a retriever instance to build contexts
 - Export-only: emits reformulated queries; optionally generates a **bash** script for Pyserini + `trec_eval`
 
+## Supported Methods
+
+QueryGym implements the following query reformulation methods:
+
+| Method | Description | Paper |
+|--------|-------------|-------|
+| **GenQR** | Generic keyword expansion using LLM | [Wang et al., 2023](https://arxiv.org/abs/2308.00415) |
+| **GenQR Ensemble** | Ensemble of 10 instruction variants for diverse keyword expansion | [Dhole & Agichtein, 2024](https://arxiv.org/abs/2404.03746) |
+| **Query2Doc** | Generates pseudo-documents from LLM knowledge | [Wang et al., 2023](https://arxiv.org/abs/2303.07678) |
+| **QA Expand** | Question-answer based expansion with sub-questions | [Seo et al., 2025](https://arxiv.org/abs/2502.08557) |
+| **MuGI** | Multi-granularity information expansion with adaptive concatenation | [Zhang et al., 2024](https://arxiv.org/abs/2401.06311) |
+| **LameR** | Context-based passage synthesis using retrieved documents | [Mackie et al., 2023](https://arxiv.org/abs/2304.14233) |
+| **CSQE** | Context-based sentence-level query expansion (KEQE + CSQE) | [Lee et al., 2024](https://arxiv.org/abs/2402.18031) |
+| **Query2E** | Query to entity/keyword expansion | [Jagerman et al., 2023](https://arxiv.org/abs/2305.03653)|
+
+For detailed usage and parameters, see the [Methods Reference](https://querygym.readthedocs.io/en/latest/user-guide/methods-reference/).
+
 ## Installation
 
 ### Option 1: Install from PyPI
