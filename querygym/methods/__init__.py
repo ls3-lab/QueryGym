@@ -6,3 +6,4 @@ from .mugi import MuGI
 from .lamer import LameR
 from .query2e import Query2E
 from .csqe import CSQE
+from .thinkqe import ThinkQE

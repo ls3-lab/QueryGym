@@ -15,6 +15,7 @@ Complete reference guide for all query reformulation methods in QueryGym, includ
   - [LameR](#lamer)
   - [Query2E](#query2e)
   - [CSQE](#csqe)
+  - [ThinkQE](#thinkqe)
 
 ---
 
@@ -561,6 +562,68 @@ result = reformulator.reformulate(qg.QueryItem("q1", "quantum computing"))
 
 ---
 
+### ThinkQE
+
+**Method Name:** `"thinkqe"`  
+**Requires Context:** Yes  
+**Description:** Multi-round query expansion with retrieved passage feedback. Each round uses the original query plus newly retrieved passages to generate pseudo-passages, appends them to the retrieval query, and retrieves again.
+
+#### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `keep_passage_num` | int | `5` | Number of retrieved passages kept for prompting |
+| `gen_num` | int | `2` | Number of expansions generated per round |
+| `num_interaction` | int | `3` | Number of expansion rounds after baseline retrieval |
+| `accumulate` | bool | `True` | Accumulate all previous expansions into later rounds |
+| `use_passage_filter` | bool | `True` | Blacklist passages repeated from two rounds ago |
+| `repeat_weight` | float | `3` | Divisor for adaptive query repetition |
+| `search_k` | int | `keep_passage_num` | Retrieval depth for each round before filtering; use `1000` to mirror the original archive runs |
+| `max_demo_len` | int | `None` | Optional word truncation length for each passage |
+| `no_thinking` | bool | `False` | Prefill a closing `</think>` tag to disable reasoning traces |
+| `searcher` | object | `None` | Pre-configured searcher instance (recommended) |
+| `searcher_type` | str | `"pyserini"` | Type of searcher to create |
+| `searcher_kwargs` | dict | `{}` | Keyword arguments for searcher initialization |
+| `index` | str | `None` | Pyserini index name (legacy format) |
+| `temperature` | float | `0.7` | Sampling temperature (via `llm_config`) |
+| `max_tokens` | int | `32768` | Maximum tokens per generation (via `llm_config`) |
+
+#### Usage Example
+
+```python
+import querygym as qg
+from pyserini.search.lucene import LuceneSearcher
+
+pyserini_searcher = LuceneSearcher.from_prebuilt_index("msmarco-v1-passage")
+searcher = qg.wrap_pyserini_searcher(pyserini_searcher, answer_key="contents")
+
+reformulator = qg.create_reformulator(
+    "thinkqe",
+    model="deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
+    params={
+        "searcher": searcher,
+        "keep_passage_num": 5,
+        "gen_num": 2,
+        "num_interaction": 3,
+        "accumulate": True,
+        "use_passage_filter": True,
+        "repeat_weight": 3,
+        "search_k": 1000,
+        "max_demo_len": 128,
+    },
+    llm_config={"temperature": 0.7, "max_tokens": 32768}
+)
+
+result = reformulator.reformulate_batch([qg.QueryItem("q1", "quantum computing")])[0]
+```
+
+#### Output Format
+
+- **Concatenation:** `(query × adaptive_repeat) + expansion_1 + expansion_2 + ...` using newline joins
+- **Metadata:** Includes `round_history`, `gen_num`, `keep_passage_num`, `accumulated_count`, `q_repeat`, and per-round raw response counts
+
+---
+
 ## Quick Reference Table
 
 | Method | Requires Context | Key Parameters | Default LLM Config |
@@ -573,12 +636,13 @@ result = reformulator.reformulate(qg.QueryItem("q1", "quantum computing"))
 | **LameR** | Yes | `retrieval_k`, `gen_passages`, `searcher` | temp=1.0, max_tokens=128 |
 | **Query2E** | No | `mode`, `max_keywords`, `num_examples` (fs) | temp=0.3, max_tokens=256 |
 | **CSQE** | Yes | `retrieval_k`, `gen_num`, `searcher` | temp=1.0, max_tokens=1024 |
+| **ThinkQE** | Yes | `keep_passage_num`, `gen_num`, `num_interaction`, `searcher` | temp=0.7, max_tokens=32768 |
 
 ---
 
 ## Tips and Best Practices
 
-1. **Context-Based Methods (LameR, CSQE):**
+1. **Context-Based Methods (LameR, CSQE, ThinkQE):**
    - Always provide a `searcher` instance or configure `searcher_type`/`searcher_kwargs`
    - Use `qg.wrap_pyserini_searcher()` for easy integration with Pyserini
    - Set appropriate `retrieval_k` based on your needs (default: 10)
@@ -604,4 +668,3 @@ result = reformulator.reformulate(qg.QueryItem("q1", "quantum computing"))
 - [API Reference](../api/methods.md) - Technical API documentation
 - [Query Reformulation Guide](reformulation.md) - Usage tutorials
 - [Examples](https://github.com/ls3-lab/QueryGym/tree/main/examples) - Complete workflow examples
-

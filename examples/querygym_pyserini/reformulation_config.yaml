@@ -118,6 +118,24 @@ methods:
       gen_num: 2  # Number of expansions for both KEQE and CSQE (default: 2)
       # Note: Searcher is automatically configured from dataset registry
 
+  # ThinkQE: Multi-round reasoning-based query expansion (requires retrieval)
+  thinkqe:
+    enabled: true
+    model: "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
+    llm:
+      temperature: 0.7
+      max_tokens: 32768
+    params:
+      keep_passage_num: 5
+      gen_num: 2
+      num_interaction: 3
+      accumulate: true
+      use_passage_filter: true
+      repeat_weight: 3
+      max_demo_len: 128
+      search_k: 1000
+      # Note: Searcher is automatically configured from dataset registry
+
 # Example: Multiple configurations for the same method
 # You can define multiple variants with different parameters:
 # 
@@ -136,4 +154,3 @@ methods:
 #     temperature: 0.9
 #   params:
 #     n_generations: 7
-

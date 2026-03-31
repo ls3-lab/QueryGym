@@ -45,6 +45,7 @@ QueryGym implements the following query reformulation methods:
 | **MuGI** | Multi-granularity information expansion with adaptive concatenation | [Zhang et al., 2024](https://arxiv.org/abs/2401.06311) |
 | **LameR** | Context-based passage synthesis using retrieved documents | [Mackie et al., 2023](https://arxiv.org/abs/2304.14233) |
 | **CSQE** | Context-based sentence-level query expansion (KEQE + CSQE) | [Lee et al., 2024](https://arxiv.org/abs/2402.18031) |
+| **ThinkQE** | Multi-round reasoning-based query expansion with corpus feedback | [Le et al., 2025](https://arxiv.org/abs/2506.09260) |
 | **Query2E** | Query to entity/keyword expansion | [Jagerman et al., 2023](https://arxiv.org/abs/2305.03653)|
 
 For detailed usage and parameters, see the [Methods Reference](https://querygym.readthedocs.io/en/latest/user-guide/methods-reference/).

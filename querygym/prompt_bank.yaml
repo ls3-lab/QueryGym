@@ -397,6 +397,24 @@
   notes: |
     LameR variant for news article retrieval. Tailored for TREC-News dataset with relevant news passages.
 
+- id: thinkqe.v1
+  method_family: thinkqe
+  version: 1
+  introduced_by: "ThinkQE: Query Expansion via an Evolving Thinking Process"
+  license: "CC-BY-4.0"
+  authors: ["Haison Le", "queryGym Team"]
+  tags: ["context-based", "thinking", "passage-synthesis", "reasoning"]
+  template:
+    user: |
+      Given a question "{query}" and its possible answering passages (most of these passages are wrong) enumerated as:
+      {contexts}
+
+      please write a correct answering passage. Use your own knowledge, not just the example passages!
+  notes: |
+    ThinkQE uses retrieved passages as evidence, strips any <think>...</think>
+    reasoning trace, and keeps only the final generated answering passage for
+    query expansion.
+
 - id: keqe.v1
   method_family: keqe
   version: 1

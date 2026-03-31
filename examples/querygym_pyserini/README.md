@@ -127,7 +127,7 @@ python examples/querygym_pyserini/reformulate_queries.py \
 ```
 
 **Options:**
-- `--method`: QueryGym method (genqr, genqr_ensemble, query2doc, qa_expand, mugi, lamer, query2e, csqe)
+- `--method`: QueryGym method (genqr, genqr_ensemble, query2doc, qa_expand, mugi, lamer, query2e, csqe, thinkqe)
 - `--model`: LLM model name (e.g., qwen2.5:7b, llama3.1:8b, gpt-4, etc.)
 - `--base-url`: LLM API endpoint (e.g., http://localhost:11434/v1)
 - `--api-key`: LLM API key
@@ -525,4 +525,3 @@ python examples/querygym_pyserini/pipeline.py \
 ```
 
 **Note:** The config file (`reformulation_config.yaml`) contains pre-configured settings for all methods, including complex method parameters. CLI arguments override config file values.
-
