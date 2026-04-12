@@ -5,6 +5,20 @@ All notable changes to querygym will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-04-12
+
+### Added
+- ThinkQE reformulation method: multi-round query expansion via iterative corpus feedback
+  - Strips `<think>...</think>` reasoning traces for compatibility with DeepSeek-R1 style models
+  - Configurable rounds (`num_interaction`), expansion accumulation, and novelty-based passage filtering
+  - Prompt template `thinkqe.v1` added to prompt bank
+  - Full documentation in methods reference and reformulation guide
+- ThinkQE listed in README supported methods table
+
+### Fixed
+- Removed misspelled `reqeat_weight` fallback key in `ThinkQE._get_repeat_weight()`
+- Renamed `test_method_thinkqe.py` to `test_methods_thinkqe.py` for naming consistency
+
 ## [0.1.4] - 2025-11-21
 
 ### Added
@@ -100,7 +114,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Export to TSV/JSONL formats
 - Script generation for Pyserini + trec_eval
 
-[Unreleased]: https://github.com/ls3-lab/QueryGym/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/ls3-lab/QueryGym/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/ls3-lab/QueryGym/compare/v0.1.6...v0.2.0
+[0.1.6]: https://github.com/ls3-lab/QueryGym/compare/v0.1.5...v0.1.6
+[0.1.5]: https://github.com/ls3-lab/QueryGym/compare/v0.1.4...v0.1.5
+[0.1.4]: https://github.com/ls3-lab/QueryGym/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/ls3-lab/QueryGym/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/ls3-lab/QueryGym/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/ls3-lab/QueryGym/compare/v0.1.0...v0.1.1
