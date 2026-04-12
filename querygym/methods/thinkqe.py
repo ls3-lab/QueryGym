@@ -107,10 +107,7 @@ class ThinkQE(BaseReformulator):
         return int(value)
 
     def _get_repeat_weight(self) -> float:
-        value = self.cfg.params.get(
-            "repeat_weight",
-            self.cfg.params.get("reqeat_weight", 3),
-        )
+        value = self.cfg.params.get("repeat_weight", 3)
         return float(value)
 
     def _get_search_k(self) -> int:
