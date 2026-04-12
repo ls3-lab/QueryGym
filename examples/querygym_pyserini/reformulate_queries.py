@@ -300,7 +300,7 @@ Examples:
     parser.add_argument(
         '--method',
         type=str,
-        help='QueryGym reformulation method (genqr, genqr_ensemble, query2doc, etc.)'
+        help='QueryGym reformulation method (genqr, genqr_ensemble, query2doc, lamer, csqe, thinkqe, etc.)'
     )
     parser.add_argument(
         '--model',
@@ -485,4 +485,3 @@ Examples:
 
 if __name__ == '__main__':
     main()
-

@@ -3,11 +3,14 @@ from ..core.base import BaseReformulator, QueryItem, ReformulationResult
 from ..core.registry import register_method
 from typing import List, Optional, Dict, Any
 
+
 @register_method("lamer")
 class LameR(BaseReformulator):
     VERSION = "0.1"
     REQUIRES_CONTEXT = True
-    CONCATENATION_STRATEGY = "interleaved_query_content"  # q + a1 + q + a2 + q + a3 + q + a4 + q + a5
+    CONCATENATION_STRATEGY = (
+        "interleaved_query_content"  # q + a1 + q + a2 + q + a3 + q + a4 + q + a5
+    )
 
     def reformulate(self, q: QueryItem, contexts=None) -> ReformulationResult:
         # Use provided contexts (from batch retrieval)
@@ -48,7 +51,7 @@ class LameR(BaseReformulator):
 
     def _get_retrieval_params(self) -> Optional[Dict[str, Any]]:
         """Get LameR-specific retrieval parameters for batch retrieval.
-        
+
         Returns retrieval parameters compatible with BaseSearcher interface.
         Supports both searcher_type/searcher_kwargs format and legacy format.
         """
@@ -60,53 +63,53 @@ class LameR(BaseReformulator):
                 "k": int(self.cfg.params.get("retrieval_k", 10)),
                 "threads": int(self.cfg.params.get("threads", 16)),
             }
-        
+
         # Check if using new searcher interface format with searcher_type
         if "searcher_type" in self.cfg.params:
             # New format: use searcher_type and searcher_kwargs
             searcher_type = self.cfg.params.get("searcher_type", "pyserini")
             searcher_kwargs = self.cfg.params.get("searcher_kwargs", {})
-            
+
             # If index is provided in params but not in searcher_kwargs, add it
             if "index" in self.cfg.params and "index" not in searcher_kwargs:
                 searcher_kwargs["index"] = self.cfg.params["index"]
-            
+
             return {
                 "searcher_type": searcher_type,
                 "searcher_kwargs": searcher_kwargs,
                 "k": int(self.cfg.params.get("retrieval_k", 10)),
                 "threads": int(self.cfg.params.get("threads", 16)),
             }
-        
+
         # Legacy format: convert old-style params to new format
         index = self.cfg.params.get("index")
         if not index:
             return None
-        
+
         # Build searcher_kwargs from legacy params
         searcher_kwargs = {
             "index": index,
             "searcher_type": "impact" if self.cfg.params.get("impact", False) else "bm25",
             "answer_key": self.cfg.params.get("answer_key", "contents"),
         }
-        
+
         # Add BM25 parameters if specified
         k1 = self.cfg.params.get("k1")
         b = self.cfg.params.get("b")
         if k1 is not None and b is not None:
             searcher_kwargs["k1"] = k1
             searcher_kwargs["b"] = b
-        
+
         # Add RM3 if requested
         if self.cfg.params.get("rm3", False):
             searcher_kwargs["rm3"] = True
-        
+
         # Add Rocchio if requested
         if self.cfg.params.get("rocchio", False):
             searcher_kwargs["rocchio"] = True
             if self.cfg.params.get("rocchio_use_negative", False):
                 searcher_kwargs["rocchio_use_negative"] = True
-        
+
         return {
             "searcher_type": "pyserini",  # Default to pyserini for legacy format
             "searcher_kwargs": searcher_kwargs,

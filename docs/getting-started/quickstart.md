@@ -48,6 +48,7 @@ Available methods:
 - `lamer` - Context-based passage synthesis
 - `query2e` - Query to entity expansion
 - `csqe` - Context-based sentence extraction
+- `thinkqe` - Multi-round reasoning-based passage expansion
 
 ### 3. Reformulate Queries
 
@@ -137,7 +138,7 @@ See [Loading Datasets](../user-guide/datasets.md) for more details.
 
 ## Context-Based Reformulation
 
-Some methods (like `lamer`, `csqe`) use retrieved contexts:
+Some methods (like `lamer`, `csqe`, `thinkqe`) use retrieved contexts:
 
 ```python
 import querygym as qg

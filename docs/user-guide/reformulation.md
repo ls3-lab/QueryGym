@@ -93,6 +93,26 @@ reformulator = qg.create_reformulator("csqe", model="gpt-4")
 results = reformulator.reformulate_batch(queries, contexts=contexts)
 ```
 
+### ThinkQE
+
+Multi-round reasoning-based expansion with iterative corpus feedback.
+
+```python
+reformulator = qg.create_reformulator(
+    "thinkqe",
+    model="deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
+    params={
+        "searcher": searcher,
+        "num_interaction": 3,
+        "keep_passage_num": 5,
+        "gen_num": 2,
+        "accumulate": True,
+        "use_passage_filter": True,
+        "search_k": 1000,
+    },
+)
+```
+
 ## Method Comparison
 
 | Method | Requires Context | Type | Best For |
@@ -105,6 +125,7 @@ results = reformulator.reformulate_batch(queries, contexts=contexts)
 | lamer | Yes | Context synthesis | Re-ranking |
 | query2e | No | Entity expansion | Entity queries |
 | csqe | Yes | Sentence extraction | Precision-focused |
+| thinkqe | Yes | Iterative reasoning | Multi-round feedback |
 
 ## Custom Parameters
 
