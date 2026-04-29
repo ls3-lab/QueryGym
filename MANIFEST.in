@@ -1,6 +1,6 @@
 # Include package data files
-include queryGym/prompt_bank.yaml
-include queryGym/config/*.yaml
+include querygym/prompt_bank.yaml
+include querygym/config/*.yaml
 
 # Include documentation
 include README.md
