@@ -1,0 +1,15 @@
+/**
+ * Wrangler config for the marketing site deployed to Cloudflare's
+ * "Workers + Static Assets" model.
+ *
+ * See reproducibility/site/wrangler.jsonc for why this file exists
+ * (CF auto-config + pnpm workspace:* incompatibility).
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "querygym-site",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}

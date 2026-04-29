@@ -1,0 +1,21 @@
+/**
+ * Wrangler config for the leaderboard project deployed to Cloudflare's
+ * "Workers + Static Assets" model.
+ *
+ * Why this file exists: Cloudflare's auto-config (when wrangler is missing)
+ * runs `astro add cloudflare` which then tries `npm install wrangler`. That
+ * fails in our pnpm monorepo because npm doesn't understand the `workspace:*`
+ * protocol used by the @qg/shared dep. Pre-providing this config + the
+ * wrangler devDep skips the auto-config and deploys dist/ as static assets.
+ *
+ * compatibility_date is intentionally kept old-ish (well-tested) — bump only
+ * when adopting a new Workers runtime feature.
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "querygym-leaderboard",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}
