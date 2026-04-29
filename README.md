@@ -15,8 +15,10 @@
 </p>
 
 <p align="center">
-  <a href="https://querygym.readthedocs.io/">📚 Documentation</a> •
-  <a href="https://ls3-lab.github.io/QueryGym/leaderboard.html">📊 Leaderboard</a> •
+  <a href="https://querygym.com">🌐 Website</a> •
+  <a href="https://leaderboard.querygym.com">📊 Leaderboard</a> •
+  <a href="https://dashboard.querygym.com">🚀 Dashboard</a> •
+  <a href="https://querygym.readthedocs.io/">📚 Docs</a> •
   <a href="https://pypi.org/project/querygym/">📦 PyPI</a> •
   <a href="https://arxiv.org/abs/2511.15996">📄 Paper</a>
 </p>

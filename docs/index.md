@@ -89,7 +89,7 @@ pip install querygym[dev]
 - [CLI Usage](user-guide/cli.md)
 - [API Reference](api/core.md)
 
-> 📊 **Looking for benchmarks?** Visit the [Leaderboard](https://ls3-lab.github.io/QueryGym/leaderboard.html) on our main site.
+> 📊 **Looking for benchmarks?** Visit the [Leaderboard](https://leaderboard.querygym.com).
 
 ## Citation
 
