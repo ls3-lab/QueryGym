@@ -6,12 +6,17 @@ on:
       - 'reproducibility/**'
       - 'examples/querygym_pyserini/pipeline.py'
       - 'dataset_registry.yaml'
+      - 'pyproject.toml'
+      - '.github/workflows/reproducibility-check.yml'
   push:
     branches: [main]
     paths:
       - 'reproducibility/**'
       - 'examples/querygym_pyserini/pipeline.py'
       - 'dataset_registry.yaml'
+      - 'pyproject.toml'
+      - '.github/workflows/reproducibility-check.yml'
+  workflow_dispatch:
 
 concurrency:
   group: repro-${{ github.ref }}
@@ -36,7 +41,10 @@ jobs:
           pip install pytest-cov
 
       - name: Run repro tests
-        run: pytest reproducibility/tests -v --no-cov
+        # Use `python -m pytest` so the cwd (repo root) is on sys.path —
+        # `from reproducibility.lib import ...` needs that, and the bare
+        # `pytest` form doesn't add it on CI's Python 3.9.
+        run: python -m pytest reproducibility/tests -v --no-cov
 
       - name: Aggregator --check
         run: python -m reproducibility.scripts.aggregate_runs --check
