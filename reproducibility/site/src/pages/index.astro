@@ -1,0 +1,68 @@
+---
+import Default from "../layouts/Default.astro";
+import EmptyState from "../components/EmptyState.astro";
+import Stat from "../components/Stat.astro";
+import overview from "../data/overview.json";
+import datasets from "../data/datasets.json";
+
+const populated = overview.run_count > 0;
+const featured = datasets.filter((d: any) => d.run_count > 0).slice(0, 6);
+---
+
+<Default
+  title="Home"
+  description="QueryGym leaderboard — query reformulation methods × LLMs across IR benchmarks."
+>
+  <section class="mb-10">
+    <h1 class="text-3xl font-bold md:text-4xl">QueryGym Leaderboard</h1>
+    <p class="mt-3 max-w-3xl text-qg-fg-muted">
+      Reproducible LLM-based query reformulation results across BEIR, MS MARCO,
+      and TREC DL benchmarks. Every row is backed by a committed JSON, a TREC
+      run file, and the reformulated queries — verifiable from a fresh clone.
+    </p>
+    <div class="mt-4 flex flex-wrap gap-3 text-sm">
+      <a
+        href="/datasets/"
+        class="rounded-md bg-qg-accent px-4 py-2 font-medium text-white hover:opacity-90"
+        >Browse datasets</a
+      >
+      <a
+        href="/about"
+        class="rounded-md border border-qg-border px-4 py-2 font-medium hover:bg-qg-bg-soft"
+        >How to submit</a
+      >
+    </div>
+  </section>
+
+  <section class="mb-10 grid grid-cols-2 gap-4 md:grid-cols-4">
+    <Stat label="Runs" value={overview.run_count} />
+    <Stat label="Datasets" value={overview.dataset_count} />
+    <Stat label="Methods" value={overview.method_count} />
+    <Stat label="LLMs" value={overview.model_count} />
+  </section>
+
+  <section>
+    <h2 class="mb-4 text-xl font-semibold">Datasets with results</h2>
+    {
+      populated ? (
+        <ul class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {featured.map((d: any) => (
+            <li class="rounded-lg border border-qg-border bg-qg-bg-soft p-4 hover:border-qg-accent">
+              <a href={`/datasets/${d.id}`} class="block">
+                <div class="font-semibold">{d.name}</div>
+                <div class="mt-1 text-xs text-qg-fg-muted">
+                  {d.run_count} run{d.run_count === 1 ? "" : "s"} · {d.eval_metrics.join(", ")}
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <EmptyState
+          title="No SIGIR runs landed yet"
+          body="The schema is locked and the pipeline is live. Once the SIGIR backfill PR lands, results appear here automatically."
+        />
+      )
+    }
+  </section>
+</Default>

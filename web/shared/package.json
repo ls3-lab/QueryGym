@@ -1,0 +1,12 @@
+{
+  "name": "@qg/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared design system (tokens, Tailwind preset, Header/Footer) for QueryGym sites.",
+  "exports": {
+    "./tokens.css": "./tokens.css",
+    "./tailwind.preset": "./tailwind.preset.js",
+    "./components/*": "./components/*"
+  }
+}

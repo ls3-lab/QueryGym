@@ -1,0 +1,42 @@
+---
+import "../styles/global.css";
+import Header from "@qg/shared/components/Header.astro";
+import Footer from "@qg/shared/components/Footer.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+
+const navLinks = [
+  { label: "Datasets", href: "/datasets/" },
+  { label: "Methods", href: "/methods/" },
+  { label: "Models", href: "/models/" },
+  { label: "About", href: "/about" },
+  { label: "Toolkit", href: "https://querygym.com", external: true },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} — QueryGym Leaderboard</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="icon" type="image/png" href="/querygym-logo.png" />
+  </head>
+  <body class="min-h-screen bg-qg-bg text-qg-fg">
+    <Header
+      title="QueryGym Leaderboard"
+      tagline="SIGIR 2026 Reproducibility — Query Reformulation × LLMs × Datasets"
+      links={navLinks}
+    />
+    <main class="mx-auto max-w-6xl px-4 py-8 md:py-12">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

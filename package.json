@@ -1,0 +1,15 @@
+{
+  "name": "querygym-web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Workspace root for QueryGym websites (leaderboard + marketing). Not published.",
+  "scripts": {
+    "build:leaderboard": "pnpm -F @qg/leaderboard build:data && pnpm -F @qg/leaderboard build",
+    "dev:leaderboard": "pnpm -F @qg/leaderboard dev"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@10.14.0"
+}

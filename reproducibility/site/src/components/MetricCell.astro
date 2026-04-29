@@ -1,0 +1,20 @@
+---
+interface Props {
+  value: number | undefined | null;
+  best?: boolean;
+  digits?: number;
+}
+
+const { value, best = false, digits = 4 } = Astro.props;
+const formatted =
+  value == null || Number.isNaN(value) ? "—" : value.toFixed(digits);
+---
+
+<span
+  class:list={[
+    "qg-mono tabular-nums",
+    best && "rounded bg-qg-accent/15 px-2 py-0.5 font-semibold text-qg-accent",
+  ]}
+>
+  {formatted}
+</span>

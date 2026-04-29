@@ -1,0 +1,46 @@
+---
+/**
+ * Shared footer. Three links: GitHub, papers, dashboard. Used across the
+ * leaderboard and (in PR2) the marketing site.
+ */
+interface FooterLink {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  /** Lab / org name displayed in the copyright line. */
+  org?: string;
+  /** Extra links appended after the defaults. */
+  extraLinks?: FooterLink[];
+}
+
+const { org = "ls3-lab", extraLinks = [] } = Astro.props;
+const year = new Date().getFullYear();
+
+const baseLinks: FooterLink[] = [
+  { label: "GitHub", href: "https://github.com/ls3-lab/QueryGym" },
+  { label: "Docs", href: "https://querygym.readthedocs.io" },
+  { label: "Dashboard", href: "https://dashboard.querygym.com" },
+  { label: "Paper (WWW 2026)", href: "https://arxiv.org/abs/2511.15996" },
+];
+---
+
+<footer class="border-t border-qg-border bg-qg-bg-soft">
+  <div class="mx-auto flex max-w-6xl flex-col items-start justify-between gap-3 px-4 py-6 text-sm text-qg-fg-muted md:flex-row md:items-center">
+    <div>
+      © {year} {org}. Apache 2.0.
+    </div>
+    <ul class="flex flex-wrap items-center gap-x-4 gap-y-1">
+      {
+        [...baseLinks, ...extraLinks].map((l) => (
+          <li>
+            <a class="hover:text-qg-fg" href={l.href} target="_blank" rel="noopener noreferrer">
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</footer>

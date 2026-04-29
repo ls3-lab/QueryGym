@@ -1,0 +1,4 @@
+@import "@qg/shared/tokens.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

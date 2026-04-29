@@ -1,0 +1,69 @@
+---
+import Default from "../../layouts/Default.astro";
+import Field from "../../components/Field.astro";
+import runs from "../../data/runs.json";
+
+export async function getStaticPaths() {
+  const runsData = (await import("../../data/runs.json")).default as Record<string, any>;
+  return Object.keys(runsData).map((run_id) => ({ params: { run_id } }));
+}
+
+const { run_id } = Astro.params;
+const run = (runs as Record<string, any>)[run_id!];
+---
+
+<Default title={`Run ${run_id?.slice(0, 8)}`} description="Single run detail.">
+  <a href="/datasets/" class="text-sm text-qg-fg-muted hover:text-qg-fg">← Datasets</a>
+  <h1 class="mt-2 text-2xl font-bold md:text-3xl">Run detail</h1>
+  <div class="mt-1 qg-mono text-sm text-qg-fg-muted">{run_id}</div>
+
+  <section class="mt-6 grid gap-4 md:grid-cols-3">
+    <Field label="Dataset" value={run.dataset_id} />
+    <Field label="Method" value={run.method_id} />
+    <Field label="Model" value={run.model} />
+    <Field label="params_hash" value={run.params_hash} />
+    <Field label="Queries" value={run.num_queries} />
+    <Field label="Total time (s)" value={run.total_time_seconds.toFixed(1)} />
+  </section>
+
+  <section class="mt-8">
+    <h2 class="mb-3 text-lg font-semibold">Metrics</h2>
+    <table class="w-full max-w-md border-collapse text-sm">
+      <tbody>
+        {Object.entries(run.metrics).map(([m, v]) => (
+          <tr class="border-b border-qg-border/60">
+            <td class="py-2 qg-mono">{m}</td>
+            <td class="py-2 text-right qg-mono tabular-nums">{Number(v).toFixed(4)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="mt-8">
+    <h2 class="mb-3 text-lg font-semibold">Artifacts</h2>
+    <ul class="space-y-1 text-sm">
+      <li>
+        <a class="text-qg-accent hover:underline" href={run.artifacts.json_url} target="_blank" rel="noopener">
+          summary JSON ↗
+        </a>
+      </li>
+      <li>
+        <a class="text-qg-accent hover:underline" href={run.artifacts.run_file_url} target="_blank" rel="noopener">
+          TREC run.txt ↗
+        </a>
+      </li>
+      <li>
+        <a class="text-qg-accent hover:underline" href={run.artifacts.queries_url} target="_blank" rel="noopener">
+          reformulated queries.tsv ↗
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section class="mt-8">
+    <h2 class="mb-3 text-lg font-semibold">Config</h2>
+    <pre class="overflow-x-auto rounded bg-qg-bg-soft p-4 text-xs"><code>{JSON.stringify(run.config, null, 2)}</code></pre>
+  </section>
+</Default>
+
