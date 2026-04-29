@@ -5,7 +5,9 @@
   "description": "Workspace root for QueryGym websites (leaderboard + marketing). Not published.",
   "scripts": {
     "build:leaderboard": "pnpm -F @qg/leaderboard build:data && pnpm -F @qg/leaderboard build",
-    "dev:leaderboard": "pnpm -F @qg/leaderboard dev"
+    "dev:leaderboard": "pnpm -F @qg/leaderboard dev",
+    "build:site": "pnpm -F @qg/site build",
+    "dev:site": "pnpm -F @qg/site dev"
   },
   "engines": {
     "node": ">=20",

@@ -1,0 +1,77 @@
+---
+/**
+ * Visual map of the QueryGym ecosystem: Library / Dashboard / Leaderboard / Docs.
+ * Static SVG-free version using CSS grid + gradient borders.
+ */
+
+const cards = [
+  {
+    label: "Library",
+    sub: "querygym (pip)",
+    body: "The toolkit itself. Methods, prompt bank, searchers, CLI.",
+    href: "https://pypi.org/project/querygym/",
+    cta: "pip install querygym",
+    primary: false,
+  },
+  {
+    label: "Dashboard",
+    sub: "dashboard.querygym.com",
+    body: "Hosted product. Run methods through a UI, compare results live, share runs. API keys + billing.",
+    href: "https://dashboard.querygym.com",
+    cta: "Open Dashboard ↗",
+    primary: true,
+  },
+  {
+    label: "Leaderboard",
+    sub: "leaderboard.querygym.com",
+    body: "SIGIR 2026 reproducibility results across IR benchmarks. Every row backed by a citable JSON.",
+    href: "https://leaderboard.querygym.com",
+    cta: "View Leaderboard →",
+    primary: false,
+  },
+  {
+    label: "Docs",
+    sub: "querygym.readthedocs.io",
+    body: "API reference, methods reference, contributor guide, schema docs.",
+    href: "https://querygym.readthedocs.io",
+    cta: "Read the Docs →",
+    primary: false,
+  },
+];
+---
+
+<section class="qg-section">
+  <h2 class="text-3xl font-bold md:text-4xl">The ecosystem</h2>
+  <p class="mt-3 max-w-2xl text-qg-fg-muted">
+    QueryGym is split into four surfaces. They share the same data contract,
+    so a run from the dashboard or a third-party submitter lands in the same
+    leaderboard as the toolkit's own results.
+  </p>
+
+  <div class="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    {
+      cards.map((c) => (
+        <a
+          href={c.href}
+          target={c.href.startsWith("http") ? "_blank" : undefined}
+          rel={c.href.startsWith("http") ? "noopener noreferrer" : undefined}
+          class:list={[
+            "qg-card flex flex-col justify-between !p-5",
+            c.primary && "!border-qg-accent",
+          ]}
+        >
+          <div>
+            <div class="text-xs uppercase tracking-wide text-qg-fg-muted">
+              {c.sub}
+            </div>
+            <div class:list={["mt-1 text-xl font-semibold", c.primary && "text-qg-accent"]}>
+              {c.label}
+            </div>
+            <p class="mt-2 text-sm text-qg-fg-muted">{c.body}</p>
+          </div>
+          <div class="mt-4 text-sm font-medium">{c.cta}</div>
+        </a>
+      ))
+    }
+  </div>
+</section>

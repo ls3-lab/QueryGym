@@ -1,0 +1,54 @@
+name: Marketing Site Build
+
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'package.json'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/site-build.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'package.json'
+      - 'pnpm-workspace.yaml'
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up pnpm
+        # No `version:` — packageManager in package.json is the canonical source.
+        uses: pnpm/action-setup@v4
+
+      - name: pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build site
+        run: pnpm -F @qg/site build
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-dist
+          path: web/site/dist
+          retention-days: 7

@@ -1,0 +1,65 @@
+[
+  {
+    "id": "genqr",
+    "name": "GenQR",
+    "tagline": "Generic LLM-driven keyword expansion.",
+    "paper": "Wang et al., 2023",
+    "paper_url": "https://arxiv.org/abs/2308.00415"
+  },
+  {
+    "id": "genqr_ensemble",
+    "name": "GenQR Ensemble",
+    "tagline": "10 instruction variants for diverse keyword expansion.",
+    "paper": "Dhole & Agichtein, 2024",
+    "paper_url": "https://arxiv.org/abs/2404.03746"
+  },
+  {
+    "id": "query2doc",
+    "name": "Query2Doc",
+    "tagline": "Generates pseudo-documents from LLM knowledge.",
+    "paper": "Wang et al., 2023",
+    "paper_url": "https://arxiv.org/abs/2303.07678"
+  },
+  {
+    "id": "qa_expand",
+    "name": "QA Expand",
+    "tagline": "Question-answer expansion with sub-questions.",
+    "paper": "Seo et al., 2025",
+    "paper_url": "https://arxiv.org/abs/2502.08557"
+  },
+  {
+    "id": "mugi",
+    "name": "MuGI",
+    "tagline": "Multi-granularity expansion with adaptive concatenation.",
+    "paper": "Zhang et al., 2024",
+    "paper_url": "https://arxiv.org/abs/2401.06311"
+  },
+  {
+    "id": "lamer",
+    "name": "LameR",
+    "tagline": "Context-based passage synthesis from retrieved docs.",
+    "paper": "Mackie et al., 2023",
+    "paper_url": "https://arxiv.org/abs/2304.14233"
+  },
+  {
+    "id": "csqe",
+    "name": "CSQE",
+    "tagline": "Sentence-level context expansion (KEQE + CSQE).",
+    "paper": "Lee et al., 2024",
+    "paper_url": "https://arxiv.org/abs/2402.18031"
+  },
+  {
+    "id": "thinkqe",
+    "name": "ThinkQE",
+    "tagline": "Multi-round reasoning with corpus feedback.",
+    "paper": "Le et al., 2025",
+    "paper_url": "https://arxiv.org/abs/2506.09260"
+  },
+  {
+    "id": "query2e",
+    "name": "Query2E",
+    "tagline": "Query-to-entity / keyword expansion.",
+    "paper": "Jagerman et al., 2023",
+    "paper_url": "https://arxiv.org/abs/2305.03653"
+  }
+]

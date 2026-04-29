@@ -1,0 +1,85 @@
+---
+import Default from "../layouts/Default.astro";
+import Hero from "../components/Hero.astro";
+import FeatureGrid from "../components/FeatureGrid.astro";
+import EcosystemMap from "../components/EcosystemMap.astro";
+import CodeBlock from "../components/CodeBlock.astro";
+import MethodGrid from "../components/MethodGrid.astro";
+---
+
+<Default
+  title="LLM-based Query Reformulation Toolkit"
+  description="QueryGym is an open-source toolkit for reproducible LLM-based query reformulation in information retrieval."
+  bareHeader
+>
+  <Hero />
+
+  <FeatureGrid />
+
+  <EcosystemMap />
+
+  <section class="qg-section">
+    <h2 class="text-3xl font-bold md:text-4xl">Try it in 30 seconds</h2>
+    <p class="mt-3 max-w-2xl text-qg-fg-muted">
+      Reformulate a query against any OpenAI-compatible endpoint. Pyserini and
+      BEIR are optional extras.
+    </p>
+    <div class="mt-6 grid gap-4 md:grid-cols-2">
+      <CodeBlock filename="pip" language="bash">pip install querygym</CodeBlock>
+      <CodeBlock filename="python" language="python">{`import querygym as qg
+
+reformulator = qg.create_reformulator("genqr_ensemble", model="gpt-4.1-mini")
+result = reformulator.reformulate(qg.QueryItem("q1", "what causes diabetes?"))
+print(result.reformulated)`}</CodeBlock>
+    </div>
+    <div class="mt-6">
+      <a
+        href="/install"
+        class="inline-flex items-center gap-1 text-sm font-medium text-qg-accent hover:underline"
+      >
+        Full quickstart →
+      </a>
+    </div>
+  </section>
+
+  <section class="qg-section">
+    <h2 class="text-3xl font-bold md:text-4xl">Supported methods</h2>
+    <p class="mt-3 max-w-2xl text-qg-fg-muted">
+      Nine reformulation methods, each with a registered prompt, a paper
+      reference, and a reproducibility entry on the leaderboard.
+    </p>
+    <div class="mt-8">
+      <MethodGrid variant="compact" />
+    </div>
+    <div class="mt-6">
+      <a
+        href="/methods"
+        class="inline-flex items-center gap-1 text-sm font-medium text-qg-accent hover:underline"
+      >
+        Method reference →
+      </a>
+    </div>
+  </section>
+
+  <section class="qg-gradient text-white">
+    <div class="qg-section flex flex-col items-start justify-between gap-6 !py-14 md:flex-row md:items-center">
+      <div>
+        <h2 class="text-2xl font-bold md:text-3xl">
+          Run reformulations without writing a single line of code.
+        </h2>
+        <p class="mt-2 max-w-2xl text-white/85">
+          The QueryGym Dashboard is the hosted product layer — login, run
+          methods through a UI, compare results live, manage API keys, and
+          publish to the leaderboard.
+        </p>
+      </div>
+      <a
+        href="https://dashboard.querygym.com"
+        class="inline-flex items-center gap-2 whitespace-nowrap rounded-md bg-white px-5 py-3 text-sm font-semibold text-qg-grad-end shadow-lg transition hover:bg-white/90"
+      >
+        Open Dashboard
+        <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </section>
+</Default>

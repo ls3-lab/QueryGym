@@ -1,0 +1,75 @@
+---
+/**
+ * Marketing hero: gradient panel + typed-query → expanded-query animation.
+ * Two CTAs side-by-side: primary "Open Dashboard" (the hosted product),
+ * secondary "Get Started" (pip install + docs).
+ */
+---
+
+<section class="qg-gradient relative overflow-hidden text-white">
+  <div class="mx-auto grid max-w-6xl gap-10 px-4 py-20 md:grid-cols-[1.1fr_1fr] md:items-center md:py-28">
+    <div>
+      <span class="qg-pill !border-white/20 !bg-white/10 !text-white/85">
+        Open source · WWW 2026 · SIGIR 2026 Reproducibility
+      </span>
+      <h1 class="mt-5 text-4xl font-bold leading-tight md:text-5xl">
+        Reproducible query reformulation, powered by LLMs.
+      </h1>
+      <p class="mt-5 max-w-xl text-base text-white/85 md:text-lg">
+        QueryGym is a toolkit for benchmarking and reproducing LLM-based query
+        rewriting methods across IR datasets. Open prompt bank, pluggable
+        searchers, frozen schemas, citable runs.
+      </p>
+      <div class="mt-7 flex flex-wrap gap-3">
+        <a
+          href="https://dashboard.querygym.com"
+          class="inline-flex items-center gap-2 rounded-md bg-white px-5 py-3 text-sm font-semibold text-qg-grad-end shadow-lg transition hover:bg-white/90"
+        >
+          Open Dashboard
+          <span aria-hidden="true">↗</span>
+        </a>
+        <a
+          href="/install"
+          class="inline-flex items-center gap-2 rounded-md border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
+        >
+          Get Started
+        </a>
+        <a
+          href="https://leaderboard.querygym.com"
+          class="inline-flex items-center gap-2 rounded-md px-5 py-3 text-sm font-semibold text-white/90 underline-offset-4 hover:underline"
+        >
+          View Leaderboard →
+        </a>
+      </div>
+    </div>
+
+    <!-- Animated query reformulation card. CSS-only. -->
+    <div class="rounded-2xl border border-white/15 bg-white/10 p-6 shadow-2xl backdrop-blur">
+      <div class="mb-3 flex items-center gap-2 text-xs uppercase tracking-wide text-white/70">
+        <span class="h-2 w-2 rounded-full bg-emerald-300"></span>
+        Live reformulation preview
+      </div>
+      <div class="mb-2 text-xs text-white/70">USER QUERY</div>
+      <div class="qg-mono rounded-md bg-black/30 p-3 text-sm">
+        what causes diabetes?
+      </div>
+
+      <div class="my-3 flex items-center gap-2 text-xs text-white/70">
+        <span class="h-px flex-1 bg-white/20"></span>
+        querygym.create_reformulator("genqr_ensemble")
+        <span class="h-px flex-1 bg-white/20"></span>
+      </div>
+
+      <div class="text-xs text-white/70">REFORMULATED</div>
+      <div class="relative mt-1 h-28 overflow-hidden rounded-md bg-black/30 p-3 text-sm leading-relaxed">
+        <div class="qg-anim-original qg-mono absolute inset-3">
+          what causes diabetes?
+        </div>
+        <div class="qg-anim-expanded qg-mono absolute inset-3">
+          what causes diabetes type 1 type 2 insulin resistance pancreas autoimmune
+          glucose metabolism risk factors genetic predisposition lifestyle obesity
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,85 @@
+---
+import Default from "../layouts/Default.astro";
+import CodeBlock from "../components/CodeBlock.astro";
+---
+
+<Default title="Reproducibility" description="QueryGym's leaderboard, schema v1, and SIGIR 2026 reproducibility track.">
+  <section class="qg-section !py-12">
+    <h1 class="text-3xl font-bold md:text-4xl">Reproducibility, by design.</h1>
+    <p class="mt-3 max-w-2xl text-qg-fg-muted">
+      Every QueryGym run produces a single JSON conforming to a public,
+      versioned schema. Submissions to the leaderboard carry the JSON, a
+      TREC-format run file, and the reformulated queries — together they
+      reconstruct the experiment from a fresh clone.
+    </p>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-2">
+      <a
+        href="https://leaderboard.querygym.com"
+        class="qg-card flex flex-col justify-between"
+      >
+        <div>
+          <div class="text-xs uppercase tracking-wide text-qg-fg-muted">subdomain</div>
+          <div class="mt-1 text-xl font-semibold text-qg-accent">leaderboard.querygym.com</div>
+          <p class="mt-2 text-sm text-qg-fg-muted">
+            Browse the full SIGIR 2026 reproducibility leaderboard. Per-dataset,
+            per-method, per-LLM views with citable run files.
+          </p>
+        </div>
+        <div class="mt-4 text-sm font-medium">View Leaderboard →</div>
+      </a>
+      <a
+        href="https://github.com/ls3-lab/QueryGym/blob/main/reproducibility/schema.md"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="qg-card flex flex-col justify-between"
+      >
+        <div>
+          <div class="text-xs uppercase tracking-wide text-qg-fg-muted">schema</div>
+          <div class="mt-1 text-xl font-semibold">v1 (locked)</div>
+          <p class="mt-2 text-sm text-qg-fg-muted">
+            Field-by-field documentation, validation rules, and a worked
+            example. Mirrors the canonical JSON Schema file.
+          </p>
+        </div>
+        <div class="mt-4 text-sm font-medium">Read schema.md ↗</div>
+      </a>
+    </div>
+
+    <h2 class="mt-16 text-2xl font-semibold">Submitting a result</h2>
+    <p class="mt-3 max-w-2xl text-qg-fg-muted">
+      Run the example pipeline, then use <code class="qg-mono">submit_run.py</code>
+      and open a PR. CI validates the JSON against the schema; a maintainer
+      verifies the numbers locally before merge.
+    </p>
+    <div class="mt-3">
+      <CodeBlock filename="bash" language="bash">{`# 1. Run the example pipeline
+python examples/querygym_pyserini/pipeline.py \\
+    --dataset msmarco-v1-passage.trecdl2019 \\
+    --method query2e --model gpt-4.1-mini \\
+    --output-dir outputs/dl19_query2e
+
+# 2. Copy into the canonical layout
+python -m reproducibility.scripts.submit_run \\
+    --from-dir outputs/dl19_query2e
+
+# 3. Regenerate the aggregate
+make repro-aggregate
+
+# 4. Open a PR
+git add reproducibility/data/ && git commit && git push
+gh pr create`}</CodeBlock>
+    </div>
+
+    <h2 class="mt-16 text-2xl font-semibold">Papers</h2>
+    <p class="mt-3 max-w-2xl text-qg-fg-muted">
+      QueryGym is backed by two papers: the toolkit demo and a multi-LLM
+      reproduction study. Both link directly to the committed corpus.
+    </p>
+    <div class="mt-3">
+      <a class="text-sm font-medium text-qg-accent hover:underline" href="/cite">
+        See full citations →
+      </a>
+    </div>
+  </section>
+</Default>

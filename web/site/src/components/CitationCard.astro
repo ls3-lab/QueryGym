@@ -1,0 +1,38 @@
+---
+interface Props {
+  title: string;
+  venue: string;
+  authors: string;
+  bibtex: string;
+  url?: string;
+}
+
+const { title, venue, authors, bibtex, url } = Astro.props;
+---
+
+<article class="qg-card">
+  <div class="qg-pill">{venue}</div>
+  <h3 class="mt-3 text-lg font-semibold">{title}</h3>
+  <p class="mt-1 text-sm text-qg-fg-muted">{authors}</p>
+  {
+    url && (
+      <a
+        class="mt-2 inline-block text-sm font-medium text-qg-accent hover:underline"
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {url} ↗
+      </a>
+    )
+  }
+
+  <div class="mt-4">
+    <details>
+      <summary class="cursor-pointer text-sm font-medium text-qg-fg-muted hover:text-qg-fg">
+        BibTeX
+      </summary>
+      <pre class="mt-2 overflow-x-auto rounded bg-qg-bg p-3 text-xs"><code>{bibtex}</code></pre>
+    </details>
+  </div>
+</article>
