@@ -1,0 +1,37 @@
+---
+/**
+ * Google Analytics 4 (gtag.js) injector.
+ *
+ * Reads the measurement ID from `import.meta.env.PUBLIC_GA_MEASUREMENT_ID`
+ * at build time. Astro inlines `PUBLIC_*` env vars into the static output,
+ * so each Cloudflare Pages project can have its own ID set via the project's
+ * "Environment variables" pane (querygym-site → G-XXXXXXXXXX,
+ * querygym-leaderboard → G-YYYYYYYYYY).
+ *
+ * If the env var is absent (e.g. local dev, preview branches that don't set
+ * it), nothing renders and no analytics requests fire — keeps `pnpm dev` and
+ * preview branches silent.
+ *
+ * No consent banner here. Add one when targeting EU traffic at scale; until
+ * then, GA4's default IP anonymization is in effect.
+ */
+const id = import.meta.env.PUBLIC_GA_MEASUREMENT_ID as string | undefined;
+
+// Build the inline script as a string and feed it via set:html so Astro
+// doesn't try to parse the function-body curly braces as JSX expressions.
+const inlineScript = id
+  ? `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', ${JSON.stringify(id)});`
+  : "";
+---
+
+{
+  id && (
+    <>
+      <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${id}`} />
+      <script is:inline set:html={inlineScript} />
+    </>
+  )
+}
