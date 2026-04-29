@@ -20,9 +20,36 @@ const sigirBibtex = `@inproceedings{querygym2026reproducibility,
   year={2026},
   note={Reproducibility Track},
 }`;
+
+// JSON-LD ScholarlyArticle for the WWW 2026 Demos paper. Search engines use
+// this to surface the paper as a research artifact in scholar-aware results.
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "ScholarlyArticle",
+  name: "QueryGym: A Toolkit for Reproducible LLM-Based Query Reformulation",
+  url: "https://arxiv.org/abs/2511.15996",
+  identifier: "arXiv:2511.15996",
+  datePublished: "2025-11-20",
+  inLanguage: "en",
+  isAccessibleForFree: true,
+  publisher: { "@type": "Organization", name: "arXiv" },
+  author: [
+    { "@type": "Person", name: "Amin Bigdeli" },
+    { "@type": "Person", name: "Radin Hamidi Rad" },
+    { "@type": "Person", name: "Mert Incesu" },
+    { "@type": "Person", name: "Negar Arabzadeh" },
+    { "@type": "Person", name: "Charles L. A. Clarke" },
+    { "@type": "Person", name: "Ebrahim Bagheri" },
+  ],
+});
 ---
 
-<Default title="Cite" description="How to cite QueryGym in research papers.">
+<Default
+  title="Cite"
+  description="How to cite QueryGym in research papers — BibTeX for the WWW 2026 Demos paper and the SIGIR 2026 Reproducibility Track paper."
+  ogType="article"
+  jsonLd={jsonLd}
+>
   <section class="qg-section !py-12">
     <h1 class="text-3xl font-bold md:text-4xl">Cite QueryGym</h1>
     <p class="mt-3 max-w-2xl text-qg-fg-muted">
