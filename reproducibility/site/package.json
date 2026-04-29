@@ -6,7 +6,8 @@
   "description": "Astro site for leaderboard.querygym.com — SIGIR reproducibility leaderboard.",
   "scripts": {
     "build:data": "tsx scripts/build-data.ts",
-    "build": "astro build",
+    "build": "tsx scripts/build-data.ts && astro build",
+    "build:astro-only": "astro build",
     "dev": "astro dev",
     "preview": "astro preview",
     "check": "astro check"
