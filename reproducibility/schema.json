@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://querygym.com/schemas/run-summary/v1.json",
+  "title": "QueryGym Run Summary v1",
+  "description": "Canonical per-run metrics document emitted by QueryGym pipelines and consumed by the leaderboard.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "params_hash",
+    "submitted_at",
+    "querygym_version",
+    "environment",
+    "pipeline",
+    "config",
+    "metrics",
+    "timing",
+    "artifacts"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "description": "Schema version. Bumping is a breaking change."
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{16}$",
+      "description": "Hash over the full payload minus volatile fields. Identifies a specific execution."
+    },
+    "params_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}$",
+      "description": "Hash over the tuning surface (method_id, model, method_params, llm_config). Doubles as filename."
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of JSON generation. Excluded from run_id hash."
+    },
+    "querygym_version": {
+      "type": "string",
+      "description": "querygym package __version__ at emit time."
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["python_version", "platform"],
+      "properties": {
+        "python_version": {"type": "string"},
+        "platform": {"type": "string"},
+        "git_commit": {"type": ["string", "null"]}
+      }
+    },
+    "pipeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dataset_id", "method_id", "model", "steps_completed", "total_time_seconds"],
+      "properties": {
+        "dataset_id": {
+          "type": "string",
+          "description": "Must match a key in dataset_registry.yaml; enforced at validate time."
+        },
+        "method_id": {
+          "type": "string",
+          "description": "Must match a name registered via @register_method; enforced at validate time."
+        },
+        "model": {
+          "type": "string",
+          "description": "LLM model identifier (e.g. gpt-4.1-mini, qwen2.5:7b)."
+        },
+        "steps_completed": {
+          "type": "array",
+          "items": {"enum": ["reformulate", "retrieve", "evaluate"]},
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "total_time_seconds": {"type": "number", "minimum": 0}
+      }
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method_params", "llm_config", "searcher", "dataset_config"],
+      "properties": {
+        "method_params": {
+          "type": "object",
+          "description": "Method-specific parameters. Free-form per method, included in params_hash."
+        },
+        "llm_config": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["temperature", "max_tokens"],
+          "properties": {
+            "temperature": {"type": "number"},
+            "max_tokens": {"type": "integer", "minimum": 1},
+            "top_p": {"type": "number"}
+          }
+        },
+        "searcher": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "type"],
+          "properties": {
+            "name": {"type": "string"},
+            "type": {"type": "string"}
+          }
+        },
+        "dataset_config": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["topics", "index", "num_queries", "bm25_weights"],
+          "properties": {
+            "topics": {"type": "string"},
+            "index": {"type": "string"},
+            "num_queries": {"type": "integer", "minimum": 0},
+            "bm25_weights": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["k1", "b"],
+              "properties": {
+                "k1": {"type": "number"},
+                "b": {"type": "number"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": "number"},
+      "description": "Flat metric_name -> value. Keys must be a subset of the dataset's eval_metrics (with dots normalized to underscores); enforced at validate time."
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": {"type": "number", "minimum": 0},
+      "description": "Per-step seconds. Common keys: reformulation_seconds, retrieval_seconds, evaluation_seconds."
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_file", "reformulated_queries"],
+      "properties": {
+        "run_file": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}\\.run\\.txt$",
+          "description": "Sibling TREC run file. Filename must equal {params_hash}.run.txt."
+        },
+        "reformulated_queries": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}\\.queries\\.tsv$",
+          "description": "Sibling reformulated queries TSV. Filename must equal {params_hash}.queries.tsv."
+        }
+      }
+    }
+  }
+}

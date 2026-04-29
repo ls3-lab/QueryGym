@@ -1,0 +1,42 @@
+name: Reproducibility Check
+
+on:
+  pull_request:
+    paths:
+      - 'reproducibility/**'
+      - 'examples/querygym_pyserini/pipeline.py'
+      - 'dataset_registry.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'reproducibility/**'
+      - 'examples/querygym_pyserini/pipeline.py'
+      - 'dataset_registry.yaml'
+
+concurrency:
+  group: repro-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[repro,dev]"
+          pip install pytest-cov
+
+      - name: Run repro tests
+        run: pytest reproducibility/tests -v --no-cov
+
+      - name: Aggregator --check
+        run: python -m reproducibility.scripts.aggregate_runs --check

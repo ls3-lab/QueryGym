@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "run_id": "cabe83ca1236a3bb",
+  "params_hash": "ddb15ccf",
+  "submitted_at": "2026-04-29T10:14:22Z",
+  "querygym_version": "0.3.0",
+  "environment": {
+    "python_version": "3.10.13",
+    "platform": "Linux-5.15.0-x86_64",
+    "git_commit": "5c46a51"
+  },
+  "pipeline": {
+    "dataset_id": "msmarco-v1-passage.trecdl2019",
+    "method_id": "query2e",
+    "model": "gpt-4.1-mini",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 89.37
+  },
+  "config": {
+    "method_params": {
+      "mode": "zs"
+    },
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128,
+      "top_p": 1.0
+    },
+    "searcher": {
+      "name": "UserPyseriniWrapper",
+      "type": "user_pyserini"
+    },
+    "dataset_config": {
+      "topics": "dl19-passage",
+      "index": "msmarco-v1-passage",
+      "num_queries": 43,
+      "bm25_weights": {
+        "k1": 0.9,
+        "b": 0.4
+      }
+    }
+  },
+  "metrics": {
+    "map": 0.3709,
+    "ndcg_cut_10": 0.5679,
+    "recall_1000": 0.8384
+  },
+  "timing": {
+    "reformulation_seconds": 65.24,
+    "retrieval_seconds": 3.01,
+    "evaluation_seconds": 10.53
+  },
+  "artifacts": {
+    "run_file": "ddb15ccf.run.txt",
+    "reformulated_queries": "ddb15ccf.queries.tsv"
+  }
+}

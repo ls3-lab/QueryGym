@@ -1,4 +1,4 @@
-.PHONY: help build build-cpu build-all test clean
+.PHONY: help build build-cpu build-all test clean repro-aggregate repro-check repro-test
 
 # Makefile for QueryGym Docker Development
 # This is for developers/contributors who need to build images locally
@@ -54,6 +54,16 @@ test:
 	docker run --rm querygym-dev:cpu python -c "import torch; print(f'✓ PyTorch {torch.__version__}')"
 	@echo ""
 	@echo "✓ All tests passed!"
+
+# Reproducibility data pipeline
+repro-aggregate:
+	python -m reproducibility.scripts.aggregate_runs
+
+repro-check:
+	python -m reproducibility.scripts.aggregate_runs --check
+
+repro-test:
+	pytest reproducibility/tests -q --no-cov
 
 # Clean up locally built images
 clean:

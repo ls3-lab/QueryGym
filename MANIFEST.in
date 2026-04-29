@@ -14,6 +14,11 @@ recursive-include examples *.py *.tsv *.ipynb
 # Include docs
 recursive-include docs *.md
 
+# Exclude reproducibility umbrella and (preemptive) future web/ from sdist.
+# These are repo-only artifacts; nothing in them belongs in the PyPI source dist.
+prune reproducibility
+prune web
+
 # Exclude development and build artifacts
 global-exclude __pycache__
 global-exclude *.py[co]
