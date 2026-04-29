@@ -209,8 +209,11 @@ def cmd_check(runs_dir: Path) -> int:
     if committed_manifest is None:
         failures.append(f"{MANIFEST_JSON.relative_to(_REPO_ROOT)} is missing")
     else:
-        # Compare everything except generated_at (which is intentionally volatile).
-        for key in ("schema_version", "querygym_version", "run_count", "row_count", "content_hash"):
+        # Compare data-correctness fields only. querygym_version and generated_at
+        # are informational provenance — they reflect *where* and *when* the
+        # manifest was produced and are expected to differ between contributor
+        # machines and CI. content_hash already pins the actual aggregate data.
+        for key in ("schema_version", "run_count", "row_count", "content_hash"):
             committed_val = committed_manifest.get(key)
             fresh_val = manifest.get(key)
             if committed_val != fresh_val:
