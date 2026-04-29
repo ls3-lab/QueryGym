@@ -1,0 +1,23 @@
+{
+  "name": "@qg/site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Astro site for querygym.com — marketing/landing site for the toolkit.",
+  "scripts": {
+    "build": "astro build",
+    "dev": "astro dev",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@qg/shared": "workspace:*",
+    "astro": "^5.0.0",
+    "@astrojs/tailwind": "^5.1.5",
+    "tailwindcss": "^3.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^20.0.0"
+  }
+}

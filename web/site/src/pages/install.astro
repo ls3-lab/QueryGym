@@ -1,0 +1,77 @@
+---
+import Default from "../layouts/Default.astro";
+import CodeBlock from "../components/CodeBlock.astro";
+---
+
+<Default title="Install" description="Install QueryGym via pip or Docker.">
+  <section class="qg-section !py-12">
+    <h1 class="text-3xl font-bold md:text-4xl">Install</h1>
+    <p class="mt-3 max-w-2xl text-qg-fg-muted">
+      QueryGym runs on Python 3.9+. The default install is dependency-light;
+      add extras for HuggingFace datasets, BEIR, Pyserini, or the
+      reproducibility tooling.
+    </p>
+
+    <h2 class="mt-10 text-2xl font-semibold">Option 1 — pip</h2>
+    <div class="mt-3">
+      <CodeBlock filename="bash" language="bash">{`pip install querygym
+
+# Or with extras:
+pip install "querygym[hf]"          # HuggingFace datasets
+pip install "querygym[beir]"        # BEIR benchmarks
+pip install "querygym[pyserini]"    # Pyserini retrieval
+pip install "querygym[repro]"       # reproducibility aggregator + validator
+pip install "querygym[all]"         # everything`}</CodeBlock>
+    </div>
+
+    <h2 class="mt-10 text-2xl font-semibold">Option 2 — Docker</h2>
+    <div class="mt-3">
+      <CodeBlock filename="bash" language="bash">{`# GPU image
+docker pull ghcr.io/ls3-lab/querygym:latest
+docker run -it --gpus all ghcr.io/ls3-lab/querygym:latest
+
+# CPU image (lightweight)
+docker pull ghcr.io/ls3-lab/querygym:cpu
+docker run -it ghcr.io/ls3-lab/querygym:cpu`}</CodeBlock>
+    </div>
+
+    <h2 class="mt-10 text-2xl font-semibold">Quickstart</h2>
+    <p class="mt-3 max-w-2xl text-qg-fg-muted">
+      Reformulate a single query with the GenQR Ensemble method and any
+      OpenAI-compatible endpoint.
+    </p>
+    <div class="mt-3">
+      <CodeBlock filename="python" language="python">{`import querygym as qg
+
+# Pick a method and a model
+reformulator = qg.create_reformulator(
+    "genqr_ensemble",
+    model="gpt-4.1-mini",
+)
+
+# Run it
+result = reformulator.reformulate(
+    qg.QueryItem("q1", "what causes diabetes?")
+)
+
+print(result.reformulated)`}</CodeBlock>
+    </div>
+
+    <h2 class="mt-10 text-2xl font-semibold">CLI</h2>
+    <div class="mt-3">
+      <CodeBlock filename="bash" language="bash">{`export OPENAI_API_KEY=sk-...
+
+querygym run --method genqr_ensemble \\
+  --queries-tsv queries.tsv \\
+  --output-tsv reformulated.tsv \\
+  --cfg-path querygym/config/defaults.yaml`}</CodeBlock>
+    </div>
+
+    <p class="mt-10 text-sm text-qg-fg-muted">
+      Full guide:
+      <a class="text-qg-accent hover:underline" href="https://querygym.readthedocs.io" target="_blank" rel="noopener noreferrer">
+        querygym.readthedocs.io ↗
+      </a>
+    </p>
+  </section>
+</Default>

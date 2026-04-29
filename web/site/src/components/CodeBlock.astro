@@ -1,0 +1,35 @@
+---
+interface Props {
+  language?: string;
+  filename?: string;
+}
+const { language = "bash", filename } = Astro.props;
+---
+
+<div class="overflow-hidden rounded-lg border border-qg-border bg-qg-bg-soft">
+  <div class="flex items-center justify-between border-b border-qg-border bg-qg-bg px-4 py-2 text-xs text-qg-fg-muted">
+    <span class="qg-mono">{filename ?? language}</span>
+    <button
+      type="button"
+      class="qg-copy-btn rounded border border-qg-border bg-qg-bg-soft px-2 py-0.5 text-xs hover:border-qg-accent"
+    >
+      copy
+    </button>
+  </div>
+  <pre class="overflow-x-auto px-4 py-4 text-sm"><code class="qg-mono"><slot /></code></pre>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>(".qg-copy-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const pre = btn.closest("div")?.nextElementSibling as HTMLElement | null;
+      const code = pre?.querySelector("code");
+      if (!code) return;
+      navigator.clipboard.writeText(code.textContent ?? "").then(() => {
+        const original = btn.textContent;
+        btn.textContent = "copied";
+        setTimeout(() => (btn.textContent = original ?? "copy"), 1200);
+      });
+    });
+  });
+</script>

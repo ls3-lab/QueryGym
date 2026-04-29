@@ -1,0 +1,40 @@
+---
+import Default from "../layouts/Default.astro";
+---
+
+<Default title="About" description="Who builds QueryGym, and why.">
+  <section class="qg-section !py-12">
+    <h1 class="text-3xl font-bold md:text-4xl">About</h1>
+    <p class="mt-3 max-w-3xl text-qg-fg-muted">
+      QueryGym is built by the <strong>LS3 Lab</strong> with collaborators
+      across the IR community. The aim is to make LLM-based query reformulation
+      research <em>easy to reproduce</em>: same prompt bank, same data shape,
+      same retrieval contracts, regardless of which LLM, dataset, or method
+      you're benchmarking.
+    </p>
+
+    <h2 class="mt-12 text-2xl font-semibold">Authors</h2>
+    <p class="mt-3 max-w-3xl text-qg-fg-muted">
+      Amin Bigdeli · Radin Hamidi Rad · Mert Incesu · Negar Arabzadeh ·
+      Charles L. A. Clarke · Ebrahim Bagheri
+    </p>
+
+    <h2 class="mt-12 text-2xl font-semibold">License</h2>
+    <p class="mt-3 max-w-3xl text-qg-fg-muted">
+      Apache 2.0. Free to use commercially. Schema and reproducibility
+      artifacts are in the public domain (CC0).
+    </p>
+
+    <h2 class="mt-12 text-2xl font-semibold">Contributing</h2>
+    <p class="mt-3 max-w-3xl text-qg-fg-muted">
+      New methods, datasets, and reproducibility runs are welcome. See the
+      <a class="text-qg-accent hover:underline" href="https://querygym.readthedocs.io/en/latest/development/contributing/" target="_blank" rel="noopener noreferrer">
+        contributor guide
+      </a>
+      and the
+      <a class="text-qg-accent hover:underline" href="/reproducibility">
+        reproducibility flow
+      </a>.
+    </p>
+  </section>
+</Default>

@@ -1,0 +1,26 @@
+---
+import Default from "../layouts/Default.astro";
+import MethodGrid from "../components/MethodGrid.astro";
+---
+
+<Default title="Methods" description="Query reformulation methods supported by QueryGym.">
+  <section class="qg-section !py-12">
+    <h1 class="text-3xl font-bold md:text-4xl">Methods</h1>
+    <p class="mt-3 max-w-2xl text-qg-fg-muted">
+      Each method ships with a registered prompt in the prompt bank, an
+      <code class="qg-mono">@register_method(...)</code> entry, and a paper
+      reference. Switch between them by name in the API or CLI.
+    </p>
+
+    <div class="mt-10">
+      <MethodGrid variant="full" />
+    </div>
+
+    <p class="mt-10 text-sm text-qg-fg-muted">
+      Adding a new method?
+      <a class="text-qg-accent hover:underline" href="https://querygym.readthedocs.io/en/latest/development/contributing/" target="_blank" rel="noopener noreferrer">
+        Contributor guide ↗
+      </a>
+    </p>
+  </section>
+</Default>

@@ -1,0 +1,8 @@
+# Cloudflare Pages-style _redirects file. Same-origin redirects served from
+# querygym.com. Cross-origin redirects (to leaderboard.querygym.com) live in
+# Cloudflare Bulk Redirects on the zone, not here.
+
+# Old Jekyll URLs → new pages
+/leaderboard         https://leaderboard.querygym.com/   301
+/leaderboard.html    https://leaderboard.querygym.com/   301
+/QueryGym/*          https://querygym.com/:splat         301
