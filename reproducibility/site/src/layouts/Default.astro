@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import Header from "@qg/shared/components/Header.astro";
 import Footer from "@qg/shared/components/Footer.astro";
+import GoogleAnalytics from "@qg/shared/components/GoogleAnalytics.astro";
 
 interface Props {
   title: string;
@@ -27,6 +28,8 @@ const navLinks = [
     <title>{title} — QueryGym Leaderboard</title>
     {description && <meta name="description" content={description} />}
     <link rel="icon" type="image/png" href="/querygym-logo.png" />
+
+    <GoogleAnalytics />
   </head>
   <body class="min-h-screen bg-qg-bg text-qg-fg">
     <Header
