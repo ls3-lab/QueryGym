@@ -1,0 +1,56 @@
+---
+import Default from "../layouts/Default.astro";
+---
+
+<Default title="About" description="What this leaderboard is and how to submit.">
+  <h1 class="text-2xl font-bold md:text-3xl">About this leaderboard</h1>
+
+  <section class="prose prose-slate mt-4 max-w-3xl text-qg-fg-muted">
+    <p>
+      The QueryGym Leaderboard tracks reproducible query-reformulation results
+      across IR benchmarks (BEIR, MS MARCO, TREC DL). Every row is backed by:
+    </p>
+    <ul class="ml-5 list-disc">
+      <li>a JSON file conforming to <code class="qg-mono">reproducibility/schema.json</code> v1,</li>
+      <li>a TREC-format <code class="qg-mono">.run.txt</code> for re-evaluation, and</li>
+      <li>the reformulated queries TSV used to produce the run file.</li>
+    </ul>
+    <p>
+      All three live in <a href="https://github.com/ls3-lab/QueryGym/tree/main/reproducibility/data/runs" target="_blank" rel="noopener noreferrer">the repository</a>
+      under <code class="qg-mono">reproducibility/data/runs/&#123;dataset&#125;/&#123;method&#125;/&#123;model&#125;/</code>.
+      Citing a number is as simple as linking the commit + the run JSON.
+    </p>
+  </section>
+
+  <section class="mt-10">
+    <h2 class="mb-3 text-xl font-semibold">Submitting a result</h2>
+    <p class="text-qg-fg-muted">
+      Run the example pipeline, then use <code class="qg-mono">submit_run.py</code> and open a PR.
+    </p>
+    <pre class="mt-3 overflow-x-auto rounded bg-qg-bg-soft p-4 text-xs"><code>python examples/querygym_pyserini/pipeline.py \
+    --dataset msmarco-v1-passage.trecdl2019 \
+    --method query2e --model gpt-4.1-mini \
+    --output-dir outputs/dl19_query2e
+
+python -m reproducibility.scripts.submit_run --from-dir outputs/dl19_query2e
+make repro-aggregate
+git add reproducibility/data/ &amp;&amp; git commit -m "..." &amp;&amp; git push
+gh pr create</code></pre>
+    <p class="mt-3 text-qg-fg-muted text-sm">
+      Full guide: <a class="text-qg-accent hover:underline" href="https://querygym.readthedocs.io/en/latest/user-guide/reproducibility/" target="_blank" rel="noopener noreferrer">Reproducibility User Guide ↗</a>
+    </p>
+  </section>
+
+  <section class="mt-10">
+    <h2 class="mb-3 text-xl font-semibold">Papers</h2>
+    <ul class="space-y-2 text-sm">
+      <li>
+        <strong>WWW 2026 Demos</strong> — QueryGym toolkit paper.
+        <a class="text-qg-accent hover:underline" href="https://arxiv.org/abs/2511.15996" target="_blank" rel="noopener noreferrer">arXiv 2511.15996 ↗</a>
+      </li>
+      <li>
+        <strong>SIGIR 2026 Reproducibility Track</strong> — multi-LLM baseline reproduction (link TBD).
+      </li>
+    </ul>
+  </section>
+</Default>

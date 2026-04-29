@@ -1,0 +1,29 @@
+---
+import Default from "../../layouts/Default.astro";
+import EmptyState from "../../components/EmptyState.astro";
+import models from "../../data/models.json";
+---
+
+<Default title="LLMs" description="LLM models observed in the leaderboard.">
+  <h1 class="text-2xl font-bold md:text-3xl">LLM Models</h1>
+  <p class="mt-2 text-qg-fg-muted">
+    Backends used across the runs in this leaderboard.
+  </p>
+
+  {
+    models.length === 0 ? (
+      <div class="mt-8"><EmptyState /></div>
+    ) : (
+      <ul class="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        {models.map((m: any) => (
+          <li class="rounded-lg border border-qg-border p-4 hover:bg-qg-bg-soft">
+            <div class="font-semibold qg-mono">{m.id}</div>
+            <div class="mt-1 text-xs text-qg-fg-muted">
+              {m.run_count} run{m.run_count === 1 ? "" : "s"}
+            </div>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</Default>

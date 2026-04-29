@@ -19,6 +19,12 @@ recursive-include docs *.md
 prune reproducibility
 prune web
 
+# Belt-and-suspenders: explicit exclude for workspace files that would never
+# match a default include rule but shouldn't sneak in via a future MANIFEST sweep.
+exclude package.json pnpm-workspace.yaml pnpm-lock.yaml package-lock.json yarn.lock
+global-exclude node_modules
+global-exclude .astro
+
 # Exclude development and build artifacts
 global-exclude __pycache__
 global-exclude *.py[co]

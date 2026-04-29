@@ -1,0 +1,4 @@
+# Cloudflare Pages-style _redirects file. Used as same-origin fallbacks at
+# leaderboard.querygym.com.
+/leaderboard      /                      301
+/index.html       /                      301

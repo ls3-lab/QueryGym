@@ -1,0 +1,24 @@
+---
+interface Props {
+  title?: string;
+  body?: string;
+}
+
+const {
+  title = "No results yet",
+  body = "Be the first to submit. See the contributor guide for the submission flow.",
+} = Astro.props;
+---
+
+<div class="rounded-lg border border-dashed border-qg-border bg-qg-bg-soft p-8 text-center">
+  <h3 class="text-lg font-semibold">{title}</h3>
+  <p class="mt-2 text-sm text-qg-fg-muted">{body}</p>
+  <a
+    href="https://querygym.readthedocs.io/en/latest/user-guide/reproducibility/"
+    class="mt-4 inline-block rounded-md bg-qg-accent px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    How to submit a result →
+  </a>
+</div>

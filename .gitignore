@@ -1,3 +1,17 @@
+# Local Claude Code notes (not committed)
+CLAUDE.local.md
+.claude/
+
+# JavaScript / Astro / pnpm — never check in
+node_modules/
+.astro/
+**/dist/
+pnpm-lock.yaml.bak
+package-lock.json
+yarn.lock
+# Generated leaderboard data shards (built from reproducibility/data/)
+reproducibility/site/src/data/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -136,11 +150,11 @@ dmypy.json
 reformulated_queries.tsv
 *.run
 *.eval.txt
-out/
-results/
-indices/
-datasets/
-scratch/
+/out/
+/results/
+/indices/
+/datasets/
+/scratch/
 query_expansion_results/
 dev_scripts/
 quick_independence_test.py

@@ -1,0 +1,52 @@
+/* QueryGym design tokens — shared across leaderboard and marketing sites.
+ *
+ * Color system mirrors the Jekyll site's purple→pink gradient identity so the
+ * three surfaces (querygym.com, leaderboard.querygym.com, ReadTheDocs) feel
+ * connected. Dark-mode values activate via `[data-theme="dark"]` on <html>.
+ */
+
+:root {
+  /* Brand */
+  --qg-grad-start: #667eea;
+  --qg-grad-end: #764ba2;
+  --qg-accent: #ec4899;
+
+  /* Typography */
+  --qg-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --qg-font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* Surfaces (light) */
+  --qg-bg: #ffffff;
+  --qg-bg-soft: #f8fafc;
+  --qg-fg: #0f172a;
+  --qg-fg-muted: #475569;
+  --qg-border: #e2e8f0;
+
+  /* Tables */
+  --qg-row-hover: #f1f5f9;
+  --qg-row-best: #fef3c7;
+}
+
+[data-theme="dark"] {
+  --qg-bg: #0b1020;
+  --qg-bg-soft: #111827;
+  --qg-fg: #f8fafc;
+  --qg-fg-muted: #94a3b8;
+  --qg-border: #1f2937;
+  --qg-row-hover: #1f2937;
+  --qg-row-best: #422006;
+}
+
+html {
+  font-family: var(--qg-font-sans);
+  background: var(--qg-bg);
+  color: var(--qg-fg);
+}
+
+code, pre, .qg-mono {
+  font-family: var(--qg-font-mono);
+}
+
+.qg-gradient {
+  background: linear-gradient(135deg, var(--qg-grad-start) 0%, var(--qg-grad-end) 100%);
+}
