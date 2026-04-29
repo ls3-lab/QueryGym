@@ -59,11 +59,19 @@ dev = [
   "mkdocstrings[python]>=0.23.0",
 ]
 
+# Reproducibility tooling extras (aggregator, validator, leaderboard build helpers)
+repro = [
+  "pandas>=2.0.0",
+  "jsonschema>=4.20.0",
+]
+
 # All extras combined
 all = [
   "datasets>=2.20.0",
   "beir>=2.0.0",
   "pyserini>=0.22.0",
+  "pandas>=2.0.0",
+  "jsonschema>=4.20.0",
 ]
 
 [project.scripts]
@@ -97,7 +105,7 @@ ignore = ["E501"]  # Line too long (handled by black)
 
 # Pytest configuration
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "reproducibility/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
