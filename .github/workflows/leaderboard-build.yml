@@ -35,9 +35,9 @@ jobs:
           node-version: '20'
 
       - name: Set up pnpm
+        # No `version:` — pnpm/action-setup reads `packageManager` from
+        # package.json. Specifying both causes ERR_PNPM_BAD_PM_VERSION.
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: pnpm cache
         uses: actions/cache@v4
