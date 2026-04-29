@@ -49,10 +49,10 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      - name: Build leaderboard data shards
-        run: pnpm -F @qg/leaderboard build:data
-
       - name: Build leaderboard site
+        # The `build` script chains build:data (TypeScript shard generator)
+        # with astro build, so a single command produces a complete site.
+        # Same script Cloudflare Pages runs.
         run: pnpm -F @qg/leaderboard build
 
       - name: Upload dist artifact
