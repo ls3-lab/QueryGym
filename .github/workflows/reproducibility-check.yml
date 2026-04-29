@@ -6,12 +6,17 @@ on:
       - 'reproducibility/**'
       - 'examples/querygym_pyserini/pipeline.py'
       - 'dataset_registry.yaml'
+      - 'pyproject.toml'
+      - '.github/workflows/reproducibility-check.yml'
   push:
     branches: [main]
     paths:
       - 'reproducibility/**'
       - 'examples/querygym_pyserini/pipeline.py'
       - 'dataset_registry.yaml'
+      - 'pyproject.toml'
+      - '.github/workflows/reproducibility-check.yml'
+  workflow_dispatch:
 
 concurrency:
   group: repro-${{ github.ref }}
