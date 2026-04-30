@@ -7,7 +7,15 @@
 interface NavLink {
   label: string;
   href: string;
+  /**
+   * Renders the external-link arrow icon next to the label so users can see
+   * at a glance that the link leaves the current site. Note: by default the
+   * link still opens in the *same* tab — set `newTab: true` for cross-site
+   * links you really want to open in a fresh tab.
+   */
   external?: boolean;
+  /** Open in a new tab. Adds rel="noopener noreferrer" automatically. */
+  newTab?: boolean;
 }
 
 interface Props {
@@ -44,11 +52,28 @@ const {
         links.map((l) => (
           <a
             href={l.href}
-            class="rounded px-3 py-1.5 text-sm font-medium text-white/90 hover:bg-white/15 hover:text-white"
-            target={l.external ? "_blank" : undefined}
-            rel={l.external ? "noopener noreferrer" : undefined}
+            class="inline-flex items-center gap-1 rounded px-3 py-1.5 text-sm font-medium text-white/90 hover:bg-white/15 hover:text-white"
+            target={l.newTab ? "_blank" : undefined}
+            rel={l.newTab ? "noopener noreferrer" : undefined}
           >
             {l.label}
+            {l.external && (
+              <svg
+                aria-hidden="true"
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="opacity-80"
+              >
+                <path d="M7 17 17 7" />
+                <path d="M8 7h9v9" />
+              </svg>
+            )}
           </a>
         ))
       }
