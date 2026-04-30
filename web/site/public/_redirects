@@ -6,3 +6,10 @@
 /leaderboard         https://leaderboard.querygym.com/   301
 /leaderboard.html    https://leaderboard.querygym.com/   301
 /QueryGym/*          https://querygym.com/:splat         301
+
+# Alias the canonical /sitemap.xml path to the @astrojs/sitemap-generated
+# index. Google Search Console's "Add a sitemap" form auto-suggests
+# /sitemap.xml; tools like Bing/Yandex/IndexNow probe it; humans type it.
+# The 200 status is a rewrite (URL stays the same in the browser), not a
+# redirect — keeps the canonical URL for crawlers stable.
+/sitemap.xml         /sitemap-index.xml                  200

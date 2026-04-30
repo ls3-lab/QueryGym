@@ -11,13 +11,14 @@ interface Props {
 
 const { title, description } = Astro.props;
 
-// External links render the linkout icon and open in the current tab.
+// Top-menu linkout items (external: true) open in a new tab so the user
+// keeps their place on the leaderboard when they cross to a sibling site.
 const navLinks = [
   { label: "Datasets", href: "/datasets/" },
   { label: "Methods", href: "/methods/" },
   { label: "Models", href: "/models/" },
   { label: "About", href: "/about" },
-  { label: "Toolkit", href: "https://querygym.com", external: true },
+  { label: "Toolkit", href: "https://querygym.com", external: true, newTab: true },
 ];
 ---
 
