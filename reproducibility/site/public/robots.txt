@@ -1,0 +1,5 @@
+# leaderboard.querygym.com — open to all well-behaved crawlers.
+User-agent: *
+Allow: /
+
+Sitemap: https://leaderboard.querygym.com/sitemap-index.xml
