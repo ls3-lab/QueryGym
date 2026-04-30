@@ -8,13 +8,15 @@
  * protocol used by the @qg/shared dep. Pre-providing this config + the
  * wrangler devDep skips the auto-config and deploys dist/ as static assets.
  *
- * compatibility_date is intentionally kept old-ish (well-tested) — bump only
- * when adopting a new Workers runtime feature.
+ * compatibility_date pins the Workers runtime behavior. Cloudflare ships
+ * fixes and feature changes under dated flags so old deployments keep
+ * working when the runtime evolves. Bump when picking up a new feature or
+ * roughly twice a year as housekeeping.
  */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "querygym-leaderboard",
-  "compatibility_date": "2025-09-01",
+  "compatibility_date": "2026-04-15",
   "assets": {
     "directory": "./dist"
   }
