@@ -5,12 +5,51 @@ import FeatureGrid from "../components/FeatureGrid.astro";
 import EcosystemMap from "../components/EcosystemMap.astro";
 import CodeBlock from "../components/CodeBlock.astro";
 import MethodGrid from "../components/MethodGrid.astro";
+
+// JSON-LD: SoftwareApplication describing the QueryGym toolkit, plus a
+// nested Organization for the lab. Helps Google build a richer knowledge
+// panel and link the surfaces (site, dashboard, repo, leaderboard).
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://querygym.com/#software",
+      name: "QueryGym",
+      applicationCategory: "DeveloperApplication",
+      operatingSystem: "Cross-platform",
+      url: "https://querygym.com",
+      description:
+        "An open-source toolkit for reproducible LLM-based query reformulation in information retrieval.",
+      license: "https://www.apache.org/licenses/LICENSE-2.0",
+      programmingLanguage: "Python",
+      codeRepository: "https://github.com/ls3-lab/QueryGym",
+      downloadUrl: "https://pypi.org/project/querygym/",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      sameAs: [
+        "https://github.com/ls3-lab/QueryGym",
+        "https://pypi.org/project/querygym/",
+        "https://leaderboard.querygym.com",
+        "https://querygym.readthedocs.io",
+        "https://arxiv.org/abs/2511.15996",
+      ],
+      author: { "@id": "https://querygym.com/#org" },
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://querygym.com/#org",
+      name: "ls3-lab",
+      url: "https://querygym.com",
+      sameAs: ["https://github.com/ls3-lab"],
+    },
+  ],
+});
 ---
 
 <Default
   title="LLM-based Query Reformulation Toolkit"
   description="QueryGym is an open-source toolkit for reproducible LLM-based query reformulation in information retrieval."
-  bareHeader
+  jsonLd={jsonLd}
 >
   <Hero />
 

@@ -11,14 +11,15 @@
     "check": "astro check"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.2",
+    "@astrojs/tailwind": "^5.1.5",
     "@qg/shared": "workspace:*",
     "astro": "^5.0.0",
-    "@astrojs/tailwind": "^5.1.5",
     "tailwindcss": "^3.4.0"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "typescript": "^5.6.0",
-    "wrangler": "^4.0.0",
-    "@types/node": "^20.0.0"
+    "wrangler": "^4.0.0"
   }
 }

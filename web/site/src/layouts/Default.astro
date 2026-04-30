@@ -8,9 +8,29 @@ interface Props {
   description?: string;
   /** Hide the gradient header (used for hero pages that draw their own). */
   bareHeader?: boolean;
+  /** Optional 1200×630 PNG/JPG path; defaults to the logo. Override per page when relevant. */
+  ogImage?: string;
+  /** Explicit Open Graph type (e.g. "article" for cite, "website" for everything else). */
+  ogType?: "website" | "article";
+  /** Optional JSON-LD structured-data string emitted into <head>. */
+  jsonLd?: string;
 }
 
-const { title, description, bareHeader = false } = Astro.props;
+const {
+  title,
+  description,
+  bareHeader = false,
+  ogImage = "/querygym-logo.png",
+  ogType = "website",
+  jsonLd,
+} = Astro.props;
+
+const SITE = "https://querygym.com";
+
+// Resolve the canonical URL from the current request when available, falling
+// back to the configured site root for the homepage.
+const canonical = new URL(Astro.url.pathname, SITE).toString();
+const ogImageAbsolute = new URL(ogImage, SITE).toString();
 
 const navLinks = [
   { label: "Install", href: "/install" },
@@ -20,6 +40,11 @@ const navLinks = [
   { label: "Docs", href: "https://querygym.readthedocs.io", external: true },
   { label: "Dashboard ↗", href: "https://dashboard.querygym.com", external: true },
 ];
+
+const fullTitle = `${title} — QueryGym`;
+const metaDescription =
+  description ??
+  "QueryGym is an open-source toolkit for reproducible LLM-based query reformulation in information retrieval.";
 ---
 
 <!doctype html>
@@ -27,12 +52,34 @@ const navLinks = [
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} — QueryGym</title>
-    {description && <meta name="description" content={description} />}
-    <meta property="og:title" content={`${title} — QueryGym`} />
-    {description && <meta property="og:description" content={description} />}
-    <meta property="og:image" content="/querygym-logo.png" />
+    <meta name="theme-color" content="#667eea" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{fullTitle}</title>
+    <meta name="description" content={metaDescription} />
+    <meta name="author" content="ls3-lab" />
+    <link rel="canonical" href={canonical} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="QueryGym" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={metaDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageAbsolute} />
+    <meta property="og:image:alt" content="QueryGym logo" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={metaDescription} />
+    <meta name="twitter:image" content={ogImageAbsolute} />
+
     <link rel="icon" type="image/png" href="/querygym-logo.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    {jsonLd && <script type="application/ld+json" set:html={jsonLd} />}
   </head>
   <body class="min-h-screen bg-qg-bg text-qg-fg">
     {
