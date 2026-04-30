@@ -33,17 +33,18 @@ const SITE = "https://querygym.com";
 const canonical = new URL(Astro.url.pathname, SITE).toString();
 const ogImageAbsolute = new URL(ogImage, SITE).toString();
 
-// External links use `external: true` (renders the linkout icon) and open in
-// the *current* tab — opening a new tab silently is a worse UX than letting
-// the user middle-click / cmd-click when they want a tab.
+// Top-menu linkout items (external: true) open in a new tab so the user
+// keeps their place on querygym.com when they leave to a sibling site.
+// Everywhere else on the page (footer, hero CTAs, ecosystem cards, in-page
+// citations) stays same-tab unless explicitly noted.
 const navLinks = [
   { label: "Install", href: "/install" },
   { label: "Methods", href: "/methods" },
   { label: "Reproducibility", href: "/reproducibility" },
   { label: "Cite", href: "/cite" },
-  { label: "Docs", href: "https://querygym.readthedocs.io", external: true },
-  { label: "Leaderboard", href: "https://leaderboard.querygym.com", external: true },
-  { label: "Dashboard", href: "https://dashboard.querygym.com", external: true },
+  { label: "Docs", href: "https://querygym.readthedocs.io", external: true, newTab: true },
+  { label: "Leaderboard", href: "https://leaderboard.querygym.com", external: true, newTab: true },
+  { label: "Dashboard", href: "https://dashboard.querygym.com", external: true, newTab: true },
 ];
 
 const fullTitle = `${title} — QueryGym`;
