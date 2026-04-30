@@ -2,3 +2,7 @@
 # leaderboard.querygym.com.
 /leaderboard      /                      301
 /index.html       /                      301
+
+# Alias /sitemap.xml -> /sitemap-index.xml (200 = rewrite, not redirect).
+# GSC and other crawlers default to probing /sitemap.xml.
+/sitemap.xml      /sitemap-index.xml     200
