@@ -11,6 +11,7 @@ interface Props {
 
 const { title, description } = Astro.props;
 
+// External links render the linkout icon and open in the current tab.
 const navLinks = [
   { label: "Datasets", href: "/datasets/" },
   { label: "Methods", href: "/methods/" },
@@ -28,6 +29,7 @@ const navLinks = [
     <title>{title} — QueryGym Leaderboard</title>
     {description && <meta name="description" content={description} />}
     <link rel="icon" type="image/png" href="/querygym-logo.png" />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap-index.xml" />
 
     <GoogleAnalytics />
   </head>

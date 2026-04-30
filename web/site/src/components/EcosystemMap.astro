@@ -53,8 +53,6 @@ const cards = [
       cards.map((c) => (
         <a
           href={c.href}
-          target={c.href.startsWith("http") ? "_blank" : undefined}
-          rel={c.href.startsWith("http") ? "noopener noreferrer" : undefined}
           class:list={[
             "qg-card flex flex-col justify-between !p-5",
             c.primary && "!border-qg-accent",
