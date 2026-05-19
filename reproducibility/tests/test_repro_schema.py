@@ -231,3 +231,118 @@ def test_retriever_registry_has_exactly_the_three_published_blocks():
         "display_name": "BGE-base-en-v1.5",
         "paradigm": "dense",
     }
+
+
+# ---------- Schema: config.retrieval shape ----------------------------------
+
+
+def _minimal_payload_for_schema_only() -> dict:
+    """A structurally-valid (new-shape) payload for raw JSON-Schema checks."""
+    return {
+        "schema_version": 1,
+        "run_id": "0" * 16,
+        "params_hash": "0" * 8,
+        "submitted_at": "2026-05-19T00:00:00Z",
+        "querygym_version": "0.3.0",
+        "environment": {"python_version": "3.12.0", "platform": "x"},
+        "pipeline": {
+            "dataset_id": "d",
+            "method_id": "m",
+            "model": "x",
+            "steps_completed": ["reformulate"],
+            "total_time_seconds": 1.0,
+        },
+        "config": {
+            "method_params": {},
+            "llm_config": {"temperature": 1.0, "max_tokens": 1},
+            "dataset_config": {"topics": "t", "index": "i", "num_queries": 1},
+            "retrieval": {
+                "retriever_id": "bm25",
+                "paradigm": "lexical",
+                "params": {"k1": 0.9, "b": 0.4},
+            },
+        },
+        "metrics": {"ndcg_cut_10": 0.5},
+        "timing": {},
+        "artifacts": {
+            "run_file": "00000000.run.txt",
+            "reformulated_queries": "00000000.queries.tsv",
+        },
+    }
+
+
+def _raw_schema_validate(payload: dict) -> None:
+    import json as _json
+
+    import jsonschema
+
+    schema_path = (
+        Path(__file__).resolve().parents[2] / "reproducibility" / "schema.json"
+    )
+    schema = _json.loads(schema_path.read_text(encoding="utf-8"))
+    jsonschema.validate(instance=payload, schema=schema)
+
+
+def test_schema_accepts_lexical_retrieval():
+    _raw_schema_validate(_minimal_payload_for_schema_only())
+
+
+def test_schema_accepts_learned_sparse_retrieval():
+    p = _minimal_payload_for_schema_only()
+    p["config"]["retrieval"] = {
+        "retriever_id": "splade-pp",
+        "paradigm": "learned_sparse",
+        "params": {"model": "naver/splade-cocondenser-ensembledistil"},
+    }
+    _raw_schema_validate(p)
+
+
+def test_schema_accepts_dense_retrieval_with_implementation():
+    p = _minimal_payload_for_schema_only()
+    p["config"]["retrieval"] = {
+        "retriever_id": "bge-base-en-v1.5",
+        "paradigm": "dense",
+        "params": {"encoder": "BAAI/bge-base-en-v1.5"},
+        "implementation": "pyserini:FaissSearcher",
+    }
+    _raw_schema_validate(p)
+
+
+def test_schema_rejects_legacy_searcher_block():
+    import jsonschema
+
+    p = _minimal_payload_for_schema_only()
+    p["config"]["searcher"] = {"name": "x", "type": "y"}
+    with pytest.raises(jsonschema.ValidationError):
+        _raw_schema_validate(p)
+
+
+def test_schema_rejects_dataset_config_bm25_weights():
+    import jsonschema
+
+    p = _minimal_payload_for_schema_only()
+    p["config"]["dataset_config"]["bm25_weights"] = {"k1": 0.9, "b": 0.4}
+    with pytest.raises(jsonschema.ValidationError):
+        _raw_schema_validate(p)
+
+
+def test_schema_rejects_lexical_with_model_params():
+    import jsonschema
+
+    p = _minimal_payload_for_schema_only()
+    p["config"]["retrieval"]["params"] = {"model": "naver/splade"}
+    with pytest.raises(jsonschema.ValidationError):
+        _raw_schema_validate(p)
+
+
+def test_schema_rejects_dense_missing_encoder():
+    import jsonschema
+
+    p = _minimal_payload_for_schema_only()
+    p["config"]["retrieval"] = {
+        "retriever_id": "bge-base-en-v1.5",
+        "paradigm": "dense",
+        "params": {"wrong": "x"},
+    }
+    with pytest.raises(jsonschema.ValidationError):
+        _raw_schema_validate(p)
