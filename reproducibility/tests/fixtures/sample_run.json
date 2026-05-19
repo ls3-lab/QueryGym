@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "run_id": "cabe83ca1236a3bb",
+  "run_id": "fa589cabb7720718",
   "params_hash": "ddb15ccf",
   "submitted_at": "2026-04-29T10:14:22Z",
   "querygym_version": "0.3.0",
@@ -29,18 +29,19 @@
       "max_tokens": 128,
       "top_p": 1.0
     },
-    "searcher": {
-      "name": "UserPyseriniWrapper",
-      "type": "user_pyserini"
-    },
     "dataset_config": {
       "topics": "dl19-passage",
       "index": "msmarco-v1-passage",
-      "num_queries": 43,
-      "bm25_weights": {
+      "num_queries": 43
+    },
+    "retrieval": {
+      "retriever_id": "bm25",
+      "paradigm": "lexical",
+      "params": {
         "k1": 0.9,
         "b": 0.4
-      }
+      },
+      "implementation": "pyserini:LuceneSearcher"
     }
   },
   "metrics": {

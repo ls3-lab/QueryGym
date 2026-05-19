@@ -33,12 +33,16 @@ def _build_kwargs() -> dict:
         model="gpt-4.1-mini",
         method_params={"mode": "zs"},
         llm_config={"temperature": 1.0, "max_tokens": 128, "top_p": 1.0},
-        searcher={"name": "UserPyseriniWrapper", "type": "user_pyserini"},
+        retrieval={
+            "retriever_id": "bm25",
+            "paradigm": "lexical",
+            "params": {"k1": 0.9, "b": 0.4},
+            "implementation": "pyserini:LuceneSearcher",
+        },
         dataset_config={
             "topics": "dl19-passage",
             "index": "msmarco-v1-passage",
             "num_queries": 43,
-            "bm25_weights": {"k1": 0.9, "b": 0.4},
         },
         metrics={"map": 0.3709, "ndcg_cut_10": 0.5679, "recall_1000": 0.8384},
         timing={
