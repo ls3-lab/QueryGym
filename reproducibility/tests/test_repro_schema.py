@@ -484,3 +484,52 @@ def test_aggregator_emits_retriever_columns():
     row0 = dict(zip(agg.CSV_COLUMNS, rows[0]))
     assert row0["retriever_id"] == "bm25"
     assert row0["retriever"] == "BM25"
+
+
+# ---------- pipeline forward-compat -----------------------------------------
+
+
+def test_run_summary_emits_lexical_retrieval_block():
+    import importlib
+
+    rs = importlib.import_module("examples.querygym_pyserini.run_summary")
+    results = {
+        "reformulation": {
+            "dataset": {
+                "topics": "dl19-passage",
+                "index": "msmarco-v1-passage",
+                "num_queries": 43,
+                "bm25_weights": {"k1": 0.9, "b": 0.4},
+            },
+            "reformulation": {
+                "method_params": {"mode": "zs"},
+                "llm_config": {"temperature": 1.0, "max_tokens": 128},
+                "searcher": {"name": "UserPyseriniWrapper", "type": "user_pyserini",
+                             "searcher_class": "LuceneSearcher"},
+            },
+            "timing": {"total_time_seconds": 1.0},
+        },
+        "retrieval": {"timing": {"total_time_seconds": 1.0}},
+        "evaluation": {"timing": {"eval_time_seconds": 1.0},
+                        "results": {"ndcg_cut_10": 0.5}},
+    }
+    payload = rs._build_v1_summary(
+        results=results,
+        dataset_name="msmarco-v1-passage.trecdl2019",
+        method="query2e",
+        model="openai/gpt-4.1",
+        method_params={"mode": "zs"},
+        llm_config={"temperature": 1.0, "max_tokens": 128},
+        steps=["reformulate", "retrieve", "evaluate"],
+        pipeline_time=3.0,
+        registry_path="dataset_registry.yaml",
+        queries_file=None,
+        index_name="msmarco-v1-passage",
+    )
+    r = payload["config"]["retrieval"]
+    assert r["retriever_id"] == "bm25"
+    assert r["paradigm"] == "lexical"
+    assert r["params"] == {"k1": 0.9, "b": 0.4}
+    assert r["implementation"] == "pyserini:LuceneSearcher"
+    assert "searcher" not in payload["config"]
+    assert "bm25_weights" not in payload["config"]["dataset_config"]
