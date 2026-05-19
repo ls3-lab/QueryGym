@@ -459,3 +459,28 @@ def test_canonical_dir_includes_retriever_segment(tmp_path):
         / "gpt-4.1-mini"
         / "bm25"
     )
+
+
+# ---------- aggregator: retriever columns -----------------------------------
+
+
+def test_aggregator_emits_retriever_columns():
+    import importlib
+
+    agg = importlib.import_module("reproducibility.scripts.aggregate_runs")
+    assert agg.CSV_COLUMNS[:7] == [
+        "schema_version",
+        "run_id",
+        "dataset_id",
+        "method_id",
+        "model",
+        "retriever_id",
+        "retriever",
+    ]
+
+    payload = _load_fixture()
+    fake_path = agg._REPO_ROOT / "reproducibility" / "data" / "runs" / "x.json"
+    rows = agg._payload_to_rows(payload, fake_path)
+    row0 = dict(zip(agg.CSV_COLUMNS, rows[0]))
+    assert row0["retriever_id"] == "bm25"
+    assert row0["retriever"] == "BM25"

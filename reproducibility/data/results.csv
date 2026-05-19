@@ -1,1 +1,1 @@
-schema_version,run_id,dataset_id,method_id,model,params_hash,method_params_json,llm_temperature,llm_max_tokens,metric,value,num_queries,total_time_seconds,querygym_version,run_file_path
+schema_version,run_id,dataset_id,method_id,model,retriever_id,retriever,params_hash,method_params_json,llm_temperature,llm_max_tokens,metric,value,num_queries,total_time_seconds,querygym_version,run_file_path
