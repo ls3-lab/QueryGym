@@ -441,3 +441,21 @@ def test_params_hash_unchanged_by_multi_retriever_migration():
         == "ddb15ccf"
     )
     assert _load_fixture()["params_hash"] == "ddb15ccf"
+
+
+# ---------- submit_run canonical path ---------------------------------------
+
+
+def test_canonical_dir_includes_retriever_segment(tmp_path):
+    import importlib
+
+    submit_run = importlib.import_module("reproducibility.scripts.submit_run")
+    payload = _load_fixture()
+    d = submit_run._canonical_dir(tmp_path, payload)
+    assert d == (
+        tmp_path
+        / "msmarco-v1-passage.trecdl2019"
+        / "query2e"
+        / "gpt-4.1-mini"
+        / "bm25"
+    )
