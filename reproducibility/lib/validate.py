@@ -12,6 +12,7 @@ from .emit import compute_params_hash, compute_run_id
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schema.json"
 _DEFAULT_DATASET_REGISTRY_PATH = _REPO_ROOT / "dataset_registry.yaml"
+_RETRIEVER_REGISTRY_PATH = _REPO_ROOT / "reproducibility" / "retriever_registry.yaml"
 
 
 class ValidationError(ValueError):
@@ -43,6 +44,16 @@ def _load_method_registry() -> Iterable[str]:
         return list(METHODS.keys())
     except ImportError:
         return []
+
+
+@lru_cache(maxsize=1)
+def _load_retriever_registry() -> dict:
+    """Load retriever_registry.yaml. Returns the raw 'retrievers' mapping."""
+    import yaml  # pyyaml is a main dep
+
+    with _RETRIEVER_REGISTRY_PATH.open("r", encoding="utf-8") as f:
+        registry = yaml.safe_load(f)
+    return registry.get("retrievers", {})
 
 
 def _normalize_metric_key(name: str) -> str:
@@ -123,6 +134,23 @@ def _validate_registries(
         suffix = f" (did you mean '{hint}'?)" if hint else ""
         raise ValidationError(
             f"method_id '{method_id}' not in registered methods{suffix}"
+        )
+
+    retrieval = payload["config"]["retrieval"]
+    retriever_id = retrieval["retriever_id"]
+    retriever_registry = _load_retriever_registry()
+    if retriever_id not in retriever_registry:
+        candidates = sorted(retriever_registry.keys())
+        hint = _closest(retriever_id, candidates)
+        suffix = f" (did you mean '{hint}'?)" if hint else ""
+        raise ValidationError(
+            f"retriever_id '{retriever_id}' not in retriever_registry.yaml{suffix}"
+        )
+    expected_paradigm = retriever_registry[retriever_id].get("paradigm")
+    if retrieval["paradigm"] != expected_paradigm:
+        raise ValidationError(
+            f"paradigm mismatch for retriever_id '{retriever_id}': payload says "
+            f"'{retrieval['paradigm']}', registry says '{expected_paradigm}'"
         )
 
     # Metric whitelist comes from dataset_registry; normalize dot/underscore.

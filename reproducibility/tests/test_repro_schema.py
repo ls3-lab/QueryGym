@@ -399,3 +399,29 @@ def test_build_run_summary_retrieval_implementation_is_optional():
         total_time_seconds=1.0,
     )
     assert "implementation" not in payload["config"]["retrieval"]
+
+
+# ---------- Validator: retriever registry -----------------------------------
+
+
+def test_validator_rejects_unknown_retriever_id():
+    payload = _load_fixture()
+    payload["config"]["retrieval"]["retriever_id"] = "totally-fake"
+    payload["run_id"] = compute_run_id(payload)
+    with pytest.raises(ValidationError, match="retriever_id 'totally-fake'"):
+        validate(payload)
+
+
+def test_validator_rejects_paradigm_registry_mismatch():
+    payload = _load_fixture()
+    # bm25 is 'lexical' in the registry; claim 'dense' (still schema-valid).
+    payload["config"]["retrieval"]["paradigm"] = "dense"
+    payload["config"]["retrieval"]["params"] = {"encoder": "x"}
+    payload["run_id"] = compute_run_id(payload)
+    with pytest.raises(ValidationError, match="paradigm mismatch"):
+        validate(payload)
+
+
+def test_validator_accepts_known_retriever():
+    # The migrated fixture uses bm25/lexical — must validate cleanly.
+    validate(_load_fixture())
