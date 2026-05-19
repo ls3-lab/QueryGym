@@ -425,3 +425,19 @@ def test_validator_rejects_paradigm_registry_mismatch():
 def test_validator_accepts_known_retriever():
     # The migrated fixture uses bm25/lexical — must validate cleanly.
     validate(_load_fixture())
+
+
+def test_params_hash_unchanged_by_multi_retriever_migration():
+    """Approach 1 must NOT perturb the paper-pinned params_hash.
+
+    The hash is a function only of (method_id, model, method_params, llm_config).
+    It was 'ddb15ccf' before the multi-retriever migration and must stay so.
+    """
+    assert (
+        compute_params_hash(
+            "query2e", "gpt-4.1-mini", {"mode": "zs"},
+            {"temperature": 1.0, "max_tokens": 128, "top_p": 1.0},
+        )
+        == "ddb15ccf"
+    )
+    assert _load_fixture()["params_hash"] == "ddb15ccf"
