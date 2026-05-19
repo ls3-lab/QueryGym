@@ -214,3 +214,20 @@ def test_validator_skip_registry_checks_allows_unknown_ids():
     payload = build_run_summary(**kwargs)
     # Schema/hash checks still pass; registry check is skipped.
     validate(payload, skip_registry_checks=True)
+
+
+# ---------- Retriever registry ----------------------------------------------
+
+
+def test_retriever_registry_has_exactly_the_three_published_blocks():
+    import yaml
+
+    path = Path(__file__).resolve().parents[2] / "reproducibility" / "retriever_registry.yaml"
+    reg = yaml.safe_load(path.read_text(encoding="utf-8"))["retrievers"]
+    assert set(reg) == {"bm25", "splade-pp", "bge-base-en-v1.5"}
+    assert reg["bm25"] == {"display_name": "BM25", "paradigm": "lexical"}
+    assert reg["splade-pp"] == {"display_name": "SPLADE++", "paradigm": "learned_sparse"}
+    assert reg["bge-base-en-v1.5"] == {
+        "display_name": "BGE-base-en-v1.5",
+        "paradigm": "dense",
+    }
