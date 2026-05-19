@@ -346,3 +346,52 @@ def test_schema_rejects_dense_missing_encoder():
     }
     with pytest.raises(jsonschema.ValidationError):
         _raw_schema_validate(p)
+
+
+# ---------- build_run_summary: retrieval block -------------------------------
+
+
+def test_build_run_summary_emits_retrieval_not_searcher():
+    payload = build_run_summary(
+        dataset_id="msmarco-v1-passage.trecdl2019",
+        method_id="query2e",
+        model="openai/gpt-4.1",
+        method_params={"mode": "zs"},
+        llm_config={"temperature": 1.0, "max_tokens": 128},
+        retrieval={
+            "retriever_id": "bm25",
+            "paradigm": "lexical",
+            "params": {"k1": 0.9, "b": 0.4},
+            "implementation": "pyserini:LuceneSearcher",
+        },
+        dataset_config={"topics": "dl19-passage", "index": "msmarco-v1-passage", "num_queries": 43},
+        metrics={"ndcg_cut_10": 0.5},
+        timing={},
+        steps_completed=["reformulate", "retrieve", "evaluate"],
+        total_time_seconds=1.0,
+    )
+    assert "searcher" not in payload["config"]
+    assert "bm25_weights" not in payload["config"]["dataset_config"]
+    assert payload["config"]["retrieval"] == {
+        "retriever_id": "bm25",
+        "paradigm": "lexical",
+        "params": {"k1": 0.9, "b": 0.4},
+        "implementation": "pyserini:LuceneSearcher",
+    }
+
+
+def test_build_run_summary_retrieval_implementation_is_optional():
+    payload = build_run_summary(
+        dataset_id="msmarco-v1-passage.trecdl2019",
+        method_id="query2e",
+        model="openai/gpt-4.1",
+        method_params={"mode": "zs"},
+        llm_config={"temperature": 1.0, "max_tokens": 128},
+        retrieval={"retriever_id": "bm25", "paradigm": "lexical", "params": {"k1": 0.9, "b": 0.4}},
+        dataset_config={"topics": "dl19-passage", "index": "msmarco-v1-passage", "num_queries": 43},
+        metrics={"ndcg_cut_10": 0.5},
+        timing={},
+        steps_completed=["reformulate"],
+        total_time_seconds=1.0,
+    )
+    assert "implementation" not in payload["config"]["retrieval"]

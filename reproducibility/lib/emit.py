@@ -93,7 +93,7 @@ def build_run_summary(
     model: str,
     method_params: Mapping[str, Any],
     llm_config: Mapping[str, Any],
-    searcher: Mapping[str, Any],
+    retrieval: Mapping[str, Any],
     dataset_config: Mapping[str, Any],
     metrics: Mapping[str, float],
     timing: Mapping[str, float],
@@ -109,11 +109,26 @@ def build_run_summary(
     The optional submitted_at / environment / querygym_version overrides exist
     for tests that need deterministic output; in normal use, leave them None.
 
+    `retrieval` carries the retriever dimension: retriever_id (a path-safe slug
+    in retriever_registry.yaml), paradigm, params (shape depends on paradigm),
+    and an optional `implementation` provenance string. params_hash is NOT a
+    function of retrieval (it stays the reformulation tuning surface); run_id
+    differs per retriever because the retrieval block is in the payload.
+
     The returned dict validates against reproducibility/schema.json by
     construction, but callers should still pass it through validate(...) before
-    writing — that adds runtime checks against dataset/method registries.
+    writing — that adds runtime checks against the dataset/method/retriever
+    registries.
     """
     params_hash = compute_params_hash(method_id, model, method_params, llm_config)
+
+    retrieval_block: dict = {
+        "retriever_id": retrieval["retriever_id"],
+        "paradigm": retrieval["paradigm"],
+        "params": dict(retrieval["params"]),
+    }
+    if retrieval.get("implementation") is not None:
+        retrieval_block["implementation"] = retrieval["implementation"]
 
     payload: dict = {
         "schema_version": SCHEMA_VERSION,
@@ -133,16 +148,12 @@ def build_run_summary(
         "config": {
             "method_params": dict(method_params),
             "llm_config": dict(llm_config),
-            "searcher": {"name": searcher["name"], "type": searcher["type"]},
             "dataset_config": {
                 "topics": dataset_config["topics"],
                 "index": dataset_config["index"],
                 "num_queries": int(dataset_config["num_queries"]),
-                "bm25_weights": {
-                    "k1": float(dataset_config["bm25_weights"]["k1"]),
-                    "b": float(dataset_config["bm25_weights"]["b"]),
-                },
             },
+            "retrieval": retrieval_block,
         },
         "metrics": {k: float(v) for k, v in metrics.items()},
         "timing": {k: float(v) for k, v in timing.items()},
