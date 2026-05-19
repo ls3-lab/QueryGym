@@ -35,6 +35,8 @@ CSV_COLUMNS = [
     "dataset_id",
     "method_id",
     "model",
+    "retriever_id",
+    "retriever",
     "params_hash",
     "method_params_json",
     "llm_temperature",
@@ -68,9 +70,17 @@ def _load_and_validate(path: Path, dataset_registry, method_registry) -> dict:
 
 def _payload_to_rows(payload: dict, run_path: Path) -> list[list]:
     """One row per metric. Returns rows in CSV_COLUMNS order."""
+    from reproducibility.lib.validate import _load_retriever_registry
+
     pipeline = payload["pipeline"]
     config = payload["config"]
+    retrieval = config["retrieval"]
     rel_path = run_path.relative_to(_REPO_ROOT).as_posix()
+
+    retriever_id = retrieval["retriever_id"]
+    retriever_display = (
+        _load_retriever_registry().get(retriever_id, {}).get("display_name", retriever_id)
+    )
 
     base = [
         payload["schema_version"],
@@ -78,6 +88,8 @@ def _payload_to_rows(payload: dict, run_path: Path) -> list[list]:
         pipeline["dataset_id"],
         pipeline["method_id"],
         pipeline["model"],
+        retriever_id,
+        retriever_display,
         payload["params_hash"],
         json.dumps(config["method_params"], sort_keys=True, separators=(",", ":")),
         config["llm_config"]["temperature"],
@@ -94,8 +106,8 @@ def _payload_to_rows(payload: dict, run_path: Path) -> list[list]:
     rows = []
     for metric in sorted(payload["metrics"].keys()):
         row = list(base)
-        row[9] = metric
-        row[10] = payload["metrics"][metric]
+        row[CSV_COLUMNS.index("metric")] = metric
+        row[CSV_COLUMNS.index("value")] = payload["metrics"][metric]
         rows.append(row)
     return rows
 
@@ -148,6 +160,7 @@ def aggregate(runs_dir: Path) -> tuple[str, dict]:
         CSV_COLUMNS.index("dataset_id"),
         CSV_COLUMNS.index("method_id"),
         CSV_COLUMNS.index("model"),
+        CSV_COLUMNS.index("retriever_id"),
         CSV_COLUMNS.index("params_hash"),
         CSV_COLUMNS.index("metric"),
     )

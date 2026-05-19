@@ -1,0 +1,20 @@
+version: 1
+notes: >
+  Canonical retriever registry. retriever_id is a path-safe slug used in
+  run paths and as the validation key; display_name is the only human-facing
+  label (rendered by the leaderboard and results.csv). paradigm drives the
+  conditional config.retrieval.params schema. Exactly the three retrieval
+  blocks the SIGIR paper and all four result CSVs publish. ANCE/Rocchio are
+  unpublished; RM3 is a BM25-block baseline row, not a retriever — see the
+  design spec, section 9.
+
+retrievers:
+  bm25:
+    display_name: "BM25"
+    paradigm: lexical
+  splade-pp:
+    display_name: "SPLADE++"
+    paradigm: learned_sparse
+  bge-base-en-v1.5:
+    display_name: "BGE-base-en-v1.5"
+    paradigm: dense

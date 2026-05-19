@@ -81,7 +81,7 @@
     "config": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["method_params", "llm_config", "searcher", "dataset_config"],
+      "required": ["method_params", "llm_config", "dataset_config", "retrieval"],
       "properties": {
         "method_params": {
           "type": "object",
@@ -97,33 +97,60 @@
             "top_p": {"type": "number"}
           }
         },
-        "searcher": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["name", "type"],
-          "properties": {
-            "name": {"type": "string"},
-            "type": {"type": "string"}
-          }
-        },
         "dataset_config": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["topics", "index", "num_queries", "bm25_weights"],
+          "required": ["topics", "index", "num_queries"],
           "properties": {
             "topics": {"type": "string"},
             "index": {"type": "string"},
-            "num_queries": {"type": "integer", "minimum": 0},
-            "bm25_weights": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["k1", "b"],
-              "properties": {
-                "k1": {"type": "number"},
-                "b": {"type": "number"}
-              }
-            }
+            "num_queries": {"type": "integer", "minimum": 0}
           }
+        },
+        "retrieval": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["retriever_id", "paradigm", "params"],
+          "properties": {
+            "retriever_id": {
+              "type": "string",
+              "description": "Path-safe slug; must be a key in retriever_registry.yaml. Also a run-path segment."
+            },
+            "paradigm": {
+              "enum": ["lexical", "learned_sparse", "dense"]
+            },
+            "params": {"type": "object"},
+            "implementation": {
+              "type": "string",
+              "description": "Optional provenance, e.g. 'pyserini:LuceneSearcher'."
+            }
+          },
+          "allOf": [
+            {
+              "if": {"required": ["paradigm"], "properties": {"paradigm": {"const": "lexical"}}},
+              "then": {"properties": {"params": {
+                "type": "object", "additionalProperties": false,
+                "required": ["k1", "b"],
+                "properties": {"k1": {"type": "number"}, "b": {"type": "number"}}
+              }}}
+            },
+            {
+              "if": {"required": ["paradigm"], "properties": {"paradigm": {"const": "learned_sparse"}}},
+              "then": {"properties": {"params": {
+                "type": "object", "additionalProperties": false,
+                "required": ["model"],
+                "properties": {"model": {"type": "string"}}
+              }}}
+            },
+            {
+              "if": {"required": ["paradigm"], "properties": {"paradigm": {"const": "dense"}}},
+              "then": {"properties": {"params": {
+                "type": "object", "additionalProperties": false,
+                "required": ["encoder"],
+                "properties": {"encoder": {"type": "string"}}
+              }}}
+            }
+          ]
         }
       }
     },

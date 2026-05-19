@@ -33,12 +33,16 @@ def _build_kwargs() -> dict:
         model="gpt-4.1-mini",
         method_params={"mode": "zs"},
         llm_config={"temperature": 1.0, "max_tokens": 128, "top_p": 1.0},
-        searcher={"name": "UserPyseriniWrapper", "type": "user_pyserini"},
+        retrieval={
+            "retriever_id": "bm25",
+            "paradigm": "lexical",
+            "params": {"k1": 0.9, "b": 0.4},
+            "implementation": "pyserini:LuceneSearcher",
+        },
         dataset_config={
             "topics": "dl19-passage",
             "index": "msmarco-v1-passage",
             "num_queries": 43,
-            "bm25_weights": {"k1": 0.9, "b": 0.4},
         },
         metrics={"map": 0.3709, "ndcg_cut_10": 0.5679, "recall_1000": 0.8384},
         timing={
@@ -214,3 +218,318 @@ def test_validator_skip_registry_checks_allows_unknown_ids():
     payload = build_run_summary(**kwargs)
     # Schema/hash checks still pass; registry check is skipped.
     validate(payload, skip_registry_checks=True)
+
+
+# ---------- Retriever registry ----------------------------------------------
+
+
+def test_retriever_registry_has_exactly_the_three_published_blocks():
+    import yaml
+
+    path = Path(__file__).resolve().parents[2] / "reproducibility" / "retriever_registry.yaml"
+    reg = yaml.safe_load(path.read_text(encoding="utf-8"))["retrievers"]
+    assert set(reg) == {"bm25", "splade-pp", "bge-base-en-v1.5"}
+    assert reg["bm25"] == {"display_name": "BM25", "paradigm": "lexical"}
+    assert reg["splade-pp"] == {"display_name": "SPLADE++", "paradigm": "learned_sparse"}
+    assert reg["bge-base-en-v1.5"] == {
+        "display_name": "BGE-base-en-v1.5",
+        "paradigm": "dense",
+    }
+
+
+# ---------- Schema: config.retrieval shape ----------------------------------
+
+
+def _minimal_payload_for_schema_only() -> dict:
+    """A structurally-valid (new-shape) payload for raw JSON-Schema checks."""
+    return {
+        "schema_version": 1,
+        "run_id": "0" * 16,
+        "params_hash": "0" * 8,
+        "submitted_at": "2026-05-19T00:00:00Z",
+        "querygym_version": "0.3.0",
+        "environment": {"python_version": "3.12.0", "platform": "x"},
+        "pipeline": {
+            "dataset_id": "d",
+            "method_id": "m",
+            "model": "x",
+            "steps_completed": ["reformulate"],
+            "total_time_seconds": 1.0,
+        },
+        "config": {
+            "method_params": {},
+            "llm_config": {"temperature": 1.0, "max_tokens": 1},
+            "dataset_config": {"topics": "t", "index": "i", "num_queries": 1},
+            "retrieval": {
+                "retriever_id": "bm25",
+                "paradigm": "lexical",
+                "params": {"k1": 0.9, "b": 0.4},
+            },
+        },
+        "metrics": {"ndcg_cut_10": 0.5},
+        "timing": {},
+        "artifacts": {
+            "run_file": "00000000.run.txt",
+            "reformulated_queries": "00000000.queries.tsv",
+        },
+    }
+
+
+def _raw_schema_validate(payload: dict) -> None:
+    import json as _json
+
+    import jsonschema
+
+    schema_path = (
+        Path(__file__).resolve().parents[2] / "reproducibility" / "schema.json"
+    )
+    schema = _json.loads(schema_path.read_text(encoding="utf-8"))
+    jsonschema.validate(instance=payload, schema=schema)
+
+
+def test_schema_accepts_lexical_retrieval():
+    _raw_schema_validate(_minimal_payload_for_schema_only())
+
+
+def test_schema_accepts_learned_sparse_retrieval():
+    p = _minimal_payload_for_schema_only()
+    p["config"]["retrieval"] = {
+        "retriever_id": "splade-pp",
+        "paradigm": "learned_sparse",
+        "params": {"model": "naver/splade-cocondenser-ensembledistil"},
+    }
+    _raw_schema_validate(p)
+
+
+def test_schema_accepts_dense_retrieval_with_implementation():
+    p = _minimal_payload_for_schema_only()
+    p["config"]["retrieval"] = {
+        "retriever_id": "bge-base-en-v1.5",
+        "paradigm": "dense",
+        "params": {"encoder": "BAAI/bge-base-en-v1.5"},
+        "implementation": "pyserini:FaissSearcher",
+    }
+    _raw_schema_validate(p)
+
+
+def test_schema_rejects_legacy_searcher_block():
+    import jsonschema
+
+    p = _minimal_payload_for_schema_only()
+    p["config"]["searcher"] = {"name": "x", "type": "y"}
+    with pytest.raises(jsonschema.ValidationError):
+        _raw_schema_validate(p)
+
+
+def test_schema_rejects_dataset_config_bm25_weights():
+    import jsonschema
+
+    p = _minimal_payload_for_schema_only()
+    p["config"]["dataset_config"]["bm25_weights"] = {"k1": 0.9, "b": 0.4}
+    with pytest.raises(jsonschema.ValidationError):
+        _raw_schema_validate(p)
+
+
+def test_schema_rejects_lexical_with_model_params():
+    import jsonschema
+
+    p = _minimal_payload_for_schema_only()
+    p["config"]["retrieval"]["params"] = {"model": "naver/splade"}
+    with pytest.raises(jsonschema.ValidationError):
+        _raw_schema_validate(p)
+
+
+def test_schema_rejects_dense_missing_encoder():
+    import jsonschema
+
+    p = _minimal_payload_for_schema_only()
+    p["config"]["retrieval"] = {
+        "retriever_id": "bge-base-en-v1.5",
+        "paradigm": "dense",
+        "params": {"wrong": "x"},
+    }
+    with pytest.raises(jsonschema.ValidationError):
+        _raw_schema_validate(p)
+
+
+# ---------- build_run_summary: retrieval block -------------------------------
+
+
+def test_build_run_summary_emits_retrieval_not_searcher():
+    payload = build_run_summary(
+        dataset_id="msmarco-v1-passage.trecdl2019",
+        method_id="query2e",
+        model="openai/gpt-4.1",
+        method_params={"mode": "zs"},
+        llm_config={"temperature": 1.0, "max_tokens": 128},
+        retrieval={
+            "retriever_id": "bm25",
+            "paradigm": "lexical",
+            "params": {"k1": 0.9, "b": 0.4},
+            "implementation": "pyserini:LuceneSearcher",
+        },
+        dataset_config={"topics": "dl19-passage", "index": "msmarco-v1-passage", "num_queries": 43},
+        metrics={"ndcg_cut_10": 0.5},
+        timing={},
+        steps_completed=["reformulate", "retrieve", "evaluate"],
+        total_time_seconds=1.0,
+    )
+    assert "searcher" not in payload["config"]
+    assert "bm25_weights" not in payload["config"]["dataset_config"]
+    assert payload["config"]["retrieval"] == {
+        "retriever_id": "bm25",
+        "paradigm": "lexical",
+        "params": {"k1": 0.9, "b": 0.4},
+        "implementation": "pyserini:LuceneSearcher",
+    }
+
+
+def test_build_run_summary_retrieval_implementation_is_optional():
+    payload = build_run_summary(
+        dataset_id="msmarco-v1-passage.trecdl2019",
+        method_id="query2e",
+        model="openai/gpt-4.1",
+        method_params={"mode": "zs"},
+        llm_config={"temperature": 1.0, "max_tokens": 128},
+        retrieval={"retriever_id": "bm25", "paradigm": "lexical", "params": {"k1": 0.9, "b": 0.4}},
+        dataset_config={"topics": "dl19-passage", "index": "msmarco-v1-passage", "num_queries": 43},
+        metrics={"ndcg_cut_10": 0.5},
+        timing={},
+        steps_completed=["reformulate"],
+        total_time_seconds=1.0,
+    )
+    assert "implementation" not in payload["config"]["retrieval"]
+
+
+# ---------- Validator: retriever registry -----------------------------------
+
+
+def test_validator_rejects_unknown_retriever_id():
+    payload = _load_fixture()
+    payload["config"]["retrieval"]["retriever_id"] = "totally-fake"
+    payload["run_id"] = compute_run_id(payload)
+    with pytest.raises(ValidationError, match="retriever_id 'totally-fake'"):
+        validate(payload)
+
+
+def test_validator_rejects_paradigm_registry_mismatch():
+    payload = _load_fixture()
+    # bm25 is 'lexical' in the registry; claim 'dense' (still schema-valid).
+    payload["config"]["retrieval"]["paradigm"] = "dense"
+    payload["config"]["retrieval"]["params"] = {"encoder": "x"}
+    payload["run_id"] = compute_run_id(payload)
+    with pytest.raises(ValidationError, match="paradigm mismatch"):
+        validate(payload)
+
+
+def test_validator_accepts_known_retriever():
+    # The migrated fixture uses bm25/lexical — must validate cleanly.
+    validate(_load_fixture())
+
+
+def test_params_hash_unchanged_by_multi_retriever_migration():
+    """Approach 1 must NOT perturb the paper-pinned params_hash.
+
+    The hash is a function only of (method_id, model, method_params, llm_config).
+    It was 'ddb15ccf' before the multi-retriever migration and must stay so.
+    """
+    assert (
+        compute_params_hash(
+            "query2e", "gpt-4.1-mini", {"mode": "zs"},
+            {"temperature": 1.0, "max_tokens": 128, "top_p": 1.0},
+        )
+        == "ddb15ccf"
+    )
+    assert _load_fixture()["params_hash"] == "ddb15ccf"
+
+
+# ---------- submit_run canonical path ---------------------------------------
+
+
+def test_canonical_dir_includes_retriever_segment(tmp_path):
+    import importlib
+
+    submit_run = importlib.import_module("reproducibility.scripts.submit_run")
+    payload = _load_fixture()
+    d = submit_run._canonical_dir(tmp_path, payload)
+    assert d == (
+        tmp_path
+        / "msmarco-v1-passage.trecdl2019"
+        / "query2e"
+        / "gpt-4.1-mini"
+        / "bm25"
+    )
+
+
+# ---------- aggregator: retriever columns -----------------------------------
+
+
+def test_aggregator_emits_retriever_columns():
+    import importlib
+
+    agg = importlib.import_module("reproducibility.scripts.aggregate_runs")
+    assert agg.CSV_COLUMNS[:7] == [
+        "schema_version",
+        "run_id",
+        "dataset_id",
+        "method_id",
+        "model",
+        "retriever_id",
+        "retriever",
+    ]
+
+    payload = _load_fixture()
+    fake_path = agg._REPO_ROOT / "reproducibility" / "data" / "runs" / "x.json"
+    rows = agg._payload_to_rows(payload, fake_path)
+    row0 = dict(zip(agg.CSV_COLUMNS, rows[0]))
+    assert row0["retriever_id"] == "bm25"
+    assert row0["retriever"] == "BM25"
+
+
+# ---------- pipeline forward-compat -----------------------------------------
+
+
+def test_run_summary_emits_lexical_retrieval_block():
+    import importlib
+
+    rs = importlib.import_module("examples.querygym_pyserini.run_summary")
+    results = {
+        "reformulation": {
+            "dataset": {
+                "topics": "dl19-passage",
+                "index": "msmarco-v1-passage",
+                "num_queries": 43,
+                "bm25_weights": {"k1": 0.9, "b": 0.4},
+            },
+            "reformulation": {
+                "method_params": {"mode": "zs"},
+                "llm_config": {"temperature": 1.0, "max_tokens": 128},
+                "searcher": {"name": "UserPyseriniWrapper", "type": "user_pyserini",
+                             "searcher_class": "LuceneSearcher"},
+            },
+            "timing": {"total_time_seconds": 1.0},
+        },
+        "retrieval": {"timing": {"total_time_seconds": 1.0}},
+        "evaluation": {"timing": {"eval_time_seconds": 1.0},
+                        "results": {"ndcg_cut_10": 0.5}},
+    }
+    payload = rs._build_v1_summary(
+        results=results,
+        dataset_name="msmarco-v1-passage.trecdl2019",
+        method="query2e",
+        model="openai/gpt-4.1",
+        method_params={"mode": "zs"},
+        llm_config={"temperature": 1.0, "max_tokens": 128},
+        steps=["reformulate", "retrieve", "evaluate"],
+        pipeline_time=3.0,
+        registry_path="dataset_registry.yaml",
+        queries_file=None,
+        index_name="msmarco-v1-passage",
+    )
+    r = payload["config"]["retrieval"]
+    assert r["retriever_id"] == "bm25"
+    assert r["paradigm"] == "lexical"
+    assert r["params"] == {"k1": 0.9, "b": 0.4}
+    assert r["implementation"] == "pyserini:LuceneSearcher"
+    assert "searcher" not in payload["config"]
+    assert "bm25_weights" not in payload["config"]["dataset_config"]

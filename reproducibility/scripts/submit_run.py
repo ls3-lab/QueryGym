@@ -66,7 +66,8 @@ def _resolve_inputs(from_dir: Path) -> tuple[Path, Path, Path]:
 
 def _canonical_dir(runs_dir: Path, payload: dict) -> Path:
     p = payload["pipeline"]
-    return runs_dir / p["dataset_id"] / p["method_id"] / p["model"]
+    retriever_id = payload["config"]["retrieval"]["retriever_id"]
+    return runs_dir / p["dataset_id"] / p["method_id"] / p["model"] / retriever_id
 
 
 def _copy(src: Path, dst: Path, *, force: bool) -> None:
