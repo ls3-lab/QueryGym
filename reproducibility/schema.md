@@ -13,7 +13,7 @@ This document mirrors `reproducibility/schema.json` in human-readable form. Both
 | `querygym_version` | `string` | yes | `querygym.__version__` at emit time. |
 | `environment` | object | yes | Python version, platform, optional git commit. |
 | `pipeline` | object | yes | dataset_id, method_id, model, steps_completed, total_time_seconds. |
-| `config` | object | yes | method_params, llm_config, searcher, dataset_config. |
+| `config` | object | yes | method_params, llm_config, dataset_config (topics/index/num_queries), retrieval (retriever_id/paradigm/params, optional implementation). |
 | `metrics` | object | yes | Flat `metric_name -> float`. Must have ≥1 entry. |
 | `timing` | object | yes | Per-step seconds. |
 | `artifacts` | object | yes | Sibling `run_file` and `reformulated_queries` filenames. |
@@ -25,11 +25,12 @@ These are enforced by `reproducibility.lib.validate(...)` at runtime:
 1. `pipeline.dataset_id` must be a key in `dataset_registry.yaml`.
 2. `pipeline.method_id` must be registered via `@register_method(...)` in `querygym/methods/`.
 3. Each `metrics` key must be in the dataset's `output.eval_metrics` (after normalizing dots to underscores: `ndcg_cut.10` → `ndcg_cut_10`).
-4. `params_hash` is recomputed from `(method_id, model, method_params, llm_config)` and must equal the stored value.
-5. `run_id` is recomputed from the payload (minus `run_id`, `submitted_at`, `environment`) and must equal the stored value.
-6. `artifacts.run_file` must equal `{params_hash}.run.txt`; `artifacts.reformulated_queries` must equal `{params_hash}.queries.tsv`.
+4. `config.retrieval.retriever_id` must be a key in `retriever_registry.yaml`, and `config.retrieval.paradigm` must equal that entry's `paradigm`.
+5. `params_hash` is recomputed from `(method_id, model, method_params, llm_config)` and must equal the stored value.
+6. `run_id` is recomputed from the payload (minus `run_id`, `submitted_at`, `environment`) and must equal the stored value.
+7. `artifacts.run_file` must equal `{params_hash}.run.txt`; `artifacts.reformulated_queries` must equal `{params_hash}.queries.tsv`.
 
-Hand-editing a metric value without re-running the emitter will fail validation (rule 5). This catches silent tampering.
+Hand-editing a metric value without re-running the emitter will fail validation (rule 6). This catches silent tampering.
 
 ## Hashing details
 
@@ -52,7 +53,7 @@ This is `reproducibility/tests/fixtures/sample_run.json` — used by tests, embe
 ```json
 {
   "schema_version": 1,
-  "run_id": "cabe83ca1236a3bb",
+  "run_id": "fa589cabb7720718",
   "params_hash": "ddb15ccf",
   "submitted_at": "2026-04-29T10:14:22Z",
   "querygym_version": "0.3.0",
@@ -71,12 +72,16 @@ This is `reproducibility/tests/fixtures/sample_run.json` — used by tests, embe
   "config": {
     "method_params": {"mode": "zs"},
     "llm_config": {"temperature": 1.0, "max_tokens": 128, "top_p": 1.0},
-    "searcher": {"name": "UserPyseriniWrapper", "type": "user_pyserini"},
     "dataset_config": {
       "topics": "dl19-passage",
       "index": "msmarco-v1-passage",
-      "num_queries": 43,
-      "bm25_weights": {"k1": 0.9, "b": 0.4}
+      "num_queries": 43
+    },
+    "retrieval": {
+      "retriever_id": "bm25",
+      "paradigm": "lexical",
+      "params": {"k1": 0.9, "b": 0.4},
+      "implementation": "pyserini:LuceneSearcher"
     }
   },
   "metrics": {
@@ -115,3 +120,16 @@ Future schema changes require:
 4. Updating the dashboard product to consume v2.
 
 The schema is intentionally hard to change so that the leaderboard's history stays comparable.
+
+## Provenance
+
+**2026-05-19 — schema v1 revised in place (multi-retriever).** `schema_version`
+stays `1`. Before this date no run JSON had ever been committed (`results.csv`
+held 0 rows and the leaderboard shipped an empty state), so revising v1
+structurally was non-breaking against landed data and no migration code exists.
+The change: removed `config.searcher` and `config.dataset_config.bm25_weights`;
+added the polymorphic `config.retrieval` block (`retriever_id`, `paradigm`,
+paradigm-conditional `params`, optional `implementation`); the retriever is now
+a path segment between `{model}` and `{params_hash}`. `compute_params_hash` and
+`compute_run_id` were not modified — `params_hash` for the canonical fixture is
+still `ddb15ccf`.
