@@ -3,7 +3,6 @@ import Default from "../../layouts/Default.astro";
 import EmptyState from "../../components/EmptyState.astro";
 import InteractiveTable from "../../components/InteractiveTable.astro";
 import FilterChips from "../../components/FilterChips.astro";
-import MatrixCell from "../../components/MatrixCell.astro";
 import datasetsList from "../../data/datasets.json";
 
 const shards = import.meta.glob<{ default: any }>(
@@ -31,12 +30,10 @@ const { id } = Astro.params;
 const view = shardFor(id!);
 const datasetMeta = datasetsList.find((d: any) => d.id === id);
 const runs = (view?.runs ?? []) as any[];
-const primary: string | null = view?.primary_metric ?? null;
-const secondary: string | null = view?.secondary_metric ?? null;
+const metricCols: string[] = view?.metric_columns ?? [];
 
 const tableId = "qg-dataset-table";
 
-// Distinct values for chip filters, derived from this dataset's actual rows.
 const uniq = (xs: any[], key: string, displayKey?: string) => {
   const m = new Map<string, string>();
   for (const r of xs) m.set(r[key], r[displayKey ?? key] ?? r[key]);
@@ -45,34 +42,6 @@ const uniq = (xs: any[], key: string, displayKey?: string) => {
 const methodChoices = uniq(runs, "method_id", "method_display");
 const modelChoices = uniq(runs, "model", "model_display");
 const retrieverChoices = uniq(runs, "retriever_id", "retriever_display");
-
-const chipGroups = [
-  {
-    key: "method",
-    label: "Method",
-    values: [{ value: "", label: "All" }, ...methodChoices.map(([v, l]) => ({ value: v, label: l }))],
-  },
-  {
-    key: "model",
-    label: "Model",
-    values: [{ value: "", label: "All" }, ...modelChoices.map(([v, l]) => ({ value: v, label: l }))],
-  },
-  {
-    key: "retriever",
-    label: "Retriever",
-    values: [{ value: "", label: "All" }, ...retrieverChoices.map(([v, l]) => ({ value: v, label: l }))],
-  },
-];
-if (secondary && secondary !== primary) {
-  chipGroups.push({
-    key: "metric",
-    label: "Metric",
-    values: [
-      { value: "primary", label: METRIC_LABEL[primary!] ?? primary! },
-      { value: "secondary", label: METRIC_LABEL[secondary] ?? secondary },
-    ],
-  });
-}
 ---
 
 <Default
@@ -93,54 +62,77 @@ if (secondary && secondary !== primary) {
       />
     </div>
   ) : (
-    <>
-      <div class="mt-6">
-        <FilterChips tableId={tableId} groups={chipGroups} />
+    <div class="mt-6">
+      <div class="qg-filter-card">
+        <FilterChips
+          tableId={tableId}
+          groups={[
+            { key: "method", label: "Method",
+              values: [{ value: "", label: "All" }, ...methodChoices.map(([v, l]) => ({ value: v, label: l }))] },
+            { key: "model", label: "Model",
+              values: [{ value: "", label: "All" }, ...modelChoices.map(([v, l]) => ({ value: v, label: l }))] },
+            { key: "retriever", label: "Retriever",
+              values: [{ value: "", label: "All" }, ...retrieverChoices.map(([v, l]) => ({ value: v, label: l }))] },
+          ]}
+        />
       </div>
 
       <InteractiveTable searchPlaceholder="Filter by method, model, retriever…">
-        <div class="overflow-x-auto rounded border border-qg-border">
-          <table id={tableId} class="w-full border-collapse text-sm">
-            <thead class="bg-qg-bg-soft text-xs uppercase tracking-wide text-qg-fg-muted">
-              <tr class="text-left">
-                <th class="px-3 py-2 whitespace-nowrap">Method</th>
-                <th class="px-3 py-2 whitespace-nowrap">Model</th>
-                <th class="px-3 py-2 whitespace-nowrap">Retriever</th>
-                <th class="qg-mono px-3 py-2 text-right text-xs whitespace-nowrap">
-                  <span class="qg-col-label-primary">{METRIC_LABEL[primary!] ?? primary}</span>
-                  {secondary && (
-                    <span class="qg-col-label-secondary hidden">{METRIC_LABEL[secondary] ?? secondary}</span>
-                  )}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {runs.map((r: any) => {
-                const pCell = primary && r.metrics?.[primary] !== undefined
-                  ? { value: r.metrics[primary], best: !!r.best_for?.[primary] }
-                  : undefined;
-                const sCell = secondary && secondary !== primary && r.metrics?.[secondary] !== undefined
-                  ? { value: r.metrics[secondary], best: !!r.best_for?.[secondary] }
-                  : null;
-                const runId = (primary && r.run_ids?.[primary]) || (secondary && r.run_ids?.[secondary]);
-                return (
+        <div class="qg-table-card">
+          <div class="qg-table-scroll">
+            <table
+              id={tableId}
+              class="w-full text-sm"
+              style="--qg-axis-w-1: 120px; --qg-axis-w-2: 180px;"
+            >
+              <thead class="text-xs uppercase tracking-wide text-qg-fg-muted">
+                <tr class="text-left">
+                  <th class="qg-axis-1 px-3 py-2 whitespace-nowrap">Method</th>
+                  <th class="qg-axis-2 px-3 py-2 whitespace-nowrap">Model</th>
+                  <th class="qg-axis-3 px-3 py-2 whitespace-nowrap">Retriever</th>
+                  {metricCols.map((m) => (
+                    <th class="qg-mono px-3 py-2 text-right text-xs whitespace-nowrap">
+                      {METRIC_LABEL[m] ?? m}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {runs.map((r: any) => (
                   <tr
                     class="border-b border-qg-border/60 hover:bg-qg-bg-soft"
                     data-method={r.method_id}
                     data-model={r.model}
                     data-retriever={r.retriever_id}
                   >
-                    <td class="px-3 py-2 font-medium">{r.method_display ?? r.method_id}</td>
-                    <td class="px-3 py-2 qg-mono text-xs" data-sort-value={r.model_display ?? r.model}>{r.model_display ?? r.model}</td>
-                    <td class="px-3 py-2 text-xs">{r.retriever_display ?? r.retriever_id}</td>
-                    <MatrixCell primary={pCell} secondary={sCell} runId={runId} digits={4} />
+                    <td class="qg-axis-1 px-3 py-2 font-medium">{r.method_display ?? r.method_id}</td>
+                    <td class="qg-axis-2 px-3 py-2 qg-mono text-xs" data-sort-value={r.model_display ?? r.model}>{r.model_display ?? r.model}</td>
+                    <td class="qg-axis-3 px-3 py-2 text-xs">{r.retriever_display ?? r.retriever_id}</td>
+                    {metricCols.map((m) => {
+                      const v = r.metrics?.[m];
+                      const isBest = !!r.best_for?.[m];
+                      const runId = r.run_ids?.[m] ?? r.run_id;
+                      return (
+                        <td class="qg-mono px-3 py-2 text-right tabular-nums" data-sort-value={v ?? ""}>
+                          {v == null ? (
+                            <span class="text-qg-fg-muted">—</span>
+                          ) : runId ? (
+                            <a class="hover:text-qg-accent hover:underline" href={`/runs/${runId}`} title="View run + reproduce">
+                              <span class={isBest ? "qg-cell-best" : ""}>{v.toFixed(4)}</span>
+                            </a>
+                          ) : (
+                            <span class={isBest ? "qg-cell-best" : ""}>{v.toFixed(4)}</span>
+                          )}
+                        </td>
+                      );
+                    })}
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </InteractiveTable>
-    </>
+    </div>
   )}
 </Default>

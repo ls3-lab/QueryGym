@@ -65,7 +65,7 @@ const modelChoices = uniq(rows, "model", "model_display");
     </div>
   ) : (
     <>
-      <div class="mt-6">
+      <div class="mt-6 qg-filter-card">
         <FilterChips
           tableId={tableId}
           groups={[
@@ -79,17 +79,21 @@ const modelChoices = uniq(rows, "model", "model_display");
         />
       </div>
 
-      <section>
-        <InteractiveTable searchPlaceholder="Filter by method, model…">
-          <div class="overflow-x-auto rounded border border-qg-border">
-            <table id={tableId} class="w-full text-sm">
-              <thead class="bg-qg-bg-soft text-xs uppercase tracking-wide text-qg-fg-muted">
+      <InteractiveTable searchPlaceholder="Filter by method, model…">
+        <div class="qg-table-card">
+          <div class="qg-table-scroll">
+            <table
+              id={tableId}
+              class="w-full text-sm"
+              style="--qg-axis-w-1: 120px; --qg-axis-w-2: 180px;"
+            >
+              <thead class="text-xs uppercase tracking-wide text-qg-fg-muted">
                 <tr>
-                  <th class="px-3 py-2 text-left">Method</th>
-                  <th class="px-3 py-2 text-left">Model</th>
+                  <th class="qg-axis-1 px-3 py-2 text-left">Method</th>
+                  <th class="qg-axis-2 px-3 py-2 text-left">Model</th>
                   {datasetCols.map((d: any) => (
                     <th class="qg-mono px-2 py-2 text-right text-xs whitespace-nowrap" title={d.id}>
-                      <div>{SHORT[d.id] ?? d.name}</div>
+                      <div><span>{SHORT[d.id] ?? d.name}</span><span class="qg-sort-arrow-slot"></span></div>
                       <div class="qg-col-label-primary text-[10px] font-normal text-qg-fg-muted">
                         {METRIC_LABEL[d.primary_metric] ?? d.primary_metric}
                       </div>
@@ -107,8 +111,8 @@ const modelChoices = uniq(rows, "model", "model_display");
                     data-method={row.method_id}
                     data-model={row.model}
                   >
-                    <td class="px-3 py-2 font-medium">{row.method_display ?? row.method_id}</td>
-                    <td class="px-3 py-2 qg-mono text-xs" data-sort-value={row.model_display ?? row.model}>{row.model_display ?? row.model}</td>
+                    <td class="qg-axis-1 px-3 py-2 font-medium">{row.method_display ?? row.method_id}</td>
+                    <td class="qg-axis-2 px-3 py-2 qg-mono text-xs" data-sort-value={row.model_display ?? row.model}>{row.model_display ?? row.model}</td>
                     {datasetCols.map((d: any) => {
                       const cell = row.values?.[d.id] ?? {};
                       return (
@@ -124,8 +128,8 @@ const modelChoices = uniq(rows, "model", "model_display");
               </tbody>
             </table>
           </div>
-        </InteractiveTable>
-      </section>
+        </div>
+      </InteractiveTable>
     </>
   )}
 </Default>

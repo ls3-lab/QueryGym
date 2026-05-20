@@ -34,7 +34,7 @@ interface Props {
 const { tableId, groups } = Astro.props;
 ---
 
-<section class="mb-4 flex flex-wrap gap-x-6 gap-y-3 text-sm" data-qg-filters data-table={tableId}>
+<section class="flex flex-wrap gap-x-6 gap-y-3 text-sm" data-qg-filters data-table={tableId}>
   {groups.map((g) => (
     <div class="flex flex-wrap items-center gap-2">
       <span class="text-qg-fg-muted">{g.label}:</span>
@@ -109,6 +109,8 @@ const { tableId, groups } = Astro.props;
         const v = primaryShown ? td.dataset.primaryValue : td.dataset.secondaryValue;
         td.dataset.sortValue = v ?? "";
       });
+      // If a sort is active, re-fire it on the now-visible metric values.
+      itableRoot?.dispatchEvent(new CustomEvent("qg-itable-resort"));
     }
 
     bar.querySelectorAll<HTMLElement>("[data-group]").forEach((g) => {

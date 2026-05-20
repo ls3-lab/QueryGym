@@ -91,7 +91,8 @@ if (paradigm === "lexical") {
 const trecMetrics = Object.keys(run.metrics ?? {})
   .map((m) => m.replace(/_/g, "."))
   .join(" -m ");
-const qrelsName = dsCfg.qrels?.name ?? dsCfg.qrels ?? dsCfg.topics?.name ?? dsCfg.topics ?? "<qrels>";
+// For BEIR + DL, the prebuilt qrels key matches the topics key; reuse it.
+const qrelsName = dsCfg.topics ?? "<qrels>";
 const trecEvalCmd = `python -m pyserini.eval.trec_eval -c -m ${trecMetrics || "ndcg_cut.10"} \\
   ${qrelsName} run.txt`;
 ---

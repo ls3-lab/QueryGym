@@ -61,87 +61,95 @@ const datasetCols = matrix.dataset_columns;
   </section>
 
   {populated && (
-    <FilterChips
-      tableId="qg-matrix"
-      groups={[
-        {
-          key: "retriever",
-          label: "Retriever",
-          values: [
-            { value: "", label: "All" },
-            ...retrievers.map((r: any) => ({ value: r.id, label: r.display_name })),
-          ],
-        },
-        {
-          key: "model",
-          label: "Model",
-          values: [
-            { value: "", label: "All" },
-            ...models.map((m: any) => ({ value: m.id, label: m.display ?? m.id })),
-          ],
-        },
-        {
-          key: "metric",
-          label: "Metric",
-          values: [
-            { value: "primary", label: "nDCG@10" },
-            { value: "secondary", label: "Recall" },
-          ],
-        },
-      ]}
-    />
+    <div class="qg-filter-card">
+      <FilterChips
+        tableId="qg-matrix"
+        groups={[
+          {
+            key: "retriever",
+            label: "Retriever",
+            values: [
+              { value: "", label: "All" },
+              ...retrievers.map((r: any) => ({ value: r.id, label: r.display_name })),
+            ],
+          },
+          {
+            key: "model",
+            label: "Model",
+            values: [
+              { value: "", label: "All" },
+              ...models.map((m: any) => ({ value: m.id, label: m.display ?? m.id })),
+            ],
+          },
+          {
+            key: "metric",
+            label: "Metric",
+            values: [
+              { value: "primary", label: "nDCG@10" },
+              { value: "secondary", label: "Recall" },
+            ],
+          },
+        ]}
+      />
+    </div>
   )}
 
   {populated ? (
     <InteractiveTable searchPlaceholder="Filter by method, model, retriever…">
-      <div class="overflow-x-auto rounded border border-qg-border">
-        <table id="qg-matrix" class="w-full text-sm">
-          <thead class="bg-qg-bg-soft text-xs uppercase tracking-wide text-qg-fg-muted">
-            <tr>
-              <th class="px-3 py-2 text-left whitespace-nowrap">Method</th>
-              <th class="px-3 py-2 text-left whitespace-nowrap">Model</th>
-              <th class="px-3 py-2 text-left whitespace-nowrap">Retriever</th>
-              {datasetCols.map((d: any) => (
-                <th
-                  class="qg-mono px-2 py-2 text-right text-xs whitespace-nowrap"
-                  title={d.id}
-                >
-                  <div>{SHORT[d.id] ?? d.name}</div>
-                  <div class="qg-col-label-primary text-[10px] font-normal text-qg-fg-muted">
-                    {METRIC_LABEL[d.primary_metric] ?? d.primary_metric}
-                  </div>
-                  <div class="qg-col-label-secondary hidden text-[10px] font-normal text-qg-fg-muted">
-                    {METRIC_LABEL[d.secondary_metric] ?? d.secondary_metric}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row: any) => (
-              <tr
-                class="border-t border-qg-border/60 hover:bg-qg-bg-soft"
-                data-method={row.method_id}
-                data-model={row.model}
-                data-retriever={row.retriever_id}
-              >
-                <td class="px-3 py-2 font-medium">{row.method_display ?? row.method_id}</td>
-                <td class="px-3 py-2 qg-mono text-xs" data-sort-value={row.model_display ?? row.model}>{row.model_display ?? row.model}</td>
-                <td class="px-3 py-2 text-xs">{row.retriever_display ?? row.retriever_id}</td>
-                {datasetCols.map((d: any) => {
-                  const cell = row.values?.[d.id] ?? {};
-                  return (
-                    <MatrixCell
-                      primary={cell[d.primary_metric]}
-                      secondary={d.secondary_metric ? cell[d.secondary_metric] : null}
-                      runId={row.run_ids?.[d.id]}
-                    />
-                  );
-                })}
+      <div class="qg-table-card">
+        <div class="qg-table-scroll">
+          <table
+            id="qg-matrix"
+            class="w-full text-sm"
+            style="--qg-axis-w-1: 120px; --qg-axis-w-2: 180px;"
+          >
+            <thead class="text-xs uppercase tracking-wide text-qg-fg-muted">
+              <tr>
+                <th class="qg-axis-1 px-3 py-2 text-left whitespace-nowrap">Method</th>
+                <th class="qg-axis-2 px-3 py-2 text-left whitespace-nowrap">Model</th>
+                <th class="qg-axis-3 px-3 py-2 text-left whitespace-nowrap">Retriever</th>
+                {datasetCols.map((d: any) => (
+                  <th
+                    class="qg-mono px-2 py-2 text-right text-xs whitespace-nowrap"
+                    title={d.id}
+                  >
+                    <div><span>{SHORT[d.id] ?? d.name}</span><span class="qg-sort-arrow-slot"></span></div>
+                    <div class="qg-col-label-primary text-[10px] font-normal text-qg-fg-muted">
+                      {METRIC_LABEL[d.primary_metric] ?? d.primary_metric}
+                    </div>
+                    <div class="qg-col-label-secondary hidden text-[10px] font-normal text-qg-fg-muted">
+                      {METRIC_LABEL[d.secondary_metric] ?? d.secondary_metric}
+                    </div>
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row: any) => (
+                <tr
+                  class="border-t border-qg-border/60 hover:bg-qg-bg-soft"
+                  data-method={row.method_id}
+                  data-model={row.model}
+                  data-retriever={row.retriever_id}
+                >
+                  <td class="qg-axis-1 px-3 py-2 font-medium">{row.method_display ?? row.method_id}</td>
+                  <td class="qg-axis-2 px-3 py-2 qg-mono text-xs" data-sort-value={row.model_display ?? row.model}>{row.model_display ?? row.model}</td>
+                  <td class="qg-axis-3 px-3 py-2 text-xs">{row.retriever_display ?? row.retriever_id}</td>
+                  {datasetCols.map((d: any) => {
+                    const cell = row.values?.[d.id] ?? {};
+                    return (
+                      <MatrixCell
+                        primary={cell[d.primary_metric]}
+                        secondary={d.secondary_metric ? cell[d.secondary_metric] : null}
+                        runId={row.run_ids?.[d.id]}
+                      />
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </InteractiveTable>
   ) : (

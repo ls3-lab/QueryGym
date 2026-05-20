@@ -2,11 +2,12 @@
 /**
  * One cell in any of the leaderboard tables.
  *
- * Cells render two metric values (primary + optional secondary) layered on top
- * of each other; FilterChips' metric-toggle flips visibility via the global
+ * Always renders two metric spans (primary + secondary) layered on top of
+ * each other; FilterChips' metric-toggle flips visibility via the global
  * .qg-cell-primary / .qg-cell-secondary classes. The cell exposes
  * data-primary-value and data-secondary-value so InteractiveTable's sort
- * picks up whichever metric is currently visible.
+ * picks up whichever metric is currently visible. Missing values render
+ * as a muted em-dash so layout stays stable when one metric is absent.
  */
 interface Cell {
   value: number;
@@ -18,10 +19,16 @@ interface Props {
   runId?: string | null;
   digits?: number;
 }
-const { primary, secondary, runId, digits = 3 } = Astro.props;
+const { primary, secondary, runId, digits = 4 } = Astro.props;
 const primaryValue = primary?.value ?? "";
 const secondaryValue = secondary?.value ?? "";
-const empty = primary === undefined && (secondary == null || secondary === undefined);
+const hasPrimary = primary !== undefined;
+const hasSecondary = secondary != null && secondary !== undefined;
+const linkable = runId && (hasPrimary || hasSecondary);
+const primaryText = hasPrimary ? primary!.value.toFixed(digits) : "—";
+const secondaryText = hasSecondary ? secondary!.value.toFixed(digits) : "—";
+const primaryClass = `qg-cell-primary${primary?.best ? " qg-cell-best" : ""}`;
+const secondaryClass = `qg-cell-secondary hidden${secondary?.best ? " qg-cell-best" : ""}`;
 ---
 
 <td
@@ -30,33 +37,15 @@ const empty = primary === undefined && (secondary == null || secondary === undef
   data-primary-value={primaryValue}
   data-secondary-value={secondaryValue}
 >
-  {empty ? (
-    <span class="text-qg-fg-muted">—</span>
-  ) : runId ? (
+  {linkable ? (
     <a class="hover:text-qg-accent hover:underline" href={`/runs/${runId}`} title="View run + reproduce">
-      {primary !== undefined && (
-        <span class={`qg-cell-primary ${primary.best ? "font-bold text-qg-accent" : ""}`}>
-          {primary.value.toFixed(digits)}
-        </span>
-      )}
-      {secondary != null && (
-        <span class={`qg-cell-secondary hidden ${secondary.best ? "font-bold text-qg-accent" : ""}`}>
-          {secondary.value.toFixed(digits)}
-        </span>
-      )}
+      <span class={primaryClass}>{primaryText}</span>
+      <span class={secondaryClass}>{secondaryText}</span>
     </a>
   ) : (
     <>
-      {primary !== undefined && (
-        <span class={`qg-cell-primary ${primary.best ? "font-bold text-qg-accent" : ""}`}>
-          {primary.value.toFixed(digits)}
-        </span>
-      )}
-      {secondary != null && (
-        <span class={`qg-cell-secondary hidden ${secondary.best ? "font-bold text-qg-accent" : ""}`}>
-          {secondary.value.toFixed(digits)}
-        </span>
-      )}
+      <span class={primaryClass}>{primaryText}</span>
+      <span class={secondaryClass}>{secondaryText}</span>
     </>
   )}
 </td>
