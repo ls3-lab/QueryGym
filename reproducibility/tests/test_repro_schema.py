@@ -578,3 +578,26 @@ def test_build_run_summary_rejects_unknown_artifact_key():
     kw["artifacts_present"] = {"run_file", "bogus"}
     with pytest.raises(ValueError, match="unknown artifact keys"):
         build_run_summary(**kw)
+
+
+# ---------- DL-HARD registry entry ------------------------------------------
+
+
+def test_dataset_registry_has_dlhard_entry():
+    import yaml
+
+    p = Path(__file__).resolve().parents[2] / "dataset_registry.yaml"
+    reg = yaml.safe_load(p.read_text(encoding="utf-8"))["datasets"]
+    assert "msmarco-v1-passage.dlhard" in reg
+    entry = reg["msmarco-v1-passage.dlhard"]
+    assert entry["index"]["name"] == "msmarco-v1-passage"
+    assert set(entry["output"]["eval_metrics"]) >= {"ndcg_cut.10", "recall.1000"}
+
+
+def test_validator_accepts_dlhard_run():
+    kw = _build_kwargs()
+    kw["dataset_id"] = "msmarco-v1-passage.dlhard"
+    # DL-HARD whitelists {ndcg_cut.10, recall.1000}.
+    kw["metrics"] = {"ndcg_cut_10": 0.4038, "recall_1000": 0.8415}
+    p = build_run_summary(**kw)
+    validate(p)
