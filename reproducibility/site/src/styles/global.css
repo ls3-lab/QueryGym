@@ -2,3 +2,12 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .qg-pill {
+    @apply inline-flex items-center gap-1 rounded-full border border-qg-border bg-qg-bg-soft px-3 py-1 text-xs font-medium text-qg-fg-muted;
+  }
+  .qg-card {
+    @apply rounded-xl border border-qg-border bg-qg-bg-soft p-6 transition hover:border-qg-accent;
+  }
+}
