@@ -2,6 +2,8 @@
 import Default from "../../layouts/Default.astro";
 import EmptyState from "../../components/EmptyState.astro";
 import InteractiveTable from "../../components/InteractiveTable.astro";
+import FilterChips from "../../components/FilterChips.astro";
+import MatrixCell from "../../components/MatrixCell.astro";
 import retrievers from "../../data/retrievers.json";
 
 const shards = import.meta.glob<{ default: any }>(
@@ -21,7 +23,7 @@ export async function getStaticPaths() {
 const { id } = Astro.params;
 const view = shardFor(id!);
 const meta = retrievers.find((r: any) => r.id === id);
-const rows = view?.rows ?? [];
+const rows = (view?.rows ?? []) as any[];
 
 const SHORT: Record<string, string> = {
   "msmarco-v1-passage.trecdl2019": "DL 2019",
@@ -35,11 +37,20 @@ const SHORT: Record<string, string> = {
   "beir-v1.0.0-trec-news":         "News",
 };
 const METRIC_LABEL: Record<string, string> = {
-  ndcg_cut_10: "nDCG@10", recall_1000: "R@1k", recall_100: "R@100",
+  ndcg_cut_10: "nDCG@10", recall_1000: "R@1k", recall_100: "R@100", map: "MAP",
 };
 
 const datasetCols = (await import("../../data/matrix.json")).default.dataset_columns;
 const title = meta?.display_name ?? id ?? "Retriever";
+const tableId = "qg-retriever-table";
+
+const uniq = (xs: any[], key: string, displayKey?: string) => {
+  const m = new Map<string, string>();
+  for (const r of xs) m.set(r[key], r[displayKey ?? key] ?? r[key]);
+  return Array.from(m.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+};
+const methodChoices = uniq(rows, "method_id", "method_display");
+const modelChoices = uniq(rows, "model", "model_display");
 ---
 
 <Default title={title} description={`Per-retriever leaderboard for ${title}.`}>
@@ -48,50 +59,64 @@ const title = meta?.display_name ?? id ?? "Retriever";
   <div class="mt-1 qg-mono text-sm text-qg-fg-muted">{id} · {meta?.paradigm}</div>
   <div class="mt-1 text-sm text-qg-fg-muted">{rows.length} method × model combinations</div>
 
-  {
-    rows.length === 0 ? (
-      <div class="mt-8">
-        <EmptyState title="No runs for this retriever yet" body="" />
+  {rows.length === 0 ? (
+    <div class="mt-8">
+      <EmptyState title="No runs for this retriever yet" body="" />
+    </div>
+  ) : (
+    <>
+      <div class="mt-6">
+        <FilterChips
+          tableId={tableId}
+          groups={[
+            { key: "method", label: "Method",
+              values: [{ value: "", label: "All" }, ...methodChoices.map(([v, l]) => ({ value: v, label: l }))] },
+            { key: "model", label: "Model",
+              values: [{ value: "", label: "All" }, ...modelChoices.map(([v, l]) => ({ value: v, label: l }))] },
+            { key: "metric", label: "Metric",
+              values: [{ value: "primary", label: "nDCG@10" }, { value: "secondary", label: "Recall" }] },
+          ]}
+        />
       </div>
-    ) : (
-      <section class="mt-6">
+
+      <section>
         <InteractiveTable searchPlaceholder="Filter by method, model…">
           <div class="overflow-x-auto rounded border border-qg-border">
-            <table class="w-full text-sm">
+            <table id={tableId} class="w-full text-sm">
               <thead class="bg-qg-bg-soft text-xs uppercase tracking-wide text-qg-fg-muted">
                 <tr>
                   <th class="px-3 py-2 text-left">Method</th>
                   <th class="px-3 py-2 text-left">Model</th>
                   {datasetCols.map((d: any) => (
-                    <th class="qg-mono px-3 py-2 text-right text-xs" title={d.id}>
-                      {SHORT[d.id] ?? d.name}
-                      <span class="text-qg-fg-muted"> / {METRIC_LABEL[d.primary_metric] ?? d.primary_metric}</span>
+                    <th class="qg-mono px-2 py-2 text-right text-xs whitespace-nowrap" title={d.id}>
+                      <div>{SHORT[d.id] ?? d.name}</div>
+                      <div class="qg-col-label-primary text-[10px] font-normal text-qg-fg-muted">
+                        {METRIC_LABEL[d.primary_metric] ?? d.primary_metric}
+                      </div>
+                      <div class="qg-col-label-secondary hidden text-[10px] font-normal text-qg-fg-muted">
+                        {METRIC_LABEL[d.secondary_metric] ?? d.secondary_metric}
+                      </div>
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {rows.map((row: any) => (
-                  <tr class="border-t border-qg-border/60 hover:bg-qg-bg-soft">
+                  <tr
+                    class="border-t border-qg-border/60 hover:bg-qg-bg-soft"
+                    data-method={row.method_id}
+                    data-model={row.model}
+                  >
                     <td class="px-3 py-2 font-medium">{row.method_display ?? row.method_id}</td>
                     <td class="px-3 py-2 qg-mono text-xs" data-sort-value={row.model_display ?? row.model}>{row.model_display ?? row.model}</td>
                     {datasetCols.map((d: any) => {
                       const cell = row.values?.[d.id] ?? {};
-                      const runId = row.run_ids?.[d.id];
-                      const primary = cell[d.primary_metric];
-                      const v = primary?.value ?? "";
                       return (
-                        <td class="qg-mono px-3 py-2 text-right tabular-nums" data-sort-value={v}>
-                          {runId && primary !== undefined ? (
-                            <a class="hover:text-qg-accent hover:underline" href={`/runs/${runId}`}>
-                              <span class={primary.best ? "font-bold text-qg-accent" : ""}>
-                                {primary.value.toFixed(3)}
-                              </span>
-                            </a>
-                          ) : (
-                            <span class="text-qg-fg-muted">—</span>
-                          )}
-                        </td>
+                        <MatrixCell
+                          primary={cell[d.primary_metric]}
+                          secondary={d.secondary_metric ? cell[d.secondary_metric] : null}
+                          runId={row.run_ids?.[d.id]}
+                        />
                       );
                     })}
                   </tr>
@@ -101,6 +126,6 @@ const title = meta?.display_name ?? id ?? "Retriever";
           </div>
         </InteractiveTable>
       </section>
-    )
-  }
+    </>
+  )}
 </Default>

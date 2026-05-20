@@ -94,6 +94,7 @@ interface RunDetail {
   params_hash: string;
   dataset_id: string;
   method_id: string;
+  method_display: string;
   model: string;
   retriever_id: string;
   retriever_display: string;
@@ -195,11 +196,16 @@ function readRunDetails(retrievers: Record<string, { display_name: string; parad
     const retr = payload.config?.retrieval ?? {};
     const retrId = retr.retriever_id ?? "";
     const artifacts = payload.artifacts ?? {};
+    const lm = logicalMethod(
+      payload.pipeline.method_id,
+      JSON.stringify(payload.config?.method_params ?? {}),
+    );
     out[payload.run_id] = {
       run_id: payload.run_id,
       params_hash: hash,
       dataset_id: payload.pipeline.dataset_id,
       method_id: payload.pipeline.method_id,
+      method_display: lm.display,
       model: payload.pipeline.model,
       model_display: displayModel(payload.pipeline.model),
       retriever_id: retrId,
@@ -235,10 +241,9 @@ function buildPerDatasetViews(
   }
 
   for (const [datasetId, dsRows] of byDataset) {
-    const allowed = datasets[datasetId]?.eval_metrics ?? [];
-
     // Pivot to one row per (logical_method, model, retriever). Variants are
-    // folded by max value per metric — matches the home matrix.
+    // folded by max value per metric — matches the home matrix. Track run_id
+    // per metric so the "best" cell links to the run that achieved it.
     const map = new Map<string, any>();
     for (const r of dsRows) {
       const lm = logicalMethod(r.method_id, r.method_params_json);
@@ -251,7 +256,7 @@ function buildPerDatasetViews(
           model_display: displayModel(r.model),
           retriever_id: r.retriever_id,
           retriever_display: r.retriever,
-          run_id: r.run_id,            // populated/overwritten by the best cell
+          run_ids: {} as Record<string, string>,    // metric → run_id of the winning value
           metrics: {} as Record<string, number>,
           best_for: {} as Record<string, boolean>,
         });
@@ -259,13 +264,34 @@ function buildPerDatasetViews(
       const row = map.get(key);
       if (row.metrics[r.metric] === undefined || r.value > row.metrics[r.metric]) {
         row.metrics[r.metric] = r.value;
-        row.run_id = r.run_id;
+        row.run_ids[r.metric] = r.run_id;
       }
     }
 
+    // Discover which metrics actually exist in the data — the registry's
+    // eval_metrics is aspirational and may over-specify (e.g. MAP on DL,
+    // recall_1000 on BEIR). Render only what we have.
+    const present = new Set<string>();
+    for (const row of map.values()) {
+      for (const m of Object.keys(row.metrics)) present.add(m);
+    }
+    const allMetrics = Array.from(present);
+    const primary = present.has("ndcg_cut_10") ? "ndcg_cut_10" : allMetrics[0] ?? null;
+    const secondary = present.has("recall_1000")
+      ? "recall_1000"
+      : present.has("recall_100")
+        ? "recall_100"
+        : allMetrics.find((m) => m !== primary) ?? null;
+    // Order: primary first, secondary second, then anything else.
+    const orderedMetrics = [
+      ...(primary ? [primary] : []),
+      ...(secondary && secondary !== primary ? [secondary] : []),
+      ...allMetrics.filter((m) => m !== primary && m !== secondary),
+    ];
+
     // best_for flags relative to the rows above.
     const list = Array.from(map.values());
-    for (const m of allowed) {
+    for (const m of orderedMetrics) {
       let best = -Infinity;
       let bestRow: any = null;
       for (const row of list) {
@@ -277,8 +303,10 @@ function buildPerDatasetViews(
 
     writeJSON(path.join(VIEWS_DIR, `dataset-${datasetId}.json`), {
       dataset_id: datasetId,
-      dataset: datasets[datasetId] ?? { id: datasetId, name: datasetId, eval_metrics: allowed },
-      metric_columns: allowed,
+      dataset: datasets[datasetId] ?? { id: datasetId, name: datasetId, eval_metrics: orderedMetrics },
+      metric_columns: orderedMetrics,
+      primary_metric: primary,
+      secondary_metric: secondary,
       runs: list,
     });
   }

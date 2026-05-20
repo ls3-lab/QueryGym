@@ -1,0 +1,62 @@
+---
+/**
+ * One cell in any of the leaderboard tables.
+ *
+ * Cells render two metric values (primary + optional secondary) layered on top
+ * of each other; FilterChips' metric-toggle flips visibility via the global
+ * .qg-cell-primary / .qg-cell-secondary classes. The cell exposes
+ * data-primary-value and data-secondary-value so InteractiveTable's sort
+ * picks up whichever metric is currently visible.
+ */
+interface Cell {
+  value: number;
+  best: boolean;
+}
+interface Props {
+  primary?: Cell;
+  secondary?: Cell | null;
+  runId?: string | null;
+  digits?: number;
+}
+const { primary, secondary, runId, digits = 3 } = Astro.props;
+const primaryValue = primary?.value ?? "";
+const secondaryValue = secondary?.value ?? "";
+const empty = primary === undefined && (secondary == null || secondary === undefined);
+---
+
+<td
+  class="qg-mono px-3 py-2 text-right tabular-nums"
+  data-sort-value={primaryValue}
+  data-primary-value={primaryValue}
+  data-secondary-value={secondaryValue}
+>
+  {empty ? (
+    <span class="text-qg-fg-muted">—</span>
+  ) : runId ? (
+    <a class="hover:text-qg-accent hover:underline" href={`/runs/${runId}`} title="View run + reproduce">
+      {primary !== undefined && (
+        <span class={`qg-cell-primary ${primary.best ? "font-bold text-qg-accent" : ""}`}>
+          {primary.value.toFixed(digits)}
+        </span>
+      )}
+      {secondary != null && (
+        <span class={`qg-cell-secondary hidden ${secondary.best ? "font-bold text-qg-accent" : ""}`}>
+          {secondary.value.toFixed(digits)}
+        </span>
+      )}
+    </a>
+  ) : (
+    <>
+      {primary !== undefined && (
+        <span class={`qg-cell-primary ${primary.best ? "font-bold text-qg-accent" : ""}`}>
+          {primary.value.toFixed(digits)}
+        </span>
+      )}
+      {secondary != null && (
+        <span class={`qg-cell-secondary hidden ${secondary.best ? "font-bold text-qg-accent" : ""}`}>
+          {secondary.value.toFixed(digits)}
+        </span>
+      )}
+    </>
+  )}
+</td>

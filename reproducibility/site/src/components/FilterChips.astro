@@ -1,0 +1,131 @@
+---
+/**
+ * Chip-style filter bar for any leaderboard table.
+ *
+ * Each group corresponds to a column on the table's <tr data-*> attributes
+ * (e.g. data-method, data-model). Clicking a chip hides rows whose attribute
+ * doesn't match, by toggling the .qg-chip-hidden class and dispatching
+ * "qg-itable-reapply" on the nearest .qg-itable wrapper so InteractiveTable
+ * re-syncs its row-visibility + shown-count.
+ *
+ * The optional `metric` group is special: it swaps .qg-cell-primary /
+ * .qg-cell-secondary visibility and the matching column-label spans across
+ * the whole page, then re-keys cells' data-sort-value to the now-visible
+ * metric so sort follows what's on screen.
+ */
+interface ChipValue {
+  value: string;
+  label: string;
+}
+interface ChipGroup {
+  /** "method" | "model" | "retriever" | "metric"; matches <tr data-{key}> */
+  key: string;
+  /** Visible header text. */
+  label: string;
+  /** First item is shown as the active default. For `metric`, use
+   *  [{value:"primary", label:"nDCG@10"}, {value:"secondary", label:"Recall"}]. */
+  values: ChipValue[];
+}
+interface Props {
+  /** id of the table to filter (used to scope row queries to this table). */
+  tableId: string;
+  groups: ChipGroup[];
+}
+const { tableId, groups } = Astro.props;
+---
+
+<section class="mb-4 flex flex-wrap gap-x-6 gap-y-3 text-sm" data-qg-filters data-table={tableId}>
+  {groups.map((g) => (
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-qg-fg-muted">{g.label}:</span>
+      <div data-group={g.key} class="flex flex-wrap gap-1.5">
+        {g.values.map((v, i) => (
+          <button
+            type="button"
+            data-value={v.value}
+            class:list={["qg-chip", i === 0 && "qg-chip-active"]}
+          >
+            {v.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  ))}
+</section>
+
+<style>
+  .qg-chip {
+    @apply rounded-full border border-qg-border bg-qg-bg-soft px-3 py-1 text-xs font-medium text-qg-fg-muted hover:border-qg-accent;
+  }
+  .qg-chip-active {
+    @apply border-qg-accent bg-qg-accent text-white hover:border-qg-accent;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-qg-filters]").forEach((bar) => {
+    if (bar.dataset.qgWired === "1") return;
+    bar.dataset.qgWired = "1";
+
+    const tableId = bar.dataset.table!;
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    const tbody = table.querySelector("tbody");
+    if (!tbody) return;
+    const itableRoot = table.closest(".qg-itable") as HTMLElement | null;
+
+    const state: Record<string, string> = {};
+    bar.querySelectorAll<HTMLElement>("[data-group]").forEach((g) => {
+      const key = g.dataset.group!;
+      const active = g.querySelector<HTMLButtonElement>(".qg-chip-active");
+      state[key] = active?.dataset.value ?? "";
+    });
+
+    function applyRowFilters() {
+      tbody!.querySelectorAll<HTMLTableRowElement>("tr").forEach((tr) => {
+        let hide = false;
+        for (const [key, val] of Object.entries(state)) {
+          if (key === "metric" || !val) continue;
+          if (tr.dataset[key] !== val) {
+            hide = true;
+            break;
+          }
+        }
+        tr.classList.toggle("qg-chip-hidden", hide);
+      });
+      itableRoot?.dispatchEvent(new CustomEvent("qg-itable-reapply"));
+    }
+
+    function applyMetricMode() {
+      const primaryShown = state.metric !== "secondary";
+      // Scope the column-label + cell span toggles to *this* table only — if
+      // multiple tables coexist on a page, each bar controls only its own.
+      table!.querySelectorAll(".qg-col-label-primary").forEach((el) => el.classList.toggle("hidden", !primaryShown));
+      table!.querySelectorAll(".qg-col-label-secondary").forEach((el) => el.classList.toggle("hidden", primaryShown));
+      table!.querySelectorAll(".qg-cell-primary").forEach((el) => el.classList.toggle("hidden", !primaryShown));
+      table!.querySelectorAll(".qg-cell-secondary").forEach((el) => el.classList.toggle("hidden", primaryShown));
+      // Re-key sort value so a subsequent header click sorts by the now-visible metric.
+      table!.querySelectorAll<HTMLTableCellElement>("td[data-primary-value]").forEach((td) => {
+        const v = primaryShown ? td.dataset.primaryValue : td.dataset.secondaryValue;
+        td.dataset.sortValue = v ?? "";
+      });
+    }
+
+    bar.querySelectorAll<HTMLElement>("[data-group]").forEach((g) => {
+      const key = g.dataset.group!;
+      g.querySelectorAll<HTMLButtonElement>("button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          g.querySelectorAll("button").forEach((b) => b.classList.remove("qg-chip-active"));
+          btn.classList.add("qg-chip-active");
+          state[key] = btn.dataset.value ?? "";
+          if (key === "metric") applyMetricMode();
+          else applyRowFilters();
+        });
+      });
+    });
+
+    // Initial apply so any non-default starting chips take effect.
+    applyMetricMode();
+    applyRowFilters();
+  });
+</script>
