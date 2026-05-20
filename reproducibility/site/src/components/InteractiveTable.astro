@@ -1,0 +1,171 @@
+---
+/**
+ * Wraps a server-rendered <table> with a global search input + click-to-sort
+ * column headers. Vanilla JS — no framework island.
+ *
+ * Conventions inside the wrapped table:
+ *   - Every <th> in <thead> is sortable. Add data-sort-skip on a <th> to skip it.
+ *   - Each <td> can have data-sort-value="<number-or-string>" to override the
+ *     visible text for sorting (useful for cells containing links or formatted
+ *     numbers). When absent, the cell's textContent is used.
+ *   - Each <tr> in <tbody> is searched against the input by concatenated
+ *     textContent (case-insensitive).
+ */
+
+interface Props {
+  /** Search placeholder text. */
+  searchPlaceholder?: string;
+  /** Initial sort: { columnIndex, direction } */
+  initialSort?: { column: number; direction: "asc" | "desc" };
+}
+
+const { searchPlaceholder = "Search rows…", initialSort } = Astro.props;
+const initialSortAttr = initialSort
+  ? `${initialSort.column}:${initialSort.direction}`
+  : "";
+---
+
+<div class="qg-itable" data-initial-sort={initialSortAttr}>
+  <div class="mb-3 flex flex-wrap items-center gap-3 text-sm">
+    <input
+      type="search"
+      class="qg-itable-search w-64 rounded border border-qg-border bg-qg-bg-soft px-3 py-1.5 text-sm focus:border-qg-accent focus:outline-none"
+      placeholder={searchPlaceholder}
+      autocomplete="off"
+    />
+    <span class="text-qg-fg-muted">
+      <span class="qg-itable-shown">0</span> / <span class="qg-itable-total">0</span> rows
+    </span>
+  </div>
+  <slot />
+</div>
+
+<style is:global>
+  .qg-itable table thead th {
+    cursor: pointer;
+    user-select: none;
+  }
+  .qg-itable table thead th[data-sort-skip] {
+    cursor: default;
+  }
+  .qg-itable table thead th .qg-sort-arrow {
+    opacity: 0.35;
+    margin-left: 0.25rem;
+    font-size: 0.7rem;
+  }
+  .qg-itable table thead th[data-sort-dir="asc"] .qg-sort-arrow,
+  .qg-itable table thead th[data-sort-dir="desc"] .qg-sort-arrow {
+    opacity: 1;
+    color: var(--qg-accent);
+  }
+</style>
+
+<script>
+  function wireInteractiveTable(root: HTMLElement) {
+    if (root.dataset.qgWired === "1") return;
+    root.dataset.qgWired = "1";
+
+    const table = root.querySelector("table");
+    if (!table) return;
+    const tbody = table.querySelector("tbody");
+    if (!tbody) return;
+    const headers = Array.from(table.querySelectorAll("thead th"));
+    const allRows = Array.from(tbody.querySelectorAll<HTMLTableRowElement>("tr"));
+    const shownCounter = root.querySelector(".qg-itable-shown");
+    const totalCounter = root.querySelector(".qg-itable-total");
+    const search = root.querySelector<HTMLInputElement>(".qg-itable-search");
+
+    if (totalCounter) totalCounter.textContent = String(allRows.length);
+
+    // Pre-cache sortable values + searchable text per row.
+    const meta = allRows.map((tr) => ({
+      tr,
+      searchText: tr.textContent?.toLowerCase() ?? "",
+      cells: Array.from(tr.cells).map((c) => {
+        const raw = c.dataset.sortValue ?? c.textContent ?? "";
+        const num = parseFloat(raw);
+        return { raw, num: Number.isFinite(num) ? num : null };
+      }),
+    }));
+
+    let currentSort: { column: number; direction: "asc" | "desc" } | null = null;
+
+    function addArrows() {
+      headers.forEach((th) => {
+        if (th.querySelector(".qg-sort-arrow")) return;
+        if ((th as HTMLElement).dataset.sortSkip !== undefined) return;
+        const span = document.createElement("span");
+        span.className = "qg-sort-arrow";
+        span.textContent = "↕";
+        th.appendChild(span);
+      });
+    }
+
+    function setSort(colIdx: number, dir: "asc" | "desc") {
+      currentSort = { column: colIdx, direction: dir };
+      headers.forEach((th, i) => {
+        const arrow = th.querySelector<HTMLElement>(".qg-sort-arrow");
+        if (i === colIdx) {
+          (th as HTMLElement).dataset.sortDir = dir;
+          if (arrow) arrow.textContent = dir === "asc" ? "↑" : "↓";
+        } else {
+          delete (th as HTMLElement).dataset.sortDir;
+          if (arrow) arrow.textContent = "↕";
+        }
+      });
+      const sorted = [...meta].sort((a, b) => {
+        const av = a.cells[colIdx];
+        const bv = b.cells[colIdx];
+        if (av?.num !== null && bv?.num !== null) {
+          return dir === "asc" ? av.num! - bv.num! : bv.num! - av.num!;
+        }
+        return dir === "asc"
+          ? (av?.raw ?? "").localeCompare(bv?.raw ?? "")
+          : (bv?.raw ?? "").localeCompare(av?.raw ?? "");
+      });
+      const frag = document.createDocumentFragment();
+      sorted.forEach((m) => frag.appendChild(m.tr));
+      tbody.appendChild(frag);
+    }
+
+    function applySearch() {
+      const q = (search?.value ?? "").trim().toLowerCase();
+      let shown = 0;
+      for (const m of meta) {
+        // Rows hidden by an external filter (e.g. the home page's chip
+        // selection) carry .qg-chip-hidden — respect that as a hard veto.
+        const chipHidden = m.tr.classList.contains("qg-chip-hidden");
+        const matchesSearch = !q || m.searchText.includes(q);
+        const ok = matchesSearch && !chipHidden;
+        m.tr.style.display = ok ? "" : "none";
+        if (ok) shown++;
+      }
+      if (shownCounter) shownCounter.textContent = String(shown);
+    }
+
+    addArrows();
+    headers.forEach((th, i) => {
+      if ((th as HTMLElement).dataset.sortSkip !== undefined) return;
+      th.addEventListener("click", () => {
+        const nextDir =
+          currentSort?.column === i && currentSort.direction === "asc" ? "desc" : "asc";
+        setSort(i, nextDir);
+      });
+    });
+    search?.addEventListener("input", applySearch);
+    // External code can fire this event after toggling .qg-chip-hidden on
+    // rows to re-sync row visibility + the shown-count badge.
+    root.addEventListener("qg-itable-reapply", () => applySearch());
+
+    // Initial state.
+    applySearch();
+    const initial = root.dataset.initialSort;
+    if (initial) {
+      const [colStr, dir] = initial.split(":");
+      const col = parseInt(colStr, 10);
+      if (!Number.isNaN(col)) setSort(col, (dir as "asc" | "desc") ?? "asc");
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>(".qg-itable").forEach(wireInteractiveTable);
+</script>
