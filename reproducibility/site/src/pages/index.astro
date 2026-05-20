@@ -61,25 +61,31 @@ const datasetCols = matrix.dataset_columns;
   {
     populated && (
       <section class="mb-4">
-        <div class="flex flex-wrap items-center gap-3 text-sm">
-          <span class="text-qg-fg-muted">Retriever:</span>
-          <div id="qg-filter-retriever" class="flex flex-wrap gap-1.5">
-            <button data-value="" class="qg-chip qg-chip-active">All</button>
-            {retrievers.map((r: any) => (
-              <button data-value={r.id} class="qg-chip">{r.display_name}</button>
-            ))}
+        <div class="flex flex-wrap gap-x-6 gap-y-3 text-sm">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-qg-fg-muted">Retriever:</span>
+            <div id="qg-filter-retriever" class="flex flex-wrap gap-1.5">
+              <button data-value="" class="qg-chip qg-chip-active">All</button>
+              {retrievers.map((r: any) => (
+                <button data-value={r.id} class="qg-chip">{r.display_name}</button>
+              ))}
+            </div>
           </div>
-          <span class="ml-4 text-qg-fg-muted">Model:</span>
-          <div id="qg-filter-model" class="flex flex-wrap gap-1.5">
-            <button data-value="" class="qg-chip qg-chip-active">All</button>
-            {models.map((m: any) => (
-              <button data-value={m.id} class="qg-chip">{m.display ?? m.id}</button>
-            ))}
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-qg-fg-muted">Model:</span>
+            <div id="qg-filter-model" class="flex flex-wrap gap-1.5">
+              <button data-value="" class="qg-chip qg-chip-active">All</button>
+              {models.map((m: any) => (
+                <button data-value={m.id} class="qg-chip">{m.display ?? m.id}</button>
+              ))}
+            </div>
           </div>
-          <span class="ml-4 text-qg-fg-muted">Metric:</span>
-          <div id="qg-filter-metric" class="flex flex-wrap gap-1.5">
-            <button data-value="primary" class="qg-chip qg-chip-active">nDCG@10</button>
-            <button data-value="secondary" class="qg-chip">Recall</button>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-qg-fg-muted">Metric:</span>
+            <div id="qg-filter-metric" class="flex flex-wrap gap-1.5">
+              <button data-value="primary" class="qg-chip qg-chip-active">nDCG@10</button>
+              <button data-value="secondary" class="qg-chip">Recall</button>
+            </div>
           </div>
         </div>
       </section>
@@ -89,26 +95,25 @@ const datasetCols = matrix.dataset_columns;
   {
     populated ? (
       <InteractiveTable searchPlaceholder="Filter by method, model, retriever…">
-        <div class="overflow-x-auto rounded border border-qg-border">
+        <div class="max-h-[70vh] overflow-x-auto overflow-y-auto rounded border border-qg-border">
           <table id="qg-matrix" class="w-full text-sm">
-            <thead class="bg-qg-bg-soft text-xs uppercase tracking-wide text-qg-fg-muted">
+            <thead class="sticky top-0 z-10 bg-qg-bg-soft text-xs uppercase tracking-wide text-qg-fg-muted shadow-[inset_0_-1px_0_var(--qg-border)]">
               <tr>
-                <th class="px-3 py-2 text-left">Method</th>
-                <th class="px-3 py-2 text-left">Model</th>
-                <th class="px-3 py-2 text-left">Retriever</th>
+                <th class="px-3 py-2 text-left whitespace-nowrap">Method</th>
+                <th class="px-3 py-2 text-left whitespace-nowrap">Model</th>
+                <th class="px-3 py-2 text-left whitespace-nowrap">Retriever</th>
                 {datasetCols.map((d: any) => (
                   <th
-                    class="qg-mono px-3 py-2 text-right text-xs"
+                    class="qg-mono px-2 py-2 text-right text-xs whitespace-nowrap"
                     title={d.id}
                   >
-                    <span class="qg-col-label-primary">
-                      {SHORT[d.id] ?? d.name}
-                      <span class="text-qg-fg-muted"> / {METRIC_LABEL[d.primary_metric] ?? d.primary_metric}</span>
-                    </span>
-                    <span class="qg-col-label-secondary hidden">
-                      {SHORT[d.id] ?? d.name}
-                      <span class="text-qg-fg-muted"> / {METRIC_LABEL[d.secondary_metric] ?? d.secondary_metric}</span>
-                    </span>
+                    <div>{SHORT[d.id] ?? d.name}</div>
+                    <div class="qg-col-label-primary text-[10px] font-normal text-qg-fg-muted">
+                      {METRIC_LABEL[d.primary_metric] ?? d.primary_metric}
+                    </div>
+                    <div class="qg-col-label-secondary hidden text-[10px] font-normal text-qg-fg-muted">
+                      {METRIC_LABEL[d.secondary_metric] ?? d.secondary_metric}
+                    </div>
                   </th>
                 ))}
               </tr>
