@@ -77,16 +77,21 @@ const initialSortAttr = initialSort
 
     if (totalCounter) totalCounter.textContent = String(allRows.length);
 
-    // Pre-cache sortable values + searchable text per row.
+    // Cache only the searchable text per row. Sort values are read live
+    // from the DOM on each setSort() so dynamic updates (e.g. the home
+    // page's metric toggle rewriting data-sort-value when switching
+    // between nDCG and recall) take effect immediately.
     const meta = allRows.map((tr) => ({
       tr,
       searchText: tr.textContent?.toLowerCase() ?? "",
-      cells: Array.from(tr.cells).map((c) => {
-        const raw = c.dataset.sortValue ?? c.textContent ?? "";
-        const num = parseFloat(raw);
-        return { raw, num: Number.isFinite(num) ? num : null };
-      }),
     }));
+
+    function cellSortValue(tr: HTMLTableRowElement, colIdx: number): { raw: string; num: number | null } {
+      const c = tr.cells[colIdx];
+      const raw = c?.dataset?.sortValue ?? c?.textContent ?? "";
+      const n = parseFloat(raw);
+      return { raw, num: Number.isFinite(n) ? n : null };
+    }
 
     let currentSort: { column: number; direction: "asc" | "desc" } | null = null;
 
@@ -114,18 +119,22 @@ const initialSortAttr = initialSort
         }
       });
       const sorted = [...meta].sort((a, b) => {
-        const av = a.cells[colIdx];
-        const bv = b.cells[colIdx];
-        if (av?.num !== null && bv?.num !== null) {
-          return dir === "asc" ? av.num! - bv.num! : bv.num! - av.num!;
+        const av = cellSortValue(a.tr, colIdx);
+        const bv = cellSortValue(b.tr, colIdx);
+        if (av.num !== null && bv.num !== null) {
+          return dir === "asc" ? av.num - bv.num : bv.num - av.num;
         }
         return dir === "asc"
-          ? (av?.raw ?? "").localeCompare(bv?.raw ?? "")
-          : (bv?.raw ?? "").localeCompare(av?.raw ?? "");
+          ? av.raw.localeCompare(bv.raw)
+          : bv.raw.localeCompare(av.raw);
       });
       const frag = document.createDocumentFragment();
       sorted.forEach((m) => frag.appendChild(m.tr));
       tbody.appendChild(frag);
+      // After moving rows, re-apply search so chip-hidden / search-filtered
+      // rows stay hidden (display state lives on the inline style of each tr
+      // but appendChild doesn't preserve it implicitly across all browsers).
+      applySearch();
     }
 
     function applySearch() {

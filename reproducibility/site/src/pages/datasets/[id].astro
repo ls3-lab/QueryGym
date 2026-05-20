@@ -50,15 +50,15 @@ const metricCols: string[] = view?.metric_columns ?? datasetMeta?.eval_metrics ?
     ) : (
       <div class="mt-6">
         <InteractiveTable searchPlaceholder="Filter by method, model, retriever…">
-          <div class="overflow-x-auto">
+          <div class="max-h-[70vh] overflow-x-auto overflow-y-auto rounded border border-qg-border">
             <table class="w-full border-collapse text-sm">
-              <thead>
-                <tr class="border-b border-qg-border text-left">
-                  <th class="px-3 py-2">Method</th>
-                  <th class="px-3 py-2">Model</th>
-                  <th class="px-3 py-2">Retriever</th>
+              <thead class="sticky top-0 z-10 bg-qg-bg-soft shadow-[inset_0_-1px_0_var(--qg-border)]">
+                <tr class="text-left">
+                  <th class="px-3 py-2 whitespace-nowrap">Method</th>
+                  <th class="px-3 py-2 whitespace-nowrap">Model</th>
+                  <th class="px-3 py-2 whitespace-nowrap">Retriever</th>
                   {metricCols.map((m) => (
-                    <th class="px-3 py-2 text-right qg-mono text-xs">{m}</th>
+                    <th class="px-3 py-2 text-right qg-mono text-xs whitespace-nowrap">{m}</th>
                   ))}
                   <th class="px-3 py-2 text-right" data-sort-skip>Run</th>
                 </tr>
