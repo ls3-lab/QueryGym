@@ -1,6 +1,7 @@
 ---
 import Default from "../../layouts/Default.astro";
 import Field from "../../components/Field.astro";
+import CodeBlock from "../../components/CodeBlock.astro";
 import runs from "../../data/runs.json";
 
 export async function getStaticPaths() {
@@ -10,10 +11,90 @@ export async function getStaticPaths() {
 
 const { run_id } = Astro.params;
 const run = (runs as Record<string, any>)[run_id!];
+
+// Compose the reproduce snippets from the run's config.
+const cfg = (run?.config ?? {}) as any;
+const retrieval = (cfg.retrieval ?? {}) as any;
+const dsCfg = (cfg.dataset_config ?? {}) as any;
+const methodParams = (cfg.method_params ?? {}) as Record<string, unknown>;
+const llm = (cfg.llm_config ?? {}) as Record<string, unknown>;
+
+// Pretty-format method_params for the Python snippet (skipping noise/secrets).
+const FILTERED_PARAM_KEYS = new Set([
+  "judge_rel_mode",
+  "collection_path",
+  "train_queries_path",
+  "train_qrels_path",
+  "dataset_type",
+]);
+const cleanParams: Record<string, unknown> = {};
+for (const [k, v] of Object.entries(methodParams)) {
+  if (!FILTERED_PARAM_KEYS.has(k)) cleanParams[k] = v;
+}
+const paramKwargs = Object.entries(cleanParams)
+  .map(([k, v]) => `    ${k}=${JSON.stringify(v)},`)
+  .join("\n");
+
+const pyReformulate = `import querygym as qg
+
+# 1. Build the reformulator with this run's method + model + params.
+reformulator = qg.create_reformulator(
+    "${run.method_id}",
+    model="${run.model}",
+    temperature=${llm.temperature ?? 1.0},
+    max_tokens=${llm.max_tokens ?? 128},${paramKwargs ? "\n" + paramKwargs : ""}
+)
+
+# 2. Reformulate queries from the dataset's topics file.
+#    (Pyserini topic name: ${dsCfg.topics ?? "<topics>"} ; ${dsCfg.num_queries ?? "?"} queries)
+queries = qg.loaders.load_pyserini_topics("${dsCfg.topics ?? "<topics>"}")
+reformulated = reformulator.reformulate_batch(queries)
+
+# 3. Write the reformulated queries TSV (this becomes --topics for retrieval).
+qg.loaders.save_topics_tsv(reformulated, "reformulated_queries.tsv")
+`;
+
+// Retrieval command depends on retriever paradigm.
+const retrId = retrieval.retriever_id ?? "";
+const paradigm = retrieval.paradigm ?? "";
+const params = (retrieval.params ?? {}) as any;
+const queriesPath = run.artifacts.queries_url
+  ? `# ↑ download from the leaderboard's queries link, or regenerate with the Python above\nreformulated_queries.tsv`
+  : "reformulated_queries.tsv";
+
+let retrievalCmd = "";
+if (paradigm === "lexical") {
+  retrievalCmd = `python -m pyserini.search.lucene \\
+  --threads 16 --batch-size 128 \\
+  --index ${dsCfg.index ?? "<pyserini-index>"} \\
+  --topics reformulated_queries.tsv \\
+  --bm25 --k1 ${params.k1 ?? 0.9} --b ${params.b ?? 0.4} \\
+  --output run.txt \\
+  --hits 1000`;
+} else if (paradigm === "learned_sparse") {
+  retrievalCmd = `python -m pyserini.search.lucene \\
+  --threads 16 --batch-size 128 \\
+  --index ${dsCfg.index ?? "<pyserini-index>"}.splade-pp-ed \\
+  --topics reformulated_queries.tsv \\
+  --encoder ${params.model ?? "naver/splade-cocondenser-ensembledistil"} \\
+  --output run.txt \\
+  --hits 1000 --impact`;
+} else if (paradigm === "dense") {
+  retrievalCmd = `python -m pyserini.search.faiss \\
+  --threads 16 --batch-size 128 \\
+  --index ${dsCfg.index ?? "<pyserini-index>"}.bge-base-en-v1.5 \\
+  --topics reformulated_queries.tsv \\
+  --encoder ${params.encoder ?? "BAAI/bge-base-en-v1.5"} \\
+  --output run.txt \\
+  --hits 1000`;
+}
+
+const trecEvalCmd = `python -m pyserini.eval.trec_eval -c -m ${run.metrics ? Object.keys(run.metrics).join(" -m ").replace(/_/g, ".") : "ndcg_cut.10"} \\
+  ${dsCfg.topics ?? "<qrels>"} run.txt`;
 ---
 
 <Default title={`Run ${run_id?.slice(0, 8)}`} description="Single run detail.">
-  <a href="/datasets/" class="text-sm text-qg-fg-muted hover:text-qg-fg">← Datasets</a>
+  <a href="/" class="text-sm text-qg-fg-muted hover:text-qg-fg">← Leaderboard</a>
   <h1 class="mt-2 text-2xl font-bold md:text-3xl">Run detail</h1>
   <div class="mt-1 qg-mono text-sm text-qg-fg-muted">{run_id}</div>
 
@@ -21,9 +102,9 @@ const run = (runs as Record<string, any>)[run_id!];
     <Field label="Dataset" value={run.dataset_id} />
     <Field label="Method" value={run.method_id} />
     <Field label="Model" value={run.model} />
+    <Field label="Retriever" value={`${run.retriever_display ?? run.retriever_id ?? "—"} (${run.paradigm ?? "?"})`} />
     <Field label="params_hash" value={run.params_hash} />
     <Field label="Queries" value={run.num_queries} />
-    <Field label="Total time (s)" value={run.total_time_seconds.toFixed(1)} />
   </section>
 
   <section class="mt-8">
@@ -40,7 +121,21 @@ const run = (runs as Record<string, any>)[run_id!];
     </table>
   </section>
 
-  <section class="mt-8">
+  <section class="mt-10">
+    <h2 class="mb-3 text-lg font-semibold">Reproduce this run</h2>
+    <p class="mb-4 text-sm text-qg-fg-muted">
+      Two steps: (1) reformulate the queries with QueryGym, (2) run retrieval with Pyserini.
+    </p>
+    <div class="space-y-4">
+      <CodeBlock filename="reformulate.py" language="python">{pyReformulate}</CodeBlock>
+      {retrievalCmd && (
+        <CodeBlock filename={`retrieve (${run.retriever_display ?? run.retriever_id})`} language="bash">{retrievalCmd}</CodeBlock>
+      )}
+      <CodeBlock filename="evaluate (trec_eval)" language="bash">{trecEvalCmd}</CodeBlock>
+    </div>
+  </section>
+
+  <section class="mt-10">
     <h2 class="mb-3 text-lg font-semibold">Artifacts</h2>
     <ul class="space-y-1 text-sm">
       <li>
@@ -48,22 +143,42 @@ const run = (runs as Record<string, any>)[run_id!];
           summary JSON ↗
         </a>
       </li>
-      <li>
-        <a class="text-qg-accent hover:underline" href={run.artifacts.run_file_url} target="_blank" rel="noopener">
-          TREC run.txt ↗
-        </a>
-      </li>
-      <li>
-        <a class="text-qg-accent hover:underline" href={run.artifacts.queries_url} target="_blank" rel="noopener">
-          reformulated queries.tsv ↗
-        </a>
-      </li>
+      {run.artifacts.queries_url && (
+        <li>
+          <a class="text-qg-accent hover:underline" href={run.artifacts.queries_url} target="_blank" rel="noopener">
+            reformulated queries.tsv ↗
+          </a>
+        </li>
+      )}
+      {run.artifacts.run_file_url && (
+        <li>
+          <a class="text-qg-accent hover:underline" href={run.artifacts.run_file_url} target="_blank" rel="noopener">
+            TREC run.txt ↗
+          </a>
+        </li>
+      )}
     </ul>
   </section>
 
-  <section class="mt-8">
+  <section class="mt-10">
     <h2 class="mb-3 text-lg font-semibold">Config</h2>
     <pre class="overflow-x-auto rounded bg-qg-bg-soft p-4 text-xs"><code>{JSON.stringify(run.config, null, 2)}</code></pre>
   </section>
 </Default>
 
+<script>
+  document.querySelectorAll<HTMLButtonElement>(".qg-copy-btn").forEach((btn) => {
+    if (btn.dataset.qgWired === "1") return;
+    btn.dataset.qgWired = "1";
+    btn.addEventListener("click", () => {
+      const pre = btn.closest("div")?.nextElementSibling as HTMLElement | null;
+      const code = pre?.querySelector("code");
+      if (!code) return;
+      navigator.clipboard.writeText(code.textContent ?? "").then(() => {
+        const original = btn.textContent;
+        btn.textContent = "copied";
+        setTimeout(() => (btn.textContent = original ?? "copy"), 1200);
+      });
+    });
+  });
+</script>

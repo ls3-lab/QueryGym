@@ -1,0 +1,100 @@
+---
+import Default from "../../layouts/Default.astro";
+import EmptyState from "../../components/EmptyState.astro";
+import retrievers from "../../data/retrievers.json";
+
+const shards = import.meta.glob<{ default: any }>(
+  "../../data/views/retriever-*.json",
+  { eager: true },
+);
+function shardFor(id: string): any | null {
+  const key = Object.keys(shards).find((k) => k.endsWith(`/retriever-${id}.json`));
+  return key ? shards[key].default : null;
+}
+
+export async function getStaticPaths() {
+  const list = (await import("../../data/retrievers.json")).default as any[];
+  return list.map((r) => ({ params: { id: r.id } }));
+}
+
+const { id } = Astro.params;
+const view = shardFor(id!);
+const meta = retrievers.find((r: any) => r.id === id);
+const rows = view?.rows ?? [];
+
+const SHORT: Record<string, string> = {
+  "msmarco-v1-passage.trecdl2019": "DL 2019",
+  "msmarco-v1-passage.trecdl2020": "DL 2020",
+  "msmarco-v1-passage.dlhard":     "DL-HARD",
+  "beir-v1.0.0-scifact":           "SciFact",
+  "beir-v1.0.0-arguana":           "ArguAna",
+  "beir-v1.0.0-trec-covid":        "COVID",
+  "beir-v1.0.0-fiqa":              "FiQA",
+  "beir-v1.0.0-dbpedia-entity":    "DBPedia",
+  "beir-v1.0.0-trec-news":         "News",
+};
+const METRIC_LABEL: Record<string, string> = {
+  ndcg_cut_10: "nDCG@10", recall_1000: "R@1k", recall_100: "R@100",
+};
+
+const datasetCols = (await import("../../data/matrix.json")).default.dataset_columns;
+const title = meta?.display_name ?? id ?? "Retriever";
+---
+
+<Default title={title} description={`Per-retriever leaderboard for ${title}.`}>
+  <a href="/retrievers/" class="text-sm text-qg-fg-muted hover:text-qg-fg">← All retrievers</a>
+  <h1 class="mt-2 text-2xl font-bold md:text-3xl">{title}</h1>
+  <div class="mt-1 qg-mono text-sm text-qg-fg-muted">{id} · {meta?.paradigm}</div>
+  <div class="mt-1 text-sm text-qg-fg-muted">{rows.length} method × model combinations</div>
+
+  {
+    rows.length === 0 ? (
+      <div class="mt-8">
+        <EmptyState title="No runs for this retriever yet" body="" />
+      </div>
+    ) : (
+      <section class="mt-6 overflow-x-auto rounded border border-qg-border">
+        <table class="w-full text-sm">
+          <thead class="bg-qg-bg-soft text-xs uppercase tracking-wide text-qg-fg-muted">
+            <tr>
+              <th class="px-3 py-2 text-left">Method</th>
+              <th class="px-3 py-2 text-left">Model</th>
+              {datasetCols.map((d: any) => (
+                <th class="qg-mono px-3 py-2 text-right text-xs" title={d.id}>
+                  {SHORT[d.id] ?? d.name}
+                  <span class="text-qg-fg-muted"> / {METRIC_LABEL[d.primary_metric] ?? d.primary_metric}</span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row: any) => (
+              <tr class="border-t border-qg-border/60 hover:bg-qg-bg-soft">
+                <td class="px-3 py-2 font-medium">{row.method_display ?? row.method_id}</td>
+                <td class="px-3 py-2 qg-mono text-xs">{row.model}</td>
+                {datasetCols.map((d: any) => {
+                  const cell = row.values?.[d.id] ?? {};
+                  const runId = row.run_ids?.[d.id];
+                  const primary = cell[d.primary_metric];
+                  return (
+                    <td class="qg-mono px-3 py-2 text-right tabular-nums">
+                      {runId && primary !== undefined ? (
+                        <a class="hover:text-qg-accent hover:underline" href={`/runs/${runId}`}>
+                          <span class={primary.best ? "font-bold text-qg-accent" : ""}>
+                            {primary.value.toFixed(3)}
+                          </span>
+                        </a>
+                      ) : (
+                        <span class="text-qg-fg-muted">—</span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    )
+  }
+</Default>

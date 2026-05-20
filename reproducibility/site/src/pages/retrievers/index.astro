@@ -1,0 +1,28 @@
+---
+import Default from "../../layouts/Default.astro";
+import retrievers from "../../data/retrievers.json";
+---
+
+<Default title="Retrievers" description="All retrievers tracked in the leaderboard.">
+  <h1 class="text-2xl font-bold md:text-3xl">Retrievers</h1>
+  <p class="mt-2 text-qg-fg-muted">
+    Each retriever has its own per-(method × model) leaderboard.
+  </p>
+
+  <ul class="mt-6 grid gap-3 md:grid-cols-3">
+    {
+      retrievers.map((r: any) => (
+        <li class="rounded-lg border border-qg-border p-4 hover:bg-qg-bg-soft">
+          <a href={`/retrievers/${r.id}`} class="block">
+            <div class="flex items-baseline justify-between gap-2">
+              <span class="font-semibold">{r.display_name}</span>
+              <span class="text-xs text-qg-fg-muted">{r.run_count} runs</span>
+            </div>
+            <div class="mt-1 qg-mono text-xs text-qg-fg-muted">{r.id}</div>
+            <div class="mt-2 text-xs text-qg-fg-muted">{r.paradigm}</div>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</Default>

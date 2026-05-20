@@ -16,11 +16,13 @@ import models from "../../data/models.json";
     ) : (
       <ul class="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {models.map((m: any) => (
-          <li class="rounded-lg border border-qg-border p-4 hover:bg-qg-bg-soft">
-            <div class="font-semibold qg-mono">{m.id}</div>
-            <div class="mt-1 text-xs text-qg-fg-muted">
-              {m.run_count} run{m.run_count === 1 ? "" : "s"}
-            </div>
+          <li class="rounded-lg border border-qg-border p-4 hover:bg-qg-bg-soft hover:border-qg-accent">
+            <a href={`/models/${m.slug}`} class="block">
+              <div class="font-semibold qg-mono">{m.id}</div>
+              <div class="mt-1 text-xs text-qg-fg-muted">
+                {m.run_count} run{m.run_count === 1 ? "" : "s"}
+              </div>
+            </a>
           </li>
         ))}
       </ul>
