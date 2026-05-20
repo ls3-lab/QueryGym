@@ -1,0 +1,51 @@
+---
+/**
+ * One cell in any of the leaderboard tables.
+ *
+ * Always renders two metric spans (primary + secondary) layered on top of
+ * each other; FilterChips' metric-toggle flips visibility via the global
+ * .qg-cell-primary / .qg-cell-secondary classes. The cell exposes
+ * data-primary-value and data-secondary-value so InteractiveTable's sort
+ * picks up whichever metric is currently visible. Missing values render
+ * as a muted em-dash so layout stays stable when one metric is absent.
+ */
+interface Cell {
+  value: number;
+  best: boolean;
+}
+interface Props {
+  primary?: Cell;
+  secondary?: Cell | null;
+  runId?: string | null;
+  digits?: number;
+}
+const { primary, secondary, runId, digits = 4 } = Astro.props;
+const primaryValue = primary?.value ?? "";
+const secondaryValue = secondary?.value ?? "";
+const hasPrimary = primary !== undefined;
+const hasSecondary = secondary != null && secondary !== undefined;
+const linkable = runId && (hasPrimary || hasSecondary);
+const primaryText = hasPrimary ? primary!.value.toFixed(digits) : "—";
+const secondaryText = hasSecondary ? secondary!.value.toFixed(digits) : "—";
+const primaryClass = `qg-cell-primary${primary?.best ? " qg-cell-best" : ""}`;
+const secondaryClass = `qg-cell-secondary hidden${secondary?.best ? " qg-cell-best" : ""}`;
+---
+
+<td
+  class="qg-mono px-3 py-2 text-right tabular-nums"
+  data-sort-value={primaryValue}
+  data-primary-value={primaryValue}
+  data-secondary-value={secondaryValue}
+>
+  {linkable ? (
+    <a class="hover:text-qg-accent hover:underline" href={`/runs/${runId}`} title="View run + reproduce">
+      <span class={primaryClass}>{primaryText}</span>
+      <span class={secondaryClass}>{secondaryText}</span>
+    </a>
+  ) : (
+    <>
+      <span class={primaryClass}>{primaryText}</span>
+      <span class={secondaryClass}>{secondaryText}</span>
+    </>
+  )}
+</td>

@@ -10,4 +10,120 @@
   .qg-card {
     @apply rounded-xl border border-qg-border bg-qg-bg-soft p-6 transition hover:border-qg-accent;
   }
+
+  /* Leaderboard table — the card that wraps a scrollable table with sticky
+   * thead and sticky axis columns. Fixed height keeps the filter card +
+   * page chrome in view while rows scroll inside. */
+  .qg-table-card {
+    @apply flex h-[600px] flex-col overflow-hidden rounded-xl border border-qg-border bg-qg-bg-soft;
+  }
+  .qg-table-scroll {
+    @apply flex-grow overflow-auto;
+  }
+
+  /* Filter strip — wraps chips for axes + metric toggle in one card. */
+  .qg-filter-card {
+    @apply mb-4 rounded-xl border border-qg-border bg-qg-bg-soft p-4;
+  }
+}
+
+/* ---------- Scrollbar styling ------------------------------------------- */
+
+.qg-table-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.qg-table-scroll::-webkit-scrollbar-track {
+  background: var(--qg-bg-soft);
+}
+.qg-table-scroll::-webkit-scrollbar-thumb {
+  background: var(--qg-border);
+  border-radius: 4px;
+}
+.qg-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--qg-fg-muted);
+}
+.qg-table-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--qg-border) var(--qg-bg-soft);
+}
+
+/* ---------- Sticky thead inside the scroll container ------------------- */
+
+.qg-table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--qg-bg-soft);
+  box-shadow: inset 0 -1px 0 var(--qg-border);
+}
+
+/* ---------- Sticky axis columns ---------------------------------------- *
+ * Each page declares per-table widths via inline style on the <table>:
+ *   style="--qg-axis-w-1: 120px; --qg-axis-w-2: 180px;"
+ * Then applies .qg-axis-1 / -2 / -3 on the relevant <th> + <td>. */
+
+.qg-axis-1,
+.qg-axis-2,
+.qg-axis-3 {
+  position: sticky;
+  z-index: 20;
+  background: var(--qg-bg-soft);
+}
+.qg-axis-1 { left: 0; min-width: var(--qg-axis-w-1, 120px); }
+.qg-axis-2 { left: var(--qg-axis-w-1, 120px); min-width: var(--qg-axis-w-2, 180px); }
+.qg-axis-3 {
+  left: calc(var(--qg-axis-w-1, 120px) + var(--qg-axis-w-2, 180px));
+  border-right: 1px solid var(--qg-border);
+}
+
+/* Body cells: lower z so sticky thead wins; different bg so columns pop
+ * against the soft-bg header. Hover keeps the columns in sync with the row. */
+.qg-table-scroll tbody td.qg-axis-1,
+.qg-table-scroll tbody td.qg-axis-2,
+.qg-table-scroll tbody td.qg-axis-3 {
+  background: var(--qg-bg);
+  z-index: 5;
+}
+.qg-table-scroll tbody tr:hover td.qg-axis-1,
+.qg-table-scroll tbody tr:hover td.qg-axis-2,
+.qg-table-scroll tbody tr:hover td.qg-axis-3 {
+  background: var(--qg-row-hover);
+}
+
+/* On narrow viewports the sticky columns would eat the whole screen; drop
+ * back to standard scroll so users can reach the data columns. */
+@media (max-width: 768px) {
+  .qg-axis-1,
+  .qg-axis-2,
+  .qg-axis-3 {
+    position: static;
+    min-width: 0;
+  }
+  .qg-axis-3 { border-right: none; }
+}
+
+/* ---------- Best-cell highlight ---------------------------------------- */
+
+.qg-cell-best {
+  color: var(--qg-accent);
+  font-weight: 700;
+}
+[data-theme="dark"] .qg-cell-best {
+  text-shadow: 0 0 6px rgba(236, 72, 153, 0.4);
+}
+
+/* ---------- Sort-arrow polish on InteractiveTable thead ---------------- */
+
+.qg-itable table thead th .qg-sort-arrow {
+  opacity: 0.4;
+  font-size: 0.75rem;
+  margin-left: 0.25rem;
+}
+.qg-itable table thead th:hover .qg-sort-arrow {
+  opacity: 0.7;
+}
+.qg-itable table thead th[data-sort-dir] .qg-sort-arrow {
+  opacity: 1;
+  color: var(--qg-accent);
 }

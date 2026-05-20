@@ -27,13 +27,28 @@ const initialSortAttr = initialSort
 
 <div class="qg-itable" data-initial-sort={initialSortAttr}>
   <div class="mb-3 flex flex-wrap items-center gap-3 text-sm">
-    <input
-      type="search"
-      class="qg-itable-search w-64 rounded border border-qg-border bg-qg-bg-soft px-3 py-1.5 text-sm focus:border-qg-accent focus:outline-none"
-      placeholder={searchPlaceholder}
-      autocomplete="off"
-    />
-    <span class="text-qg-fg-muted">
+    <div class="relative">
+      <svg
+        aria-hidden="true"
+        class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-qg-fg-muted"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.3-4.3"></path>
+      </svg>
+      <input
+        type="search"
+        class="qg-itable-search w-72 rounded-lg border border-qg-border bg-qg-bg pl-9 pr-3 py-2 text-sm focus:border-qg-accent focus:outline-none focus:ring-1 focus:ring-qg-accent"
+        placeholder={searchPlaceholder}
+        autocomplete="off"
+      />
+    </div>
+    <span class="text-xs text-qg-fg-muted">
       <span class="qg-itable-shown">0</span> / <span class="qg-itable-total">0</span> rows
     </span>
   </div>
@@ -47,16 +62,6 @@ const initialSortAttr = initialSort
   }
   .qg-itable table thead th[data-sort-skip] {
     cursor: default;
-  }
-  .qg-itable table thead th .qg-sort-arrow {
-    opacity: 0.35;
-    margin-left: 0.25rem;
-    font-size: 0.7rem;
-  }
-  .qg-itable table thead th[data-sort-dir="asc"] .qg-sort-arrow,
-  .qg-itable table thead th[data-sort-dir="desc"] .qg-sort-arrow {
-    opacity: 1;
-    color: var(--qg-accent);
   }
 </style>
 
@@ -102,7 +107,15 @@ const initialSortAttr = initialSort
         const span = document.createElement("span");
         span.className = "qg-sort-arrow";
         span.textContent = "↕";
-        th.appendChild(span);
+        // Multi-line headers (e.g. dataset name on top, metric label below)
+        // can declare a .qg-sort-arrow-slot inline with the title so the
+        // arrow stays on the same line instead of dropping below the stack.
+        const slot = th.querySelector(".qg-sort-arrow-slot");
+        if (slot) {
+          slot.appendChild(span);
+        } else {
+          th.appendChild(span);
+        }
       });
     }
 
@@ -165,6 +178,11 @@ const initialSortAttr = initialSort
     // External code can fire this event after toggling .qg-chip-hidden on
     // rows to re-sync row visibility + the shown-count badge.
     root.addEventListener("qg-itable-reapply", () => applySearch());
+    // After an external metric-toggle rekeys data-sort-value, re-fire the
+    // current sort so row order matches what the user is now looking at.
+    root.addEventListener("qg-itable-resort", () => {
+      if (currentSort) setSort(currentSort.column, currentSort.direction);
+    });
 
     // Initial state.
     applySearch();

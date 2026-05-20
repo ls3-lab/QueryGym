@@ -12,14 +12,16 @@ export async function getStaticPaths() {
 const { run_id } = Astro.params;
 const run = (runs as Record<string, any>)[run_id!];
 
-// Compose the reproduce snippets from the run's config.
 const cfg = (run?.config ?? {}) as any;
 const retrieval = (cfg.retrieval ?? {}) as any;
 const dsCfg = (cfg.dataset_config ?? {}) as any;
 const methodParams = (cfg.method_params ?? {}) as Record<string, unknown>;
 const llm = (cfg.llm_config ?? {}) as Record<string, unknown>;
 
-// Pretty-format method_params for the Python snippet (skipping noise/secrets).
+// method_params we surface in the reproduce snippet — strip locally-pathy noise
+// (collection_path / train_queries_path etc.) that won't apply on a fresh
+// checkout. Mode + num_examples + train_split are the knobs that change
+// behavior across runs.
 const FILTERED_PARAM_KEYS = new Set([
   "judge_rel_mode",
   "collection_path",
@@ -31,66 +33,68 @@ const cleanParams: Record<string, unknown> = {};
 for (const [k, v] of Object.entries(methodParams)) {
   if (!FILTERED_PARAM_KEYS.has(k)) cleanParams[k] = v;
 }
-const paramKwargs = Object.entries(cleanParams)
-  .map(([k, v]) => `    ${k}=${JSON.stringify(v)},`)
-  .join("\n");
+const methodParamsJson = Object.keys(cleanParams).length
+  ? JSON.stringify(cleanParams)
+  : null;
 
-const pyReformulate = `import querygym as qg
+// Reproduce step 1: run the example pipeline to reformulate queries.
+// This is the same script that produced the leaderboard row, so the resulting
+// reformulated_queries.tsv is byte-identical given the same model + seed.
+const pipelineCmd = `python examples/querygym_pyserini/pipeline.py \\
+    --dataset ${run.dataset_id} \\
+    --method ${run.method_id} \\
+    --model ${run.model} \\
+    --steps reformulate \\
+    --temperature ${llm.temperature ?? 1.0} \\
+    --max-tokens ${llm.max_tokens ?? 128} \\${methodParamsJson ? `
+    --method-params '${methodParamsJson}' \\` : ""}
+    --output-dir outputs/reproduce`;
 
-# 1. Build the reformulator with this run's method + model + params.
-reformulator = qg.create_reformulator(
-    "${run.method_id}",
-    model="${run.model}",
-    temperature=${llm.temperature ?? 1.0},
-    max_tokens=${llm.max_tokens ?? 128},${paramKwargs ? "\n" + paramKwargs : ""}
-)
-
-# 2. Reformulate queries from the dataset's topics file.
-#    (Pyserini topic name: ${dsCfg.topics ?? "<topics>"} ; ${dsCfg.num_queries ?? "?"} queries)
-queries = qg.loaders.load_pyserini_topics("${dsCfg.topics ?? "<topics>"}")
-reformulated = reformulator.reformulate_batch(queries)
-
-# 3. Write the reformulated queries TSV (this becomes --topics for retrieval).
-qg.loaders.save_topics_tsv(reformulated, "reformulated_queries.tsv")
-`;
-
-// Retrieval command depends on retriever paradigm.
-const retrId = retrieval.retriever_id ?? "";
+// Reproduce step 2: retrieval. Index names differ per paradigm — Pyserini
+// publishes a base BM25 index plus suffixed SPLADE/BGE variants.
 const paradigm = retrieval.paradigm ?? "";
 const params = (retrieval.params ?? {}) as any;
-const queriesPath = run.artifacts.queries_url
-  ? `# ↑ download from the leaderboard's queries link, or regenerate with the Python above\nreformulated_queries.tsv`
-  : "reformulated_queries.tsv";
+// Strip the trailing ".flat" segment BEIR BM25 indexes carry; SPLADE/BGE
+// indexes for the same dataset live under <ds>.<suffix> not <ds>.flat.<suffix>.
+const baseIndex = String(dsCfg.index ?? "").replace(/\.flat$/, "");
 
 let retrievalCmd = "";
 if (paradigm === "lexical") {
   retrievalCmd = `python -m pyserini.search.lucene \\
   --threads 16 --batch-size 128 \\
   --index ${dsCfg.index ?? "<pyserini-index>"} \\
-  --topics reformulated_queries.tsv \\
+  --topics outputs/reproduce/queries/reformulated_queries.tsv \\
   --bm25 --k1 ${params.k1 ?? 0.9} --b ${params.b ?? 0.4} \\
   --output run.txt \\
   --hits 1000`;
 } else if (paradigm === "learned_sparse") {
   retrievalCmd = `python -m pyserini.search.lucene \\
   --threads 16 --batch-size 128 \\
-  --index ${dsCfg.index ?? "<pyserini-index>"}.splade-pp-ed \\
-  --topics reformulated_queries.tsv \\
+  --index ${baseIndex || "<pyserini-index>"}.splade-pp-ed \\
+  --topics outputs/reproduce/queries/reformulated_queries.tsv \\
   --encoder ${params.model ?? "naver/splade-cocondenser-ensembledistil"} \\
   --output run.txt \\
   --hits 1000 --impact`;
 } else if (paradigm === "dense") {
   retrievalCmd = `python -m pyserini.search.faiss \\
   --threads 16 --batch-size 128 \\
-  --index ${dsCfg.index ?? "<pyserini-index>"}.bge-base-en-v1.5 \\
-  --topics reformulated_queries.tsv \\
+  --index ${baseIndex || "<pyserini-index>"}.bge-base-en-v1.5 \\
+  --topics outputs/reproduce/queries/reformulated_queries.tsv \\
   --encoder ${params.encoder ?? "BAAI/bge-base-en-v1.5"} \\
   --output run.txt \\
   --hits 1000`;
 }
 
-const trecEvalCmd = `python -m pyserini.eval.trec_eval -c -m ${run.metrics ? Object.keys(run.metrics).join(" -m ").replace(/_/g, ".") : "ndcg_cut.10"} \\
-  ${dsCfg.topics ?? "<qrels>"} run.txt`;
+// Reproduce step 3: evaluate. trec_eval reads the prebuilt qrels key from the
+// dataset registry (qrels.name), which Pyserini resolves to the canonical
+// qrels file. Metric flags map from this run's stored metric ids.
+const trecMetrics = Object.keys(run.metrics ?? {})
+  .map((m) => m.replace(/_/g, "."))
+  .join(" -m ");
+// For BEIR + DL, the prebuilt qrels key matches the topics key; reuse it.
+const qrelsName = dsCfg.topics ?? "<qrels>";
+const trecEvalCmd = `python -m pyserini.eval.trec_eval -c -m ${trecMetrics || "ndcg_cut.10"} \\
+  ${qrelsName} run.txt`;
 ---
 
 <Default title={`Run ${run_id?.slice(0, 8)}`} description="Single run detail.">
@@ -100,7 +104,7 @@ const trecEvalCmd = `python -m pyserini.eval.trec_eval -c -m ${run.metrics ? Obj
 
   <section class="mt-6 grid gap-4 md:grid-cols-3">
     <Field label="Dataset" value={run.dataset_id} />
-    <Field label="Method" value={run.method_id} />
+    <Field label="Method" value={run.method_display ?? run.method_id} />
     <Field label="Model" value={run.model_display ?? run.model} />
     <Field label="Retriever" value={`${run.retriever_display ?? run.retriever_id ?? "—"} (${run.paradigm ?? "?"})`} />
     <Field label="params_hash" value={run.params_hash} />
@@ -124,14 +128,15 @@ const trecEvalCmd = `python -m pyserini.eval.trec_eval -c -m ${run.metrics ? Obj
   <section class="mt-10">
     <h2 class="mb-3 text-lg font-semibold">Reproduce this run</h2>
     <p class="mb-4 text-sm text-qg-fg-muted">
-      Two steps: (1) reformulate the queries with QueryGym, (2) run retrieval with Pyserini.
+      Three steps: (1) reformulate the queries with QueryGym's example pipeline,
+      (2) run retrieval with Pyserini, (3) evaluate with trec_eval.
     </p>
     <div class="space-y-4">
-      <CodeBlock filename="reformulate.py" language="python">{pyReformulate}</CodeBlock>
+      <CodeBlock filename="1. reformulate" language="bash">{pipelineCmd}</CodeBlock>
       {retrievalCmd && (
-        <CodeBlock filename={`retrieve (${run.retriever_display ?? run.retriever_id})`} language="bash">{retrievalCmd}</CodeBlock>
+        <CodeBlock filename={`2. retrieve (${run.retriever_display ?? run.retriever_id})`} language="bash">{retrievalCmd}</CodeBlock>
       )}
-      <CodeBlock filename="evaluate (trec_eval)" language="bash">{trecEvalCmd}</CodeBlock>
+      <CodeBlock filename="3. evaluate" language="bash">{trecEvalCmd}</CodeBlock>
     </div>
   </section>
 
@@ -162,23 +167,6 @@ const trecEvalCmd = `python -m pyserini.eval.trec_eval -c -m ${run.metrics ? Obj
 
   <section class="mt-10">
     <h2 class="mb-3 text-lg font-semibold">Config</h2>
-    <pre class="overflow-x-auto rounded bg-qg-bg-soft p-4 text-xs"><code>{JSON.stringify(run.config, null, 2)}</code></pre>
+    <CodeBlock filename="config.json" language="json">{JSON.stringify(run.config, null, 2)}</CodeBlock>
   </section>
 </Default>
-
-<script>
-  document.querySelectorAll<HTMLButtonElement>(".qg-copy-btn").forEach((btn) => {
-    if (btn.dataset.qgWired === "1") return;
-    btn.dataset.qgWired = "1";
-    btn.addEventListener("click", () => {
-      const pre = btn.closest("div")?.nextElementSibling as HTMLElement | null;
-      const code = pre?.querySelector("code");
-      if (!code) return;
-      navigator.clipboard.writeText(code.textContent ?? "").then(() => {
-        const original = btn.textContent;
-        btn.textContent = "copied";
-        setTimeout(() => (btn.textContent = original ?? "copy"), 1200);
-      });
-    });
-  });
-</script>

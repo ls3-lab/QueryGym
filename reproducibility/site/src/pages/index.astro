@@ -2,6 +2,8 @@
 import Default from "../layouts/Default.astro";
 import Stat from "../components/Stat.astro";
 import InteractiveTable from "../components/InteractiveTable.astro";
+import FilterChips from "../components/FilterChips.astro";
+import MatrixCell from "../components/MatrixCell.astro";
 import overview from "../data/overview.json";
 import matrix from "../data/matrix.json";
 import retrievers from "../data/retrievers.json";
@@ -9,7 +11,6 @@ import models from "../data/models.json";
 
 const populated = overview.run_count > 0;
 
-// Short dataset labels for the matrix header.
 const SHORT: Record<string, string> = {
   "msmarco-v1-passage.trecdl2019": "DL 2019",
   "msmarco-v1-passage.trecdl2020": "DL 2020",
@@ -26,6 +27,7 @@ const METRIC_LABEL: Record<string, string> = {
   ndcg_cut_10: "nDCG@10",
   recall_1000: "R@1k",
   recall_100:  "R@100",
+  map:         "MAP",
 };
 
 const rows = [...matrix.rows].sort((a: any, b: any) => {
@@ -58,56 +60,60 @@ const datasetCols = matrix.dataset_columns;
     <Stat label="Datasets" value={overview.dataset_count} />
   </section>
 
-  {
-    populated && (
-      <section class="mb-4">
-        <div class="flex flex-wrap gap-x-6 gap-y-3 text-sm">
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="text-qg-fg-muted">Retriever:</span>
-            <div id="qg-filter-retriever" class="flex flex-wrap gap-1.5">
-              <button data-value="" class="qg-chip qg-chip-active">All</button>
-              {retrievers.map((r: any) => (
-                <button data-value={r.id} class="qg-chip">{r.display_name}</button>
-              ))}
-            </div>
-          </div>
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="text-qg-fg-muted">Model:</span>
-            <div id="qg-filter-model" class="flex flex-wrap gap-1.5">
-              <button data-value="" class="qg-chip qg-chip-active">All</button>
-              {models.map((m: any) => (
-                <button data-value={m.id} class="qg-chip">{m.display ?? m.id}</button>
-              ))}
-            </div>
-          </div>
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="text-qg-fg-muted">Metric:</span>
-            <div id="qg-filter-metric" class="flex flex-wrap gap-1.5">
-              <button data-value="primary" class="qg-chip qg-chip-active">nDCG@10</button>
-              <button data-value="secondary" class="qg-chip">Recall</button>
-            </div>
-          </div>
-        </div>
-      </section>
-    )
-  }
+  {populated && (
+    <div class="qg-filter-card">
+      <FilterChips
+        tableId="qg-matrix"
+        groups={[
+          {
+            key: "retriever",
+            label: "Retriever",
+            values: [
+              { value: "", label: "All" },
+              ...retrievers.map((r: any) => ({ value: r.id, label: r.display_name })),
+            ],
+          },
+          {
+            key: "model",
+            label: "Model",
+            values: [
+              { value: "", label: "All" },
+              ...models.map((m: any) => ({ value: m.id, label: m.display ?? m.id })),
+            ],
+          },
+          {
+            key: "metric",
+            label: "Metric",
+            values: [
+              { value: "primary", label: "nDCG@10" },
+              { value: "secondary", label: "Recall" },
+            ],
+          },
+        ]}
+      />
+    </div>
+  )}
 
-  {
-    populated ? (
-      <InteractiveTable searchPlaceholder="Filter by method, model, retriever…">
-        <div class="max-h-[70vh] overflow-x-auto overflow-y-auto rounded border border-qg-border">
-          <table id="qg-matrix" class="w-full text-sm">
-            <thead class="sticky top-0 z-10 bg-qg-bg-soft text-xs uppercase tracking-wide text-qg-fg-muted shadow-[inset_0_-1px_0_var(--qg-border)]">
+  {populated ? (
+    <InteractiveTable searchPlaceholder="Filter by method, model, retriever…">
+      <div class="qg-table-card">
+        <div class="qg-table-scroll">
+          <table
+            id="qg-matrix"
+            class="w-full text-sm"
+            style="--qg-axis-w-1: 120px; --qg-axis-w-2: 180px;"
+          >
+            <thead class="text-xs uppercase tracking-wide text-qg-fg-muted">
               <tr>
-                <th class="px-3 py-2 text-left whitespace-nowrap">Method</th>
-                <th class="px-3 py-2 text-left whitespace-nowrap">Model</th>
-                <th class="px-3 py-2 text-left whitespace-nowrap">Retriever</th>
+                <th class="qg-axis-1 px-3 py-2 text-left whitespace-nowrap">Method</th>
+                <th class="qg-axis-2 px-3 py-2 text-left whitespace-nowrap">Model</th>
+                <th class="qg-axis-3 px-3 py-2 text-left whitespace-nowrap">Retriever</th>
                 {datasetCols.map((d: any) => (
                   <th
                     class="qg-mono px-2 py-2 text-right text-xs whitespace-nowrap"
                     title={d.id}
                   >
-                    <div>{SHORT[d.id] ?? d.name}</div>
+                    <div><span>{SHORT[d.id] ?? d.name}</span><span class="qg-sort-arrow-slot"></span></div>
                     <div class="qg-col-label-primary text-[10px] font-normal text-qg-fg-muted">
                       {METRIC_LABEL[d.primary_metric] ?? d.primary_metric}
                     </div>
@@ -121,37 +127,22 @@ const datasetCols = matrix.dataset_columns;
             <tbody>
               {rows.map((row: any) => (
                 <tr
-                  class="border-t border-qg-border/60 hover:bg-qg-bg-soft qg-matrix-row"
+                  class="border-t border-qg-border/60 hover:bg-qg-bg-soft"
                   data-method={row.method_id}
                   data-model={row.model}
                   data-retriever={row.retriever_id}
                 >
-                  <td class="px-3 py-2 font-medium">{row.method_display ?? row.method_id}</td>
-                  <td class="px-3 py-2 qg-mono text-xs" data-sort-value={row.model_display ?? row.model}>{row.model_display ?? row.model}</td>
-                  <td class="px-3 py-2 text-xs">{row.retriever_display ?? row.retriever_id}</td>
+                  <td class="qg-axis-1 px-3 py-2 font-medium">{row.method_display ?? row.method_id}</td>
+                  <td class="qg-axis-2 px-3 py-2 qg-mono text-xs" data-sort-value={row.model_display ?? row.model}>{row.model_display ?? row.model}</td>
+                  <td class="qg-axis-3 px-3 py-2 text-xs">{row.retriever_display ?? row.retriever_id}</td>
                   {datasetCols.map((d: any) => {
                     const cell = row.values?.[d.id] ?? {};
-                    const runId = row.run_ids?.[d.id];
-                    const primary = cell[d.primary_metric];
-                    const secondary = d.secondary_metric ? cell[d.secondary_metric] : null;
-                    const primaryValue = primary?.value ?? "";
                     return (
-                      <td class="qg-mono px-3 py-2 text-right tabular-nums" data-sort-value={primaryValue} data-primary-value={primaryValue} data-secondary-value={secondary?.value ?? ""}>
-                        {runId ? (
-                          <a class="hover:text-qg-accent hover:underline" href={`/runs/${runId}`} title="View run + reproduce">
-                            <span class={`qg-cell-primary ${primary?.best ? "font-bold text-qg-accent" : ""}`}>
-                              {primary !== undefined ? primary.value.toFixed(3) : "—"}
-                            </span>
-                            {secondary && (
-                              <span class={`qg-cell-secondary hidden ${secondary.best ? "font-bold text-qg-accent" : ""}`}>
-                                {secondary.value.toFixed(3)}
-                              </span>
-                            )}
-                          </a>
-                        ) : (
-                          <span class="text-qg-fg-muted">—</span>
-                        )}
-                      </td>
+                      <MatrixCell
+                        primary={cell[d.primary_metric]}
+                        secondary={d.secondary_metric ? cell[d.secondary_metric] : null}
+                        runId={row.run_ids?.[d.id]}
+                      />
                     );
                   })}
                 </tr>
@@ -159,70 +150,11 @@ const datasetCols = matrix.dataset_columns;
             </tbody>
           </table>
         </div>
-      </InteractiveTable>
-    ) : (
-      <div class="mt-8 rounded-lg border border-qg-border bg-qg-bg-soft p-6 text-qg-fg-muted">
-        No runs yet. The matrix will populate when results land.
       </div>
-    )
-  }
+    </InteractiveTable>
+  ) : (
+    <div class="mt-8 rounded-lg border border-qg-border bg-qg-bg-soft p-6 text-qg-fg-muted">
+      No runs yet. The matrix will populate when results land.
+    </div>
+  )}
 </Default>
-
-<style>
-  .qg-chip {
-    @apply rounded-full border border-qg-border bg-qg-bg-soft px-3 py-1 text-xs font-medium text-qg-fg-muted hover:border-qg-accent;
-  }
-  .qg-chip-active {
-    @apply border-qg-accent bg-qg-accent text-white hover:border-qg-accent;
-  }
-</style>
-
-<script>
-  const tbody = document.querySelector<HTMLTableSectionElement>("#qg-matrix tbody");
-  const itableRoot = document.querySelector<HTMLElement>("#qg-matrix")?.closest(".qg-itable") as HTMLElement | null;
-  if (tbody && itableRoot) {
-    const filters = { retriever: "", model: "", metric: "primary" };
-
-    function applyChipFilters() {
-      tbody.querySelectorAll<HTMLTableRowElement>(".qg-matrix-row").forEach((tr) => {
-        const okR = !filters.retriever || tr.dataset.retriever === filters.retriever;
-        const okM = !filters.model || tr.dataset.model === filters.model;
-        tr.classList.toggle("qg-chip-hidden", !(okR && okM));
-      });
-      // Let InteractiveTable re-sync visibility + shown-count vs its own search input.
-      itableRoot!.dispatchEvent(new CustomEvent("qg-itable-reapply"));
-    }
-
-    function applyMetricMode() {
-      const primaryShown = filters.metric === "primary";
-      document.querySelectorAll(".qg-col-label-primary").forEach((el) => el.classList.toggle("hidden", !primaryShown));
-      document.querySelectorAll(".qg-col-label-secondary").forEach((el) => el.classList.toggle("hidden", primaryShown));
-      document.querySelectorAll(".qg-cell-primary").forEach((el) => el.classList.toggle("hidden", !primaryShown));
-      document.querySelectorAll(".qg-cell-secondary").forEach((el) => el.classList.toggle("hidden", primaryShown));
-      // Update each metric cell's sort key to the now-visible metric, so a
-      // subsequent column-header click sorts by what the user is looking at.
-      tbody.querySelectorAll<HTMLTableCellElement>("td[data-primary-value]").forEach((td) => {
-        const v = primaryShown ? td.dataset.primaryValue : td.dataset.secondaryValue;
-        td.dataset.sortValue = v ?? "";
-      });
-    }
-
-    function wireGroup(groupId: string, key: "retriever" | "model" | "metric") {
-      const group = document.getElementById(groupId);
-      if (!group) return;
-      group.querySelectorAll<HTMLButtonElement>("button").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          group.querySelectorAll("button").forEach((b) => b.classList.remove("qg-chip-active"));
-          btn.classList.add("qg-chip-active");
-          filters[key] = btn.dataset.value ?? "";
-          if (key === "metric") applyMetricMode();
-          else applyChipFilters();
-        });
-      });
-    }
-
-    wireGroup("qg-filter-retriever", "retriever");
-    wireGroup("qg-filter-model", "model");
-    wireGroup("qg-filter-metric", "metric");
-  }
-</script>

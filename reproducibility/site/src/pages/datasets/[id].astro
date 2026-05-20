@@ -1,17 +1,14 @@
 ---
 import Default from "../../layouts/Default.astro";
 import EmptyState from "../../components/EmptyState.astro";
-import MetricCell from "../../components/MetricCell.astro";
 import InteractiveTable from "../../components/InteractiveTable.astro";
+import FilterChips from "../../components/FilterChips.astro";
 import datasetsList from "../../data/datasets.json";
 
-// Eagerly load all per-dataset shards. Astro statically analyzes this so it
-// only bundles paths that exist at build time.
 const shards = import.meta.glob<{ default: any }>(
   "../../data/views/dataset-*.json",
   { eager: true },
 );
-
 function shardFor(id: string): any | null {
   const key = Object.keys(shards).find((k) => k.endsWith(`/dataset-${id}.json`));
   return key ? shards[key].default : null;
@@ -22,11 +19,29 @@ export async function getStaticPaths() {
   return datasets.map((d: any) => ({ params: { id: d.id } }));
 }
 
+const METRIC_LABEL: Record<string, string> = {
+  ndcg_cut_10: "nDCG@10",
+  recall_1000: "R@1k",
+  recall_100:  "R@100",
+  map:         "MAP",
+};
+
 const { id } = Astro.params;
 const view = shardFor(id!);
 const datasetMeta = datasetsList.find((d: any) => d.id === id);
-const runs = view?.runs ?? [];
-const metricCols: string[] = view?.metric_columns ?? datasetMeta?.eval_metrics ?? [];
+const runs = (view?.runs ?? []) as any[];
+const metricCols: string[] = view?.metric_columns ?? [];
+
+const tableId = "qg-dataset-table";
+
+const uniq = (xs: any[], key: string, displayKey?: string) => {
+  const m = new Map<string, string>();
+  for (const r of xs) m.set(r[key], r[displayKey ?? key] ?? r[key]);
+  return Array.from(m.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+};
+const methodChoices = uniq(runs, "method_id", "method_display");
+const modelChoices = uniq(runs, "model", "model_display");
+const retrieverChoices = uniq(runs, "retriever_id", "retriever_display");
 ---
 
 <Default
@@ -39,56 +54,85 @@ const metricCols: string[] = view?.metric_columns ?? datasetMeta?.eval_metrics ?
   </h1>
   <div class="mt-1 qg-mono text-sm text-qg-fg-muted">{id}</div>
 
-  {
-    runs.length === 0 ? (
-      <div class="mt-8">
-        <EmptyState
-          title="No runs for this dataset yet"
-          body="Submit one — your numbers will land here on merge."
+  {runs.length === 0 ? (
+    <div class="mt-8">
+      <EmptyState
+        title="No runs for this dataset yet"
+        body="Submit one — your numbers will land here on merge."
+      />
+    </div>
+  ) : (
+    <div class="mt-6">
+      <div class="qg-filter-card">
+        <FilterChips
+          tableId={tableId}
+          groups={[
+            { key: "method", label: "Method",
+              values: [{ value: "", label: "All" }, ...methodChoices.map(([v, l]) => ({ value: v, label: l }))] },
+            { key: "model", label: "Model",
+              values: [{ value: "", label: "All" }, ...modelChoices.map(([v, l]) => ({ value: v, label: l }))] },
+            { key: "retriever", label: "Retriever",
+              values: [{ value: "", label: "All" }, ...retrieverChoices.map(([v, l]) => ({ value: v, label: l }))] },
+          ]}
         />
       </div>
-    ) : (
-      <div class="mt-6">
-        <InteractiveTable searchPlaceholder="Filter by method, model, retriever…">
-          <div class="max-h-[70vh] overflow-x-auto overflow-y-auto rounded border border-qg-border">
-            <table class="w-full border-collapse text-sm">
-              <thead class="sticky top-0 z-10 bg-qg-bg-soft shadow-[inset_0_-1px_0_var(--qg-border)]">
+
+      <InteractiveTable searchPlaceholder="Filter by method, model, retriever…">
+        <div class="qg-table-card">
+          <div class="qg-table-scroll">
+            <table
+              id={tableId}
+              class="w-full text-sm"
+              style="--qg-axis-w-1: 120px; --qg-axis-w-2: 180px;"
+            >
+              <thead class="text-xs uppercase tracking-wide text-qg-fg-muted">
                 <tr class="text-left">
-                  <th class="px-3 py-2 whitespace-nowrap">Method</th>
-                  <th class="px-3 py-2 whitespace-nowrap">Model</th>
-                  <th class="px-3 py-2 whitespace-nowrap">Retriever</th>
+                  <th class="qg-axis-1 px-3 py-2 whitespace-nowrap">Method</th>
+                  <th class="qg-axis-2 px-3 py-2 whitespace-nowrap">Model</th>
+                  <th class="qg-axis-3 px-3 py-2 whitespace-nowrap">Retriever</th>
                   {metricCols.map((m) => (
-                    <th class="px-3 py-2 text-right qg-mono text-xs whitespace-nowrap">{m}</th>
+                    <th class="qg-mono px-3 py-2 text-right text-xs whitespace-nowrap">
+                      {METRIC_LABEL[m] ?? m}
+                    </th>
                   ))}
-                  <th class="px-3 py-2 text-right" data-sort-skip>Run</th>
                 </tr>
               </thead>
               <tbody>
                 {runs.map((r: any) => (
-                  <tr class="border-b border-qg-border/60 hover:bg-qg-bg-soft">
-                    <td class="px-3 py-2 font-medium">{r.method_display ?? r.method_id}</td>
-                    <td class="px-3 py-2 qg-mono text-xs" data-sort-value={r.model_display ?? r.model}>{r.model_display ?? r.model}</td>
-                    <td class="px-3 py-2 text-xs">{r.retriever_display ?? r.retriever_id}</td>
-                    {metricCols.map((m) => (
-                      <td class="px-3 py-2 text-right" data-sort-value={r.metrics?.[m] ?? ""}>
-                        <MetricCell value={r.metrics?.[m]} best={r.best_for?.[m]} />
-                      </td>
-                    ))}
-                    <td class="px-3 py-2 text-right">
-                      <a
-                        class="qg-mono text-xs text-qg-accent hover:underline"
-                        href={`/runs/${r.run_id}`}
-                      >
-                        {r.run_id.slice(0, 8)}…
-                      </a>
-                    </td>
+                  <tr
+                    class="border-b border-qg-border/60 hover:bg-qg-bg-soft"
+                    data-method={r.method_id}
+                    data-model={r.model}
+                    data-retriever={r.retriever_id}
+                  >
+                    <td class="qg-axis-1 px-3 py-2 font-medium">{r.method_display ?? r.method_id}</td>
+                    <td class="qg-axis-2 px-3 py-2 qg-mono text-xs" data-sort-value={r.model_display ?? r.model}>{r.model_display ?? r.model}</td>
+                    <td class="qg-axis-3 px-3 py-2 text-xs">{r.retriever_display ?? r.retriever_id}</td>
+                    {metricCols.map((m) => {
+                      const v = r.metrics?.[m];
+                      const isBest = !!r.best_for?.[m];
+                      const runId = r.run_ids?.[m] ?? r.run_id;
+                      return (
+                        <td class="qg-mono px-3 py-2 text-right tabular-nums" data-sort-value={v ?? ""}>
+                          {v == null ? (
+                            <span class="text-qg-fg-muted">—</span>
+                          ) : runId ? (
+                            <a class="hover:text-qg-accent hover:underline" href={`/runs/${runId}`} title="View run + reproduce">
+                              <span class={isBest ? "qg-cell-best" : ""}>{v.toFixed(4)}</span>
+                            </a>
+                          ) : (
+                            <span class={isBest ? "qg-cell-best" : ""}>{v.toFixed(4)}</span>
+                          )}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </InteractiveTable>
-      </div>
-    )
-  }
+        </div>
+      </InteractiveTable>
+    </div>
+  )}
 </Default>
