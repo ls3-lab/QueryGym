@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "run_id": "8d15e8f1910cdbc3",
+  "params_hash": "e17c4b1b",
+  "submitted_at": "2026-05-19T00:00:00Z",
+  "querygym_version": "legacy-backfill",
+  "environment": {
+    "python_version": "backfill",
+    "platform": "backfill",
+    "git_commit": null
+  },
+  "pipeline": {
+    "dataset_id": "beir-v1.0.0-trec-news",
+    "method_id": "mugi",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 0.0
+  },
+  "config": {
+    "method_params": {
+      "num_examples": 4,
+      "train_split": "train",
+      "judge_rel_mode": "positive"
+    },
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "beir-v1.0.0-trec-news-test",
+      "index": "beir-v1.0.0-trec-news.flat",
+      "num_queries": 57
+    },
+    "retrieval": {
+      "retriever_id": "splade-pp",
+      "paradigm": "learned_sparse",
+      "params": {
+        "model": "naver/splade-cocondenser-ensembledistil"
+      }
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.4001,
+    "recall_100": 0.4725
+  },
+  "timing": {},
+  "artifacts": {
+    "reformulated_queries": "e17c4b1b.queries.tsv"
+  }
+}

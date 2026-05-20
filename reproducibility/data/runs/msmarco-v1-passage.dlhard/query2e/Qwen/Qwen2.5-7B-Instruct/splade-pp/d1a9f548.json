@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "run_id": "92c57b2d152bec43",
+  "params_hash": "d1a9f548",
+  "submitted_at": "2026-05-19T00:00:00Z",
+  "querygym_version": "legacy-backfill",
+  "environment": {
+    "python_version": "backfill",
+    "platform": "backfill",
+    "git_commit": null
+  },
+  "pipeline": {
+    "dataset_id": "msmarco-v1-passage.dlhard",
+    "method_id": "query2e",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 0.0
+  },
+  "config": {
+    "method_params": {
+      "num_examples": 4,
+      "train_split": "train"
+    },
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "/mnt/data/son/Thesis/t5/data/dlhard/neutral_queries.tsv",
+      "index": "msmarco-v1-passage",
+      "num_queries": 50
+    },
+    "retrieval": {
+      "retriever_id": "splade-pp",
+      "paradigm": "learned_sparse",
+      "params": {
+        "model": "naver/splade-cocondenser-ensembledistil"
+      }
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.3056,
+    "recall_1000": 0.7882
+  },
+  "timing": {},
+  "artifacts": {
+    "reformulated_queries": "d1a9f548.queries.tsv"
+  }
+}

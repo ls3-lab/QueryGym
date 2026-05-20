@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "run_id": "0b7e44848e1323f3",
+  "params_hash": "0d366684",
+  "submitted_at": "2026-05-19T00:00:00Z",
+  "querygym_version": "legacy-backfill",
+  "environment": {
+    "python_version": "backfill",
+    "platform": "backfill",
+    "git_commit": null
+  },
+  "pipeline": {
+    "dataset_id": "msmarco-v1-passage.trecdl2020",
+    "method_id": "genqr_ensemble",
+    "model": "openai/gpt-4.1-nano",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 0.0
+  },
+  "config": {
+    "method_params": {
+      "num_examples": 4,
+      "train_split": "train"
+    },
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "dl20-passage",
+      "index": "msmarco-v1-passage",
+      "num_queries": 54
+    },
+    "retrieval": {
+      "retriever_id": "bge-base-en-v1.5",
+      "paradigm": "dense",
+      "params": {
+        "encoder": "BAAI/bge-base-en-v1.5"
+      }
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.6645,
+    "recall_1000": 0.862
+  },
+  "timing": {},
+  "artifacts": {
+    "reformulated_queries": "0d366684.queries.tsv"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "run_id": "03f7128ac3b310e8",
+  "params_hash": "7b422d71",
+  "submitted_at": "2026-05-19T00:00:00Z",
+  "querygym_version": "legacy-backfill",
+  "environment": {
+    "python_version": "backfill",
+    "platform": "backfill",
+    "git_commit": null
+  },
+  "pipeline": {
+    "dataset_id": "msmarco-v1-passage.dlhard",
+    "method_id": "query2doc",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 0.0
+  },
+  "config": {
+    "method_params": {
+      "num_examples": 4,
+      "train_split": "train",
+      "mode": "zs"
+    },
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "/mnt/data/son/Thesis/t5/data/dlhard/neutral_queries.tsv",
+      "index": "msmarco-v1-passage",
+      "num_queries": 50
+    },
+    "retrieval": {
+      "retriever_id": "bm25",
+      "paradigm": "lexical",
+      "params": {
+        "k1": 0.9,
+        "b": 0.4
+      },
+      "implementation": "pyserini:LuceneSearcher"
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.3352,
+    "recall_1000": 0.7763
+  },
+  "timing": {},
+  "artifacts": {
+    "reformulated_queries": "7b422d71.queries.tsv"
+  }
+}

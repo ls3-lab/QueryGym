@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "run_id": "66fb380cf7931bd9",
+  "params_hash": "a5413fcf",
+  "submitted_at": "2026-05-19T00:00:00Z",
+  "querygym_version": "legacy-backfill",
+  "environment": {
+    "python_version": "backfill",
+    "platform": "backfill",
+    "git_commit": null
+  },
+  "pipeline": {
+    "dataset_id": "msmarco-v1-passage.trecdl2020",
+    "method_id": "query2doc",
+    "model": "openai/gpt-4.1-nano",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 0.0
+  },
+  "config": {
+    "method_params": {
+      "num_examples": 4,
+      "train_split": "train",
+      "mode": "zs"
+    },
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "dl20-passage",
+      "index": "msmarco-v1-passage",
+      "num_queries": 54
+    },
+    "retrieval": {
+      "retriever_id": "splade-pp",
+      "paradigm": "learned_sparse",
+      "params": {
+        "model": "naver/splade-cocondenser-ensembledistil"
+      }
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.6242,
+    "recall_1000": 0.9219
+  },
+  "timing": {},
+  "artifacts": {
+    "reformulated_queries": "a5413fcf.queries.tsv"
+  }
+}
