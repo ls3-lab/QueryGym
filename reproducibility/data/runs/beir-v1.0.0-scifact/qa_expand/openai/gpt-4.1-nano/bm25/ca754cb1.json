@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "run_id": "71bd093e88d1661d",
+  "params_hash": "ca754cb1",
+  "submitted_at": "2026-05-19T00:00:00Z",
+  "querygym_version": "legacy-backfill",
+  "environment": {
+    "python_version": "backfill",
+    "platform": "backfill",
+    "git_commit": null
+  },
+  "pipeline": {
+    "dataset_id": "beir-v1.0.0-scifact",
+    "method_id": "qa_expand",
+    "model": "openai/gpt-4.1-nano",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 0.0
+  },
+  "config": {
+    "method_params": {
+      "num_examples": 4,
+      "train_split": "train"
+    },
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "beir-v1.0.0-scifact-test",
+      "index": "beir-v1.0.0-scifact.flat",
+      "num_queries": 300
+    },
+    "retrieval": {
+      "retriever_id": "bm25",
+      "paradigm": "lexical",
+      "params": {
+        "k1": 0.9,
+        "b": 0.4
+      },
+      "implementation": "pyserini:LuceneSearcher"
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.7059,
+    "recall_100": 0.943
+  },
+  "timing": {},
+  "artifacts": {
+    "reformulated_queries": "ca754cb1.queries.tsv"
+  }
+}

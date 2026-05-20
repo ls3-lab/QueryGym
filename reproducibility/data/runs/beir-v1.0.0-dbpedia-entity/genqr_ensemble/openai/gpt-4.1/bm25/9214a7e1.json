@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "run_id": "2e61f53146f09717",
+  "params_hash": "9214a7e1",
+  "submitted_at": "2026-05-19T00:00:00Z",
+  "querygym_version": "legacy-backfill",
+  "environment": {
+    "python_version": "backfill",
+    "platform": "backfill",
+    "git_commit": null
+  },
+  "pipeline": {
+    "dataset_id": "beir-v1.0.0-dbpedia-entity",
+    "method_id": "genqr_ensemble",
+    "model": "openai/gpt-4.1",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 0.0
+  },
+  "config": {
+    "method_params": {
+      "num_examples": 4,
+      "train_split": "train"
+    },
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "beir-v1.0.0-dbpedia-entity-test",
+      "index": "beir-v1.0.0-dbpedia-entity.flat",
+      "num_queries": 400
+    },
+    "retrieval": {
+      "retriever_id": "bm25",
+      "paradigm": "lexical",
+      "params": {
+        "k1": 0.9,
+        "b": 0.4
+      },
+      "implementation": "pyserini:LuceneSearcher"
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.36,
+    "recall_100": 0.4765
+  },
+  "timing": {},
+  "artifacts": {
+    "reformulated_queries": "9214a7e1.queries.tsv"
+  }
+}

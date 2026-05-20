@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "run_id": "949162b32988b17e",
+  "params_hash": "ca754cb1",
+  "submitted_at": "2026-05-19T00:00:00Z",
+  "querygym_version": "legacy-backfill",
+  "environment": {
+    "python_version": "backfill",
+    "platform": "backfill",
+    "git_commit": null
+  },
+  "pipeline": {
+    "dataset_id": "beir-v1.0.0-trec-covid",
+    "method_id": "qa_expand",
+    "model": "openai/gpt-4.1-nano",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 0.0
+  },
+  "config": {
+    "method_params": {
+      "num_examples": 4,
+      "train_split": "train"
+    },
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "beir-v1.0.0-trec-covid-test",
+      "index": "beir-v1.0.0-trec-covid.flat",
+      "num_queries": 50
+    },
+    "retrieval": {
+      "retriever_id": "splade-pp",
+      "paradigm": "learned_sparse",
+      "params": {
+        "model": "naver/splade-cocondenser-ensembledistil"
+      }
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.7079,
+    "recall_100": 0.1215
+  },
+  "timing": {},
+  "artifacts": {
+    "reformulated_queries": "ca754cb1.queries.tsv"
+  }
+}

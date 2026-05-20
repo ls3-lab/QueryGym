@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "run_id": "6fc0eb4976b64f71",
+  "params_hash": "1238908e",
+  "submitted_at": "2026-05-19T00:00:00Z",
+  "querygym_version": "legacy-backfill",
+  "environment": {
+    "python_version": "backfill",
+    "platform": "backfill",
+    "git_commit": null
+  },
+  "pipeline": {
+    "dataset_id": "beir-v1.0.0-arguana",
+    "method_id": "query2doc",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 0.0
+  },
+  "config": {
+    "method_params": {
+      "mode": "cot",
+      "num_examples": 4,
+      "train_split": "train",
+      "judge_rel_mode": "positive"
+    },
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "beir-v1.0.0-arguana-test",
+      "index": "beir-v1.0.0-arguana.flat",
+      "num_queries": 1406
+    },
+    "retrieval": {
+      "retriever_id": "splade-pp",
+      "paradigm": "learned_sparse",
+      "params": {
+        "model": "naver/splade-cocondenser-ensembledistil"
+      }
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.52,
+    "recall_100": 0.9808
+  },
+  "timing": {},
+  "artifacts": {
+    "reformulated_queries": "1238908e.queries.tsv"
+  }
+}
