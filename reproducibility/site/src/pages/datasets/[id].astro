@@ -2,6 +2,7 @@
 import Default from "../../layouts/Default.astro";
 import EmptyState from "../../components/EmptyState.astro";
 import MetricCell from "../../components/MetricCell.astro";
+import InteractiveTable from "../../components/InteractiveTable.astro";
 import datasetsList from "../../data/datasets.json";
 
 // Eagerly load all per-dataset shards. Astro statically analyzes this so it
@@ -47,42 +48,46 @@ const metricCols: string[] = view?.metric_columns ?? datasetMeta?.eval_metrics ?
         />
       </div>
     ) : (
-      <div class="mt-6 overflow-x-auto">
-        <table class="w-full border-collapse text-sm">
-          <thead>
-            <tr class="border-b border-qg-border text-left">
-              <th class="px-3 py-2">Method</th>
-              <th class="px-3 py-2">Model</th>
-              <th class="px-3 py-2">Retriever</th>
-              {metricCols.map((m) => (
-                <th class="px-3 py-2 text-right qg-mono text-xs">{m}</th>
-              ))}
-              <th class="px-3 py-2 text-right">Run</th>
-            </tr>
-          </thead>
-          <tbody>
-            {runs.map((r: any) => (
-              <tr class="border-b border-qg-border/60 hover:bg-qg-bg-soft">
-                <td class="px-3 py-2 font-medium">{r.method_display ?? r.method_id}</td>
-                <td class="px-3 py-2 qg-mono text-xs">{r.model}</td>
-                <td class="px-3 py-2 text-xs">{r.retriever_display ?? r.retriever_id}</td>
-                {metricCols.map((m) => (
-                  <td class="px-3 py-2 text-right">
-                    <MetricCell value={r.metrics?.[m]} best={r.best_for?.[m]} />
-                  </td>
+      <div class="mt-6">
+        <InteractiveTable searchPlaceholder="Filter by method, model, retriever…">
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse text-sm">
+              <thead>
+                <tr class="border-b border-qg-border text-left">
+                  <th class="px-3 py-2">Method</th>
+                  <th class="px-3 py-2">Model</th>
+                  <th class="px-3 py-2">Retriever</th>
+                  {metricCols.map((m) => (
+                    <th class="px-3 py-2 text-right qg-mono text-xs">{m}</th>
+                  ))}
+                  <th class="px-3 py-2 text-right" data-sort-skip>Run</th>
+                </tr>
+              </thead>
+              <tbody>
+                {runs.map((r: any) => (
+                  <tr class="border-b border-qg-border/60 hover:bg-qg-bg-soft">
+                    <td class="px-3 py-2 font-medium">{r.method_display ?? r.method_id}</td>
+                    <td class="px-3 py-2 qg-mono text-xs" data-sort-value={r.model_display ?? r.model}>{r.model_display ?? r.model}</td>
+                    <td class="px-3 py-2 text-xs">{r.retriever_display ?? r.retriever_id}</td>
+                    {metricCols.map((m) => (
+                      <td class="px-3 py-2 text-right" data-sort-value={r.metrics?.[m] ?? ""}>
+                        <MetricCell value={r.metrics?.[m]} best={r.best_for?.[m]} />
+                      </td>
+                    ))}
+                    <td class="px-3 py-2 text-right">
+                      <a
+                        class="qg-mono text-xs text-qg-accent hover:underline"
+                        href={`/runs/${r.run_id}`}
+                      >
+                        {r.run_id.slice(0, 8)}…
+                      </a>
+                    </td>
+                  </tr>
                 ))}
-                <td class="px-3 py-2 text-right">
-                  <a
-                    class="qg-mono text-xs text-qg-accent hover:underline"
-                    href={`/runs/${r.run_id}`}
-                  >
-                    {r.run_id.slice(0, 8)}…
-                  </a>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              </tbody>
+            </table>
+          </div>
+        </InteractiveTable>
       </div>
     )
   }

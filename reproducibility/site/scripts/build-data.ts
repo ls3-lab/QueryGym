@@ -98,6 +98,7 @@ interface RunDetail {
   retriever_id: string;
   retriever_display: string;
   paradigm: string;
+  model_display: string;
   metrics: Record<string, number>;
   config: Record<string, unknown>;
   timing: Record<string, number>;
@@ -200,6 +201,7 @@ function readRunDetails(retrievers: Record<string, { display_name: string; parad
       dataset_id: payload.pipeline.dataset_id,
       method_id: payload.pipeline.method_id,
       model: payload.pipeline.model,
+      model_display: displayModel(payload.pipeline.model),
       retriever_id: retrId,
       retriever_display: retrievers[retrId]?.display_name ?? retrId,
       paradigm: retrievers[retrId]?.paradigm ?? retr.paradigm ?? "",
@@ -246,6 +248,7 @@ function buildPerDatasetViews(
           method_id: lm.id,
           method_display: lm.display,
           model: r.model,
+          model_display: displayModel(r.model),
           retriever_id: r.retriever_id,
           retriever_display: r.retriever,
           run_id: r.run_id,            // populated/overwritten by the best cell
@@ -376,33 +379,38 @@ function buildHomeMatrix(
       method_id: lm.id,
       method_display: lm.display,
       model: r.model,
+      model_display: displayModel(r.model),
       retriever_id: r.retriever_id,
       retriever_display: r.retriever,
     }),
   );
 
-  // Dataset columns + primary/secondary metric per dataset.
-  // Primary = nDCG@10 if present, else first eval metric.
-  // Secondary = recall@1000 (DL) or recall@100 (BEIR), else null.
+  // Dataset columns: derive primary/secondary metric from what's ACTUALLY in
+  // the matrix data (not from the registry whitelist, which may over-specify).
+  // primary  = ndcg_cut_10 if present, else the first metric found.
+  // secondary = recall_1000 if present, else recall_100, else any other metric.
   const datasetCols = Object.values(datasets)
     .sort((a, b) => a.id.localeCompare(b.id))
     .map((d) => {
-      const metrics = d.eval_metrics;
+      const present = new Set<string>();
+      for (const row of matrixRows) {
+        for (const m of Object.keys(row.values?.[d.id] ?? {})) present.add(m);
+      }
+      const arr = Array.from(present);
       const primary =
-        metrics.find((m) => m === "ndcg_cut_10") ??
-        metrics[0] ??
-        null;
+        present.has("ndcg_cut_10") ? "ndcg_cut_10" : arr[0] ?? null;
       const secondary =
-        metrics.find((m) => m === "recall_1000") ??
-        metrics.find((m) => m === "recall_100") ??
-        metrics.find((m) => m !== primary) ??
-        null;
+        present.has("recall_1000")
+          ? "recall_1000"
+          : present.has("recall_100")
+            ? "recall_100"
+            : arr.find((m) => m !== primary) ?? null;
       return {
         id: d.id,
         name: d.name,
         primary_metric: primary,
         secondary_metric: secondary,
-        all_metrics: metrics,
+        all_metrics: arr.sort(),
       };
     });
 
@@ -453,6 +461,7 @@ function buildPerMethodViews(rows: ResultRow[]) {
       (r) => `${r.model}|${r.retriever_id}`,
       (r) => ({
         model: r.model,
+        model_display: displayModel(r.model),
         retriever_id: r.retriever_id,
         retriever_display: r.retriever,
       }),
@@ -479,6 +488,7 @@ function buildPerRetrieverViews(rows: ResultRow[]) {
         method_id: lm.id,
         method_display: lm.display,
         model: r.model,
+        model_display: displayModel(r.model),
       }),
     );
     writeJSON(path.join(VIEWS_DIR, `retriever-${retriever_id}.json`), {
@@ -491,6 +501,13 @@ function buildPerRetrieverViews(rows: ResultRow[]) {
 // Some model ids contain "/" (e.g. "openai/gpt-4.1"); URL-encode for file paths.
 function encodePathSegment(s: string): string {
   return s.replace(/\//g, "__");
+}
+
+// Strip provider prefix from a model id for display: "openai/gpt-4.1" → "gpt-4.1".
+// The canonical id stays in the data; this is purely cosmetic.
+function displayModel(s: string): string {
+  const i = s.indexOf("/");
+  return i >= 0 ? s.slice(i + 1) : s;
 }
 
 // ---------- main ------------------------------------------------------------
@@ -556,7 +573,12 @@ function main() {
   writeJSON(path.join(OUT_DIR, "methods.json"), methodList);
 
   const modelList = Array.from(modelCounts.entries())
-    .map(([id, run_count]) => ({ id, run_count, slug: encodePathSegment(id) }))
+    .map(([id, run_count]) => ({
+      id,
+      display: displayModel(id),
+      run_count,
+      slug: encodePathSegment(id),
+    }))
     .sort((a, b) => a.id.localeCompare(b.id));
   writeJSON(path.join(OUT_DIR, "models.json"), modelList);
 

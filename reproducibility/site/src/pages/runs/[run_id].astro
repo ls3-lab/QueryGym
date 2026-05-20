@@ -101,7 +101,7 @@ const trecEvalCmd = `python -m pyserini.eval.trec_eval -c -m ${run.metrics ? Obj
   <section class="mt-6 grid gap-4 md:grid-cols-3">
     <Field label="Dataset" value={run.dataset_id} />
     <Field label="Method" value={run.method_id} />
-    <Field label="Model" value={run.model} />
+    <Field label="Model" value={run.model_display ?? run.model} />
     <Field label="Retriever" value={`${run.retriever_display ?? run.retriever_id ?? "—"} (${run.paradigm ?? "?"})`} />
     <Field label="params_hash" value={run.params_hash} />
     <Field label="Queries" value={run.num_queries} />
