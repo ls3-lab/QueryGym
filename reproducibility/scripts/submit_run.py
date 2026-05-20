@@ -43,25 +43,20 @@ def _find(from_dir: Path, candidates: tuple[str, ...]) -> Path | None:
     return None
 
 
-def _resolve_inputs(from_dir: Path) -> tuple[Path, Path, Path]:
+def _resolve_inputs(from_dir: Path) -> tuple[Path, Path | None, Path | None]:
+    """Locate pipeline_summary.json (required) and the two optional artifacts.
+
+    `run.txt` and `reformulated_queries.tsv` are optional. Whether they must
+    be present is driven by what the payload's `artifacts` block references —
+    see `main`.
+    """
     summary = _find(from_dir, SUMMARY_CANDIDATES)
     if summary is None:
         raise SystemExit(
             f"could not find pipeline_summary.json under {from_dir}. "
             f"Did the pipeline complete?"
         )
-    run_file = _find(from_dir, RUN_FILE_CANDIDATES)
-    if run_file is None:
-        raise SystemExit(
-            f"could not find run.txt under {from_dir} (looked in: {RUN_FILE_CANDIDATES})"
-        )
-    queries = _find(from_dir, QUERIES_CANDIDATES)
-    if queries is None:
-        raise SystemExit(
-            f"could not find reformulated_queries.tsv under {from_dir} "
-            f"(looked in: {QUERIES_CANDIDATES})"
-        )
-    return summary, run_file, queries
+    return summary, _find(from_dir, RUN_FILE_CANDIDATES), _find(from_dir, QUERIES_CANDIDATES)
 
 
 def _canonical_dir(runs_dir: Path, payload: dict) -> Path:
@@ -125,10 +120,9 @@ def main() -> int:
 
     target_dir = _canonical_dir(args.runs_dir, payload)
     h = payload["params_hash"]
+    artifacts = payload.get("artifacts", {})
 
     json_dst = target_dir / f"{h}.json"
-    run_dst = target_dir / f"{h}.run.txt"
-    queries_dst = target_dir / f"{h}.queries.tsv"
 
     target_dir.mkdir(parents=True, exist_ok=True)
 
@@ -142,8 +136,23 @@ def main() -> int:
         json.dump(payload, f, indent=2, sort_keys=False)
         f.write("\n")
 
-    _copy(run_file, run_dst, force=args.force)
-    _copy(queries, queries_dst, force=args.force)
+    # Copy each artifact the payload references; require the source file to
+    # exist iff referenced. Artifacts the payload omits are simply not copied.
+    if "run_file" in artifacts:
+        if run_file is None:
+            raise SystemExit(
+                f"payload references artifacts.run_file but no run.txt found "
+                f"under {args.from_dir} (looked in: {RUN_FILE_CANDIDATES})"
+            )
+        _copy(run_file, target_dir / f"{h}.run.txt", force=args.force)
+    if "reformulated_queries" in artifacts:
+        if queries is None:
+            raise SystemExit(
+                f"payload references artifacts.reformulated_queries but no "
+                f"reformulated_queries.tsv found under {args.from_dir} "
+                f"(looked in: {QUERIES_CANDIDATES})"
+            )
+        _copy(queries, target_dir / f"{h}.queries.tsv", force=args.force)
 
     rel = json_dst.relative_to(_REPO_ROOT).as_posix()
     print(f"wrote {rel}")
