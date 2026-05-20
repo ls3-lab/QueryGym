@@ -533,3 +533,71 @@ def test_run_summary_emits_lexical_retrieval_block():
     assert r["implementation"] == "pyserini:LuceneSearcher"
     assert "searcher" not in payload["config"]
     assert "bm25_weights" not in payload["config"]["dataset_config"]
+
+
+# ---------- Optional artifacts ----------------------------------------------
+
+
+def test_schema_accepts_empty_artifacts():
+    p = _minimal_payload_for_schema_only()
+    p["artifacts"] = {}
+    _raw_schema_validate(p)
+
+
+def test_schema_accepts_artifacts_with_only_run_file():
+    p = _minimal_payload_for_schema_only()
+    p["artifacts"] = {"run_file": "00000000.run.txt"}
+    _raw_schema_validate(p)
+
+
+def test_build_run_summary_artifacts_present_none_defaults_to_both():
+    p = build_run_summary(**_build_kwargs())
+    assert set(p["artifacts"]) == {"run_file", "reformulated_queries"}
+
+
+def test_build_run_summary_artifacts_present_empty_emits_no_artifacts():
+    kw = _build_kwargs()
+    kw["artifacts_present"] = set()
+    p = build_run_summary(**kw)
+    assert p["artifacts"] == {}
+    # validate (schema + registry + hash) passes
+    validate(p)
+
+
+def test_build_run_summary_artifacts_present_only_run_file():
+    kw = _build_kwargs()
+    kw["artifacts_present"] = {"run_file"}
+    p = build_run_summary(**kw)
+    assert set(p["artifacts"]) == {"run_file"}
+    assert p["artifacts"]["run_file"] == f"{p['params_hash']}.run.txt"
+    validate(p)
+
+
+def test_build_run_summary_rejects_unknown_artifact_key():
+    kw = _build_kwargs()
+    kw["artifacts_present"] = {"run_file", "bogus"}
+    with pytest.raises(ValueError, match="unknown artifact keys"):
+        build_run_summary(**kw)
+
+
+# ---------- DL-HARD registry entry ------------------------------------------
+
+
+def test_dataset_registry_has_dlhard_entry():
+    import yaml
+
+    p = Path(__file__).resolve().parents[2] / "dataset_registry.yaml"
+    reg = yaml.safe_load(p.read_text(encoding="utf-8"))["datasets"]
+    assert "msmarco-v1-passage.dlhard" in reg
+    entry = reg["msmarco-v1-passage.dlhard"]
+    assert entry["index"]["name"] == "msmarco-v1-passage"
+    assert set(entry["output"]["eval_metrics"]) >= {"ndcg_cut.10", "recall.1000"}
+
+
+def test_validator_accepts_dlhard_run():
+    kw = _build_kwargs()
+    kw["dataset_id"] = "msmarco-v1-passage.dlhard"
+    # DL-HARD whitelists {ndcg_cut.10, recall.1000}.
+    kw["metrics"] = {"ndcg_cut_10": 0.4038, "recall_1000": 0.8415}
+    p = build_run_summary(**kw)
+    validate(p)

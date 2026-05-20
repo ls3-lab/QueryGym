@@ -53,6 +53,21 @@ datasets:
       runfile_template: "run.msmarco-v1-passage.bm25-default.dl20.txt"
       eval_metrics: ["map", "ndcg_cut.10", "recall.1000"]
 
+  msmarco-v1-passage.dlhard:
+    name: "DL-HARD — MS MARCO v1 Passage (hard subset)"
+    index:
+      name: "msmarco-v1-passage"
+    topics:
+      name: "dl-hard"
+    qrels:
+      name: "dl-hard"
+    bm25_weights:
+      k1: 0.9
+      b: 0.4
+    output:
+      runfile_template: "run.msmarco-v1-passage.bm25-default.dlhard.txt"
+      eval_metrics: ["ndcg_cut.10", "recall.1000"]
+
 ################### BEIR Datasets ########################
 
   beir-v1.0.0-trec-covid:

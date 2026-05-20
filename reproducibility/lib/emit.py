@@ -77,6 +77,28 @@ def _detect_environment() -> dict:
     return env
 
 
+_ARTIFACT_KEYS = ("run_file", "reformulated_queries")
+_ARTIFACT_SUFFIX = {"run_file": "run.txt", "reformulated_queries": "queries.tsv"}
+
+
+def _build_artifacts(params_hash: str, present: set[str] | None) -> dict:
+    """Build the artifacts dict.
+
+    `present` selects which artifact filenames to include. None → both (the
+    default for the standard pipeline). Empty set → no artifacts (when neither
+    the ranking nor the reformulated-queries file is attached to the run).
+    Unknown keys raise.
+    """
+    if present is None:
+        keys = _ARTIFACT_KEYS
+    else:
+        unknown = set(present) - set(_ARTIFACT_KEYS)
+        if unknown:
+            raise ValueError(f"unknown artifact keys: {sorted(unknown)}")
+        keys = tuple(k for k in _ARTIFACT_KEYS if k in present)
+    return {k: f"{params_hash}.{_ARTIFACT_SUFFIX[k]}" for k in keys}
+
+
 def _querygym_version() -> str:
     """Read querygym.__version__ if available, else 'unknown'."""
     try:
@@ -102,6 +124,7 @@ def build_run_summary(
     submitted_at: str | None = None,
     environment: Mapping[str, Any] | None = None,
     querygym_version: str | None = None,
+    artifacts_present: set[str] | None = None,
 ) -> dict:
     """Assemble a schema-v1 run summary dict.
 
@@ -157,10 +180,7 @@ def build_run_summary(
         },
         "metrics": {k: float(v) for k, v in metrics.items()},
         "timing": {k: float(v) for k, v in timing.items()},
-        "artifacts": {
-            "run_file": f"{params_hash}.run.txt",
-            "reformulated_queries": f"{params_hash}.queries.tsv",
-        },
+        "artifacts": _build_artifacts(params_hash, artifacts_present),
     }
 
     payload["run_id"] = compute_run_id(payload)

@@ -168,17 +168,16 @@
     "artifacts": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["run_file", "reformulated_queries"],
       "properties": {
         "run_file": {
           "type": "string",
           "pattern": "^[0-9a-f]{8}\\.run\\.txt$",
-          "description": "Sibling TREC run file. Filename must equal {params_hash}.run.txt."
+          "description": "Optional. Sibling TREC run file. Filename must equal {params_hash}.run.txt. Emitted by the standard pipeline; may be omitted when no ranking artifact is attached to the run."
         },
         "reformulated_queries": {
           "type": "string",
           "pattern": "^[0-9a-f]{8}\\.queries\\.tsv$",
-          "description": "Sibling reformulated queries TSV. Filename must equal {params_hash}.queries.tsv."
+          "description": "Optional. Sibling reformulated-queries TSV. Filename must equal {params_hash}.queries.tsv. Same optional semantics as run_file."
         }
       }
     }
