@@ -1,6 +1,6 @@
 ---
 /**
- * Visual map of the QueryGym ecosystem: Library / Dashboard / Leaderboard / Docs.
+ * Visual map of the QueryGym ecosystem: Library / Leaderboard / Docs.
  * Static SVG-free version using CSS grid + gradient borders.
  */
 
@@ -11,14 +11,6 @@ const cards = [
     body: "The toolkit itself. Methods, prompt bank, searchers, CLI.",
     href: "https://pypi.org/project/querygym/",
     cta: "pip install querygym",
-    primary: false,
-  },
-  {
-    label: "Dashboard",
-    sub: "dashboard.querygym.com",
-    body: "Hosted product. Run methods through a UI, compare results live, share runs. API keys + billing.",
-    href: "https://dashboard.querygym.com",
-    cta: "Open Dashboard ↗",
     primary: true,
   },
   {
@@ -43,12 +35,12 @@ const cards = [
 <section class="qg-section">
   <h2 class="text-3xl font-bold md:text-4xl">The ecosystem</h2>
   <p class="mt-3 max-w-2xl text-qg-fg-muted">
-    QueryGym is split into four surfaces. They share the same data contract,
-    so a run from the dashboard or a third-party submitter lands in the same
-    leaderboard as the toolkit's own results.
+    QueryGym is split into three surfaces. They share the same data contract,
+    so a run from the toolkit or a third-party submitter lands in the same
+    leaderboard.
   </p>
 
-  <div class="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+  <div class="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
     {
       cards.map((c) => (
         <a

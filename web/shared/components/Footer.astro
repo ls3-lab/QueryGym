@@ -1,7 +1,7 @@
 ---
 /**
- * Shared footer. Three links: GitHub, papers, dashboard. Used across the
- * leaderboard and (in PR2) the marketing site.
+ * Shared footer. GitHub, docs, and paper links. Used across the
+ * leaderboard and the marketing site.
  */
 interface FooterLink {
   label: string;
@@ -21,7 +21,6 @@ const year = new Date().getFullYear();
 const baseLinks: FooterLink[] = [
   { label: "GitHub", href: "https://github.com/ls3-lab/QueryGym" },
   { label: "Docs", href: "https://querygym.readthedocs.io" },
-  { label: "Dashboard", href: "https://dashboard.querygym.com" },
   { label: "Paper", href: "https://arxiv.org/abs/2511.15996" },
 ];
 ---
