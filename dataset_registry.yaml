@@ -1,27 +1,14 @@
 version: 1
 notes: >
-  Dataset registry containing Pyserini index names, topic/qrels references, 
+  Dataset registry containing Pyserini index names, topic/qrels references,
   and BM25 weighting configurations for reproducible retrieval experiments.
   This file is specifically designed for Pyserini prebuilt indices and topics.
+  Entries cover the datasets evaluated in published results; add new entries
+  here when extending coverage.
 
 datasets:
 
 ################### MSMARCO Datasets ########################
-
-  msmarco-v1-passage.dev:
-    name: "MS MARCO v1 Passage — Dev"
-    index:
-      name: "msmarco-v1-passage"
-    topics:
-      name: "msmarco-v1-passage.dev"
-    qrels:
-      name: "msmarco-v1-passage.dev"  
-    bm25_weights:
-      k1: 0.82
-      b: 0.68
-    output:
-      runfile_template: "run.msmarco-v1-passage.bm25-default.dev.txt"
-      eval_metrics: ["recip_rank", "recall.1000"]
 
   msmarco-v1-passage.trecdl2019:
     name: "TREC Deep Learning 2019 — Passage"
@@ -30,7 +17,7 @@ datasets:
     topics:
       name: "dl19-passage"
     qrels:
-      name: "dl19-passage" 
+      name: "dl19-passage"
     bm25_weights:
       k1: 0.9
       b: 0.4
@@ -45,7 +32,7 @@ datasets:
     topics:
       name: "dl20-passage"
     qrels:
-      name: "dl20-passage" 
+      name: "dl20-passage"
     bm25_weights:
       k1: 0.9
       b: 0.4
@@ -75,74 +62,14 @@ datasets:
     index:
       name: "beir-v1.0.0-trec-covid.flat"
     topics:
-      name: "beir-v1.0.0-trec-covid-test"  
+      name: "beir-v1.0.0-trec-covid-test"
     qrels:
-      name: "beir-v1.0.0-trec-covid-test"  
+      name: "beir-v1.0.0-trec-covid-test"
     bm25_weights:
       k1: 0.9
       b: 0.4
     output:
       runfile_template: "run.beir.bm25-flat.trec-covid.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"] 
-
-  beir-v1.0.0-bioasq:
-    name: "BEIR v1.0.0 — BIOASQ"
-    index:
-      name: "beir-v1.0.0-bioasq.flat"
-    topics:
-      name: "beir-v1.0.0-bioasq-test"  
-    qrels:
-      name: "beir-v1.0.0-bioasq-test"  
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.bioasq.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-nfcorpus:
-    name: "BEIR v1.0.0 — NFCORPUS"
-    index:
-      name: "beir-v1.0.0-nfcorpus.flat"
-    topics:
-      name: "beir-v1.0.0-nfcorpus-test"  
-    qrels:
-      name: "beir-v1.0.0-nfcorpus-test"  
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.nfcorpus.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"] 
-
-  beir-v1.0.0-nq:
-    name: "BEIR v1.0.0 — NQ"
-    index:
-      name: "beir-v1.0.0-nq.flat"
-    topics:
-      name: "beir-v1.0.0-nq-test"  
-    qrels:
-      name: "beir-v1.0.0-nq-test"  
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.nq.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-hotpotqa:
-    name: "BEIR v1.0.0 — HOTPOTQA"
-    index:
-      name: "beir-v1.0.0-hotpotqa.flat"
-    topics:
-      name: "beir-v1.0.0-hotpotqa-test"  
-    qrels:
-      name: "beir-v1.0.0-hotpotqa-test"  
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.hotpotqa.txt"
       eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
 
   beir-v1.0.0-fiqa:
@@ -150,9 +77,9 @@ datasets:
     index:
       name: "beir-v1.0.0-fiqa.flat"
     topics:
-      name: "beir-v1.0.0-fiqa-test"  
+      name: "beir-v1.0.0-fiqa-test"
     qrels:
-      name: "beir-v1.0.0-fiqa-test"  
+      name: "beir-v1.0.0-fiqa-test"
     bm25_weights:
       k1: 0.9
       b: 0.4
@@ -160,29 +87,14 @@ datasets:
       runfile_template: "run.beir.bm25-flat.fiqa.txt"
       eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
 
-  beir-v1.0.0-signal1m:
-    name: "BEIR v1.0.0 — SIGNAL1M"
-    index:
-      name: "beir-v1.0.0-signal1m.flat"
-    topics:
-      name: "beir-v1.0.0-signal1m-test"  
-    qrels:
-      name: "beir-v1.0.0-signal1m-test"  
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.signal1m.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
   beir-v1.0.0-trec-news:
     name: "BEIR v1.0.0 — TREC-NEWS"
     index:
       name: "beir-v1.0.0-trec-news.flat"
     topics:
-      name: "beir-v1.0.0-trec-news-test"  
+      name: "beir-v1.0.0-trec-news-test"
     qrels:
-      name: "beir-v1.0.0-trec-news-test"  
+      name: "beir-v1.0.0-trec-news-test"
     bm25_weights:
       k1: 0.9
       b: 0.4
@@ -190,29 +102,14 @@ datasets:
       runfile_template: "run.beir.bm25-flat.trec-news.txt"
       eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
 
-  beir-v1.0.0-robust04:
-    name: "BEIR v1.0.0 — ROBUST04"
-    index:
-      name: "beir-v1.0.0-robust04.flat"
-    topics:
-      name: "beir-v1.0.0-robust04-test"  
-    qrels:
-      name: "beir-v1.0.0-robust04-test"  
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.robust04.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
   beir-v1.0.0-arguana:
     name: "BEIR v1.0.0 — ARGUANA"
     index:
       name: "beir-v1.0.0-arguana.flat"
     topics:
-      name: "beir-v1.0.0-arguana-test"  
+      name: "beir-v1.0.0-arguana-test"
     qrels:
-      name: "beir-v1.0.0-arguana-test"  
+      name: "beir-v1.0.0-arguana-test"
     bm25_weights:
       k1: 0.9
       b: 0.4
@@ -220,224 +117,14 @@ datasets:
       runfile_template: "run.beir.bm25-flat.arguana.txt"
       eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
 
-  beir-v1.0.0-webis-touche2020:
-    name: "BEIR v1.0.0 — WEBIS-TOUCHE2020"
-    index:
-      name: "beir-v1.0.0-webis-touche2020.flat"
-    topics:
-      name: "beir-v1.0.0-webis-touche2020-test"  
-    qrels:
-      name: "beir-v1.0.0-webis-touche2020-test"  
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.webis-touche2020.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-cqadupstack-android:
-    name: "BEIR v1.0.0 — CQADUPSTACK-ANDROID"
-    index:
-      name: "beir-v1.0.0-cqadupstack-android.flat"
-    topics:
-      name: "beir-v1.0.0-cqadupstack-android-test"
-    qrels:
-      name: "beir-v1.0.0-cqadupstack-android-test"
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.cqadupstack-android.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-cqadupstack-english:
-    name: "BEIR v1.0.0 — CQADUPSTACK-ENGLISH"
-    index:
-      name: "beir-v1.0.0-cqadupstack-english.flat"
-    topics:
-      name: "beir-v1.0.0-cqadupstack-english-test"
-    qrels:
-      name: "beir-v1.0.0-cqadupstack-english-test"
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.cqadupstack-english.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-cqadupstack-gaming:
-    name: "BEIR v1.0.0 — CQADUPSTACK-GAMING"
-    index:
-      name: "beir-v1.0.0-cqadupstack-gaming.flat"
-    topics:
-      name: "beir-v1.0.0-cqadupstack-gaming-test"
-    qrels:
-      name: "beir-v1.0.0-cqadupstack-gaming-test"
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.cqadupstack-gaming.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-cqadupstack-gis:
-    name: "BEIR v1.0.0 — CQADUPSTACK-GIS"
-    index:
-      name: "beir-v1.0.0-cqadupstack-gis.flat"
-    topics:
-      name: "beir-v1.0.0-cqadupstack-gis-test"
-    qrels:
-      name: "beir-v1.0.0-cqadupstack-gis-test"
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.cqadupstack-gis.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-cqadupstack-mathematica:
-    name: "BEIR v1.0.0 — CQADUPSTACK-MATHEMATICA"
-    index:
-      name: "beir-v1.0.0-cqadupstack-mathematica.flat"
-    topics:
-      name: "beir-v1.0.0-cqadupstack-mathematica-test"
-    qrels:
-      name: "beir-v1.0.0-cqadupstack-mathematica-test"
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.cqadupstack-mathematica.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-cqadupstack-physics:
-    name: "BEIR v1.0.0 — CQADUPSTACK-PHYSICS"
-    index:
-      name: "beir-v1.0.0-cqadupstack-physics.flat"
-    topics:
-      name: "beir-v1.0.0-cqadupstack-physics-test"
-    qrels:
-      name: "beir-v1.0.0-cqadupstack-physics-test"
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.cqadupstack-physics.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-cqadupstack-programmers:
-    name: "BEIR v1.0.0 — CQADUPSTACK-PROGRAMMERS"
-    index:
-      name: "beir-v1.0.0-cqadupstack-programmers.flat"
-    topics:
-      name: "beir-v1.0.0-cqadupstack-programmers-test"
-    qrels:
-      name: "beir-v1.0.0-cqadupstack-programmers-test"
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.cqadupstack-programmers.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-cqadupstack-stats:
-    name: "BEIR v1.0.0 — CQADUPSTACK-STATS"
-    index:
-      name: "beir-v1.0.0-cqadupstack-stats.flat"
-    topics:
-      name: "beir-v1.0.0-cqadupstack-stats-test"
-    qrels:
-      name: "beir-v1.0.0-cqadupstack-stats-test"
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.cqadupstack-stats.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-cqadupstack-tex:
-    name: "BEIR v1.0.0 — CQADUPSTACK-TEX"
-    index:
-      name: "beir-v1.0.0-cqadupstack-tex.flat"
-    topics:
-      name: "beir-v1.0.0-cqadupstack-tex-test"
-    qrels:
-      name: "beir-v1.0.0-cqadupstack-tex-test"
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.cqadupstack-tex.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-cqadupstack-unix:
-    name: "BEIR v1.0.0 — CQADUPSTACK-UNIX"
-    index:
-      name: "beir-v1.0.0-cqadupstack-unix.flat"
-    topics:
-      name: "beir-v1.0.0-cqadupstack-unix-test"
-    qrels:
-      name: "beir-v1.0.0-cqadupstack-unix-test"
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.cqadupstack-unix.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-cqadupstack-webmasters:
-    name: "BEIR v1.0.0 — CQADUPSTACK-WEBMASTERS"
-    index:
-      name: "beir-v1.0.0-cqadupstack-webmasters.flat"
-    topics:
-      name: "beir-v1.0.0-cqadupstack-webmasters-test"
-    qrels:
-      name: "beir-v1.0.0-cqadupstack-webmasters-test"
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.cqadupstack-webmasters.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-cqadupstack-wordpress:
-    name: "BEIR v1.0.0 — CQADUPSTACK-WORDPRESS"
-    index:
-      name: "beir-v1.0.0-cqadupstack-wordpress.flat"
-    topics:
-      name: "beir-v1.0.0-cqadupstack-wordpress-test"
-    qrels:
-      name: "beir-v1.0.0-cqadupstack-wordpress-test"
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.cqadupstack-wordpress.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-quora:
-    name: "BEIR v1.0.0 — QUORA"
-    index:
-      name: "beir-v1.0.0-quora.flat"
-    topics:
-      name: "beir-v1.0.0-quora-test"  
-    qrels:
-      name: "beir-v1.0.0-quora-test"  
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.quora.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
   beir-v1.0.0-dbpedia-entity:
     name: "BEIR v1.0.0 — DBPEDIA-ENTITY"
     index:
       name: "beir-v1.0.0-dbpedia-entity.flat"
     topics:
-      name: "beir-v1.0.0-dbpedia-entity-test"  
+      name: "beir-v1.0.0-dbpedia-entity-test"
     qrels:
-      name: "beir-v1.0.0-dbpedia-entity-test"  
+      name: "beir-v1.0.0-dbpedia-entity-test"
     bm25_weights:
       k1: 0.9
       b: 0.4
@@ -445,64 +132,17 @@ datasets:
       runfile_template: "run.beir.bm25-flat.dbpedia-entity.txt"
       eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
 
-  beir-v1.0.0-scidocs:
-    name: "BEIR v1.0.0 — SCIDOCS"
-    index:
-      name: "beir-v1.0.0-scidocs.flat"
-    topics:
-      name: "beir-v1.0.0-scidocs-test"  
-    qrels:
-      name: "beir-v1.0.0-scidocs-test"  
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.scidocs.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-fever:
-    name: "BEIR v1.0.0 — FEVER"
-    index:
-      name: "beir-v1.0.0-fever.flat"
-    topics:
-      name: "beir-v1.0.0-fever-test"  
-    qrels:
-      name: "beir-v1.0.0-fever-test"  
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.fever.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  beir-v1.0.0-climate-fever:
-    name: "BEIR v1.0.0 — CLIMATE-FEVER"
-    index:
-      name: "beir-v1.0.0-climate-fever.flat"
-    topics:
-      name: "beir-v1.0.0-climate-fever-test"  
-    qrels:
-      name: "beir-v1.0.0-climate-fever-test"  
-    bm25_weights:
-      k1: 0.9
-      b: 0.4
-    output:
-      runfile_template: "run.beir.bm25-flat.climate-fever.txt"
-      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
   beir-v1.0.0-scifact:
     name: "BEIR v1.0.0 — SCIFACT"
     index:
       name: "beir-v1.0.0-scifact.flat"
     topics:
-      name: "beir-v1.0.0-scifact-test"  
+      name: "beir-v1.0.0-scifact-test"
     qrels:
-      name: "beir-v1.0.0-scifact-test"  
+      name: "beir-v1.0.0-scifact-test"
     bm25_weights:
       k1: 0.9
       b: 0.4
     output:
       runfile_template: "run.beir.bm25-flat.scifact.txt"
       eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
-
-  
