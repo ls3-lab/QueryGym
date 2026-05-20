@@ -53,7 +53,7 @@ const metricCols: string[] = view?.metric_columns ?? datasetMeta?.eval_metrics ?
             <tr class="border-b border-qg-border text-left">
               <th class="px-3 py-2">Method</th>
               <th class="px-3 py-2">Model</th>
-              <th class="px-3 py-2">Params</th>
+              <th class="px-3 py-2">Retriever</th>
               {metricCols.map((m) => (
                 <th class="px-3 py-2 text-right qg-mono text-xs">{m}</th>
               ))}
@@ -63,11 +63,9 @@ const metricCols: string[] = view?.metric_columns ?? datasetMeta?.eval_metrics ?
           <tbody>
             {runs.map((r: any) => (
               <tr class="border-b border-qg-border/60 hover:bg-qg-bg-soft">
-                <td class="px-3 py-2 font-medium">{r.method_id}</td>
+                <td class="px-3 py-2 font-medium">{r.method_display ?? r.method_id}</td>
                 <td class="px-3 py-2 qg-mono text-xs">{r.model}</td>
-                <td class="px-3 py-2 qg-mono text-xs text-qg-fg-muted">
-                  {r.method_params_json}
-                </td>
+                <td class="px-3 py-2 text-xs">{r.retriever_display ?? r.retriever_id}</td>
                 {metricCols.map((m) => (
                   <td class="px-3 py-2 text-right">
                     <MetricCell value={r.metrics?.[m]} best={r.best_for?.[m]} />
