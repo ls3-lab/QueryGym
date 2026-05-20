@@ -1,0 +1,53 @@
+---
+import Default from "../layouts/Default.astro";
+import CitationCard from "../components/CitationCard.astro";
+
+const wwwBibtex = `@misc{bigdeli2025querygymtoolkitreproduciblellmbased,
+  title={QueryGym: A Toolkit for Reproducible LLM-Based Query Reformulation},
+  author={Amin Bigdeli and Radin Hamidi Rad and Mert Incesu and Negar Arabzadeh and Charles L. A. Clarke and Ebrahim Bagheri},
+  year={2025},
+  eprint={2511.15996},
+  archivePrefix={arXiv},
+  primaryClass={cs.IR},
+  url={https://arxiv.org/abs/2511.15996},
+}`;
+
+const sigirBibtex = `@inproceedings{querygym2026reproducibility,
+  title={Reproducing LLM-Based Query Reformulation Across Backends with QueryGym},
+  author={Amin Bigdeli and Radin Hamidi Rad and Mert Incesu and Negar Arabzadeh and Charles L. A. Clarke and Ebrahim Bagheri},
+  booktitle={Proceedings of the 49th International ACM SIGIR Conference on Research and Development in Information Retrieval},
+  series={SIGIR '26},
+  year={2026},
+  note={Reproducibility Track},
+}`;
+---
+
+<Default
+  title="Cite"
+  description="How to cite QueryGym in research papers — BibTeX for the WWW 2026 Demos paper and the SIGIR 2026 Reproducibility Track paper."
+>
+  <section class="!py-4">
+    <h1 class="text-3xl font-bold md:text-4xl">Cite QueryGym</h1>
+    <p class="mt-3 max-w-2xl text-qg-fg-muted">
+      Two papers back QueryGym. Use the toolkit citation if you're using the
+      library; add the reproducibility citation if you're referring to the
+      SIGIR 2026 leaderboard numbers.
+    </p>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-2">
+      <CitationCard
+        title="QueryGym: A Toolkit for Reproducible LLM-Based Query Reformulation"
+        venue="WWW 2026 — Demos"
+        authors="Bigdeli, Hamidi Rad, Incesu, Arabzadeh, Clarke, Bagheri"
+        bibtex={wwwBibtex}
+        url="https://arxiv.org/abs/2511.15996"
+      />
+      <CitationCard
+        title="Reproducing LLM-Based Query Reformulation Across Backends with QueryGym"
+        venue="SIGIR 2026 — Reproducibility Track"
+        authors="Bigdeli, Hamidi Rad, Incesu, Arabzadeh, Clarke, Bagheri"
+        bibtex={sigirBibtex}
+      />
+    </div>
+  </section>
+</Default>
