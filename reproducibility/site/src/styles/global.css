@@ -10,120 +10,479 @@
   .qg-card {
     @apply rounded-xl border border-qg-border bg-qg-bg-soft p-6 transition hover:border-qg-accent;
   }
-
-  /* Leaderboard table — the card that wraps a scrollable table with sticky
-   * thead and sticky axis columns. Fixed height keeps the filter card +
-   * page chrome in view while rows scroll inside. */
-  .qg-table-card {
-    @apply flex h-[600px] flex-col overflow-hidden rounded-xl border border-qg-border bg-qg-bg-soft;
-  }
-  .qg-table-scroll {
-    @apply flex-grow overflow-auto;
-  }
-
-  /* Filter strip — wraps chips for axes + metric toggle in one card. */
-  .qg-filter-card {
-    @apply mb-4 rounded-xl border border-qg-border bg-qg-bg-soft p-4;
-  }
 }
 
-/* ---------- Scrollbar styling ------------------------------------------- */
+/* =====================================================================
+ * Leaderboard table — Pyserini-2cr-inspired layout (.lb-* namespace).
+ * Used by the home matrix and every per-X page. See
+ * tmp/mockups/leaderboard-pyserini-style.html for the design source.
+ * ===================================================================== */
 
-.qg-table-scroll::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-.qg-table-scroll::-webkit-scrollbar-track {
+/* ---------- filter card -------------------------------------------------- */
+.lb-filter-card {
   background: var(--qg-bg-soft);
+  border: 1px solid var(--qg-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
 }
-.qg-table-scroll::-webkit-scrollbar-thumb {
-  background: var(--qg-border);
-  border-radius: 4px;
+.lb-filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; row-gap: 10px; }
+.lb-filter-row + .lb-filter-row {
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid var(--qg-border-soft, var(--qg-border));
 }
-.qg-table-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--qg-fg-muted);
+.lb-filter-group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.lb-filter-label {
+  color: var(--qg-fg-muted); font-size: 10.5px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  font-weight: 600; margin-right: 1px;
 }
-.qg-table-scroll {
+
+.lb-chip {
+  font-size: 11.5px; padding: 4px 9px; border-radius: 999px;
+  border: 1px solid var(--qg-border); color: var(--qg-fg);
+  background: var(--qg-bg); cursor: pointer; user-select: none;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.lb-chip:hover { border-color: var(--qg-accent); }
+.lb-chip.active {
+  background: var(--qg-accent); border-color: var(--qg-accent); color: #fff;
+}
+
+/* multi-select dropdown (Datasets) */
+.lb-multi { position: relative; }
+.lb-multi-trigger {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11.5px; padding: 4px 10px; border-radius: 999px;
+  border: 1px solid var(--qg-border); color: var(--qg-fg);
+  background: var(--qg-bg); cursor: pointer; user-select: none;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.lb-multi-trigger:hover { border-color: var(--qg-accent); }
+.lb-multi-trigger.has-filter {
+  background: var(--qg-accent); border-color: var(--qg-accent); color: #fff;
+}
+.lb-multi-trigger .caret { font-size: 9px; opacity: 0.7; }
+.lb-multi-panel {
+  position: absolute; top: calc(100% + 6px); left: 0;
+  min-width: 220px;
+  background: var(--qg-bg);
+  border: 1px solid var(--qg-border);
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+  padding: 8px;
+  z-index: 60;
+  display: none;
+}
+.lb-multi.open .lb-multi-panel { display: block; }
+.lb-multi-section + .lb-multi-section {
+  border-top: 1px solid var(--qg-border-soft, var(--qg-border));
+  margin-top: 4px; padding-top: 8px;
+}
+.lb-multi-section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 4px 4px;
+}
+.lb-multi-section-head .label {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--qg-fg-muted);
+}
+.lb-multi-section-head .actions {
+  display: inline-flex; gap: 4px; align-items: center; font-size: 10px;
+  color: var(--qg-fg-muted);
+}
+.lb-multi-section-head .actions button {
+  background: transparent; border: 0; color: var(--qg-fg-muted);
+  cursor: pointer; padding: 0; font-family: inherit; font-size: 10px;
+}
+.lb-multi-section-head .actions button:hover { color: var(--qg-accent); }
+.lb-multi-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 6px; border-radius: 6px;
+  cursor: pointer; color: var(--qg-fg); font-size: 12px;
+}
+.lb-multi-item:hover { background: var(--qg-bg-soft); }
+.lb-multi-item input[type="checkbox"] {
+  width: 14px; height: 14px;
+  accent-color: var(--qg-accent);
+  margin: 0; cursor: pointer;
+}
+
+/* segmented metric control */
+.lb-seg {
+  display: inline-flex;
+  border: 1px solid var(--qg-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--qg-bg);
+  height: 26px;
+}
+.lb-seg-btn {
+  padding: 0 11px; font-size: 11.5px;
+  border: 0; background: transparent;
+  color: var(--qg-fg-muted); cursor: pointer;
+  font-family: inherit; font-weight: 500;
+  border-right: 1px solid var(--qg-border);
+  transition: background 0.15s, color 0.15s;
+  line-height: 24px;
+}
+.lb-seg-btn:last-child { border-right: 0; }
+.lb-seg-btn:hover:not(.active) { color: var(--qg-fg); background: var(--qg-bg-soft); }
+.lb-seg-btn.active { background: var(--qg-accent); color: #fff; }
+
+/* search input */
+.lb-search-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.lb-search-input {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--qg-bg); border: 1px solid var(--qg-border);
+  border-radius: 8px; padding: 5px 9px; min-width: 240px;
+}
+.lb-search-input input {
+  background: transparent; border: 0; outline: 0; color: var(--qg-fg);
+  font-size: 12px; flex: 1; font-family: inherit;
+}
+.lb-search-input svg { color: var(--qg-fg-muted); }
+.lb-row-count { font-size: 11px; color: var(--qg-fg-muted); white-space: nowrap; }
+
+/* best-in-column legend */
+.lb-best-legend {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11px; color: var(--qg-fg-muted);
+  letter-spacing: 0.02em; white-space: nowrap;
+}
+.lb-best-legend .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--qg-accent);
+  box-shadow: 0 0 5px rgba(236,72,153,0.55);
+}
+
+/* ---------- table card ---------------------------------------------------
+   The card is sized by its flex parent (main) which fills the viewport.
+   It takes whatever vertical space remains after the filter card etc.
+   Inner scroll on both axes; sticky thead anchors to top:0 of the scroll
+   container; sticky axis cols anchor to its left. min-height:0 on the
+   scroll is the standard flex+overflow fix so it can actually shrink. */
+.lb-table-card {
+  background: var(--qg-bg-soft);
+  border: 1px solid var(--qg-border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.lb-table-scroll {
+  flex: 1; overflow: auto;
+  min-height: 0;
   scrollbar-width: thin;
   scrollbar-color: var(--qg-border) var(--qg-bg-soft);
 }
+.lb-table-scroll::-webkit-scrollbar { width: 9px; height: 9px; }
+.lb-table-scroll::-webkit-scrollbar-track { background: var(--qg-bg-soft); }
+.lb-table-scroll::-webkit-scrollbar-thumb { background: var(--qg-border); border-radius: 6px; }
+.lb-table-scroll::-webkit-scrollbar-thumb:hover { background: var(--qg-fg-muted); }
 
-/* ---------- Sticky thead inside the scroll container ------------------- */
+table.lb {
+  width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px;
+  --axis-w-1: 30px; --axis-w-2: 80px; --axis-w-3: 132px; --axis-w-4: 94px;
+}
 
-.qg-table-scroll thead th {
+.lb thead th {
   position: sticky;
-  top: 0;
-  z-index: 10;
-  background: var(--qg-bg-soft);
-  box-shadow: inset 0 -1px 0 var(--qg-border);
+  z-index: 12;
+  background: var(--qg-bg-softer, var(--qg-bg-soft));
+  color: var(--qg-fg-muted);
+  font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.05em; text-align: left;
+  padding: 8px 8px;
+  border-bottom: 1px solid var(--qg-border);
+  white-space: nowrap;
 }
-
-/* ---------- Sticky axis columns ---------------------------------------- *
- * Each page declares per-table widths via inline style on the <table>:
- *   style="--qg-axis-w-1: 120px; --qg-axis-w-2: 180px;"
- * Then applies .qg-axis-1 / -2 / -3 on the relevant <th> + <td>. */
-
-.qg-axis-1,
-.qg-axis-2,
-.qg-axis-3 {
-  position: sticky;
-  z-index: 20;
-  background: var(--qg-bg-soft);
+/* Two-row sticky thead: top row at top:0, bot row stacked just below it.
+   Without the explicit offset, both rows would pin at top:0 and the bot row
+   (later in DOM) would paint over the top row. */
+.lb thead tr.top th { top: 0; padding-bottom: 6px; }
+.lb thead tr.bot th {
+  top: 28px;
+  padding-top: 7px; font-size: 10px; color: var(--qg-fg-muted);
+  border-bottom: 1px solid var(--qg-border); font-weight: 500;
 }
-.qg-axis-1 { left: 0; min-width: var(--qg-axis-w-1, 120px); }
-.qg-axis-2 { left: var(--qg-axis-w-1, 120px); min-width: var(--qg-axis-w-2, 180px); }
-.qg-axis-3 {
-  left: calc(var(--qg-axis-w-1, 120px) + var(--qg-axis-w-2, 180px));
-  border-right: 1px solid var(--qg-border);
+.lb thead tr.top th.group {
+  text-align: center; color: var(--qg-fg);
+  border-left: 1px solid var(--qg-border-soft, var(--qg-border));
 }
+.lb thead tr.top th.group:first-of-type { border-left: 0; }
+/* center-align matches the value cells; padding-left:15 compensates for the
+   ~13px of right-side space reserved by the inline sort arrow, so the name's
+   visual centerline stays aligned with the value below it. (Scope is just
+   `.lb thead .metric` — works whether the metric th is in tr.top or tr.bot.) */
+.lb thead .metric {
+  text-align: center;
+  padding-left: 15px;
+}
+.lb thead .metric.first { border-left: 1px solid var(--qg-border-soft, var(--qg-border)); }
+.lb .hidden,
+.lb .lb-hide-ds,
+.lb .lb-hide-metric { display: none !important; }
+/* tabs/panes outside the .lb table also need these */
+.lb-hide-ds, .lb-hide-metric { display: none !important; }
 
-/* Body cells: lower z so sticky thead wins; different bg so columns pop
- * against the soft-bg header. Hover keeps the columns in sync with the row. */
-.qg-table-scroll tbody td.qg-axis-1,
-.qg-table-scroll tbody td.qg-axis-2,
-.qg-table-scroll tbody td.qg-axis-3 {
+/* small count badge for axis col headers ("Method (10)") */
+.lb-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 16px; padding: 0 5px; height: 14px;
+  margin-left: 5px;
+  border-radius: 999px;
   background: var(--qg-bg);
-  z-index: 5;
-}
-.qg-table-scroll tbody tr:hover td.qg-axis-1,
-.qg-table-scroll tbody tr:hover td.qg-axis-2,
-.qg-table-scroll tbody tr:hover td.qg-axis-3 {
-  background: var(--qg-row-hover);
-}
-
-/* On narrow viewports the sticky columns would eat the whole screen; drop
- * back to standard scroll so users can reach the data columns. */
-@media (max-width: 768px) {
-  .qg-axis-1,
-  .qg-axis-2,
-  .qg-axis-3 {
-    position: static;
-    min-width: 0;
-  }
-  .qg-axis-3 { border-right: none; }
+  border: 1px solid var(--qg-border);
+  font-size: 9px; font-weight: 500;
+  color: var(--qg-fg-muted);
+  letter-spacing: 0;
+  text-transform: none;
+  vertical-align: middle;
 }
 
-/* ---------- Best-cell highlight ---------------------------------------- */
+/* sortable metric header — arrow always reserves 9px, visible only when sorted */
+.lb thead .metric { cursor: pointer; user-select: none; transition: color 0.15s; }
+.lb thead .metric:hover { color: var(--qg-fg); }
+.lb thead .metric .name { display: inline-block; }
+.lb thead .metric .arrow {
+  display: inline-block;
+  margin-left: 4px;
+  width: 9px; text-align: center;
+  font-size: 9px;
+  visibility: hidden;
+  vertical-align: middle;
+  pointer-events: none;
+}
+.lb thead .metric.sort-asc .arrow,
+.lb thead .metric.sort-desc .arrow { visibility: visible; }
+.lb thead .metric.sort-asc, .lb thead .metric.sort-desc { color: var(--qg-accent); }
+.lb thead .metric.sort-asc  .arrow::after { content: '▲'; }
+.lb thead .metric.sort-desc .arrow::after { content: '▼'; }
 
-.qg-cell-best {
-  color: var(--qg-accent);
-  font-weight: 700;
+/* sticky axis cols (width:1px + nowrap pins them to content width).
+   Z-index ladder:
+     thead axis intersection: 14 (covers everything when both scrolls move)
+     thead non-axis (datasets): 12 (from .lb thead th)
+     tbody axis (sticky-left):  11
+     tbody non-axis:            (auto, normal flow)
+*/
+.lb .ax {
+  position: sticky;
+  background: var(--qg-bg-softer, var(--qg-bg-soft));
+  z-index: 11;
+  width: 1px;
+  white-space: nowrap;
 }
-[data-theme="dark"] .qg-cell-best {
-  text-shadow: 0 0 6px rgba(236, 72, 153, 0.4);
+/* corner cells (axis × thead): stick both ways, above all */
+.lb thead .ax { z-index: 14; }
+.lb tbody .ax { background: var(--qg-bg); }
+.lb tbody tr.data:hover .ax { background: var(--qg-row-hover, var(--qg-bg-soft)); }
+.lb tbody tr.data.expanded > .ax { background: var(--qg-bg-soft); }
+.lb .ax-1 { left: 0; min-width: var(--axis-w-1); padding-left: 8px; padding-right: 4px; }
+.lb .ax-2 { left: var(--axis-w-1); min-width: var(--axis-w-2); }
+.lb .ax-3 { left: calc(var(--axis-w-1) + var(--axis-w-2)); min-width: var(--axis-w-3); }
+.lb .ax-4 {
+  left: calc(var(--axis-w-1) + var(--axis-w-2) + var(--axis-w-3));
+  min-width: var(--axis-w-4); border-right: 1px solid var(--qg-border);
 }
 
-/* ---------- Sort-arrow polish on InteractiveTable thead ---------------- */
+.lb tbody td {
+  padding: 7px 8px;
+  border-top: 1px solid var(--qg-border-soft, var(--qg-border));
+  white-space: nowrap;
+}
+.lb tbody tr.data:hover td { background-color: var(--qg-row-hover, var(--qg-bg-soft)); }
+.lb tbody tr.data.expanded > td { background-color: var(--qg-bg-soft); }
 
-.qg-itable table thead th .qg-sort-arrow {
-  opacity: 0.4;
-  font-size: 0.75rem;
-  margin-left: 0.25rem;
+/* metric value cells */
+.lb-metric-cell {
+  text-align: center; font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  min-width: 68px;
 }
-.qg-itable table thead th:hover .qg-sort-arrow {
-  opacity: 0.7;
+.lb-metric-cell.metric-primary { min-width: 80px; }
+.lb-metric-cell .primary  { color: var(--qg-fg); font-size: 12.5px; }
+.lb-metric-cell .secondary { color: var(--qg-fg-muted); font-size: 11px; }
+table.lb.mode-single .lb-metric-cell .secondary { color: var(--qg-fg); font-size: 12.5px; }
+.lb-metric-cell.best .primary,
+.lb-metric-cell.best .secondary { color: var(--qg-accent); font-weight: 700; }
+table.lb.mode-single .lb-metric-cell.best .secondary { color: var(--qg-accent); font-weight: 700; }
+[data-theme="dark"] .lb-metric-cell.best .primary,
+[data-theme="dark"] .lb-metric-cell.best .secondary { text-shadow: 0 0 6px rgba(236,72,153,0.35); }
+
+.lb-method-name { font-weight: 600; }
+
+/* expand/collapse button (15x15 plus/minus rotation) */
+.lb-exp-btn {
+  position: relative;
+  width: 15px; height: 15px;
+  border-radius: 4px;
+  background: var(--qg-bg-soft); border: 1px solid var(--qg-border);
+  color: var(--qg-fg-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
-.qg-itable table thead th[data-sort-dir] .qg-sort-arrow {
-  opacity: 1;
-  color: var(--qg-accent);
+.lb-exp-btn:hover { color: var(--qg-fg); border-color: var(--qg-accent); }
+.lb-exp-btn::before, .lb-exp-btn::after {
+  content: ''; position: absolute;
+  top: 50%; left: 50%;
+  width: 7px; height: 1.5px;
+  background: currentColor;
+  border-radius: 1px;
+  transform: translate(-50%, -50%);
+  transition: transform 0.28s cubic-bezier(.4,.0,.2,1);
+}
+.lb-exp-btn::after { transform: translate(-50%, -50%) rotate(90deg); }
+tr.expanded .lb-exp-btn {
+  background: var(--qg-accent); border-color: var(--qg-accent); color: #fff;
+}
+tr.expanded .lb-exp-btn::after { transform: translate(-50%, -50%) rotate(0deg); }
+
+/* expanded row panel — grid-rows transition for true height animation.
+   The td has full table width via colspan; we sticky-left the inner wrap
+   and clamp its width to the scroll-container's visible viewport (set as
+   --lb-vp-w in JS) so the panel stays in view regardless of horizontal
+   scroll, and DOES NOT extend the table's overall scroll width. */
+.lb-exp-row > td {
+  padding: 0 !important;
+  background: var(--qg-bg) !important;
+  border-top: 0 !important;
+}
+.lb-exp-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.32s cubic-bezier(.4,.0,.2,1);
+  position: sticky;
+  left: 0;
+  width: var(--lb-vp-w, 100%);
+  max-width: var(--lb-vp-w, 100%);
+}
+.lb-exp-row.show .lb-exp-wrap { grid-template-rows: 1fr; }
+.lb-exp-wrap > .lb-exp-inner { overflow: hidden; min-height: 0; }
+.lb-exp-panel {
+  padding: 16px 20px 20px;
+  background: var(--qg-bg);
+  border-top: 1px solid var(--qg-border);
+  border-bottom: 1px solid var(--qg-border);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.22s ease 0.06s, transform 0.22s ease 0.06s;
+}
+.lb-exp-row.show .lb-exp-panel { opacity: 1; transform: translateY(0); }
+
+.lb-exp-meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--qg-fg-muted); margin-bottom: 12px;
+}
+.lb-exp-meta .pill {
+  background: var(--qg-bg-soft); border: 1px solid var(--qg-border);
+  padding: 3px 9px; border-radius: 999px; font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--qg-fg);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.lb-exp-meta .pill strong {
+  color: var(--qg-fg-muted); font-weight: 500;
+  text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em;
+}
+
+/* tabs */
+.lb-tabs {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--qg-border);
+  margin-bottom: 14px; overflow-x: auto;
+  scrollbar-width: thin; scrollbar-color: var(--qg-border) transparent;
+}
+.lb-tab {
+  padding: 8px 13px; font-size: 12.5px; color: var(--qg-fg-muted);
+  cursor: pointer; border: 0; background: transparent;
+  border-bottom: 2px solid transparent; white-space: nowrap;
+  font-family: inherit; font-weight: 500;
+  display: flex; align-items: center; gap: 7px;
+  transition: color 0.15s;
+}
+.lb-tab:hover { color: var(--qg-fg); }
+.lb-tab.active { color: var(--qg-fg); border-bottom-color: var(--qg-accent); }
+.lb-tab .score { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--qg-fg-muted); }
+.lb-tab.active .score { color: var(--qg-accent); }
+.lb-tab-pane { display: none; }
+.lb-tab-pane.active { display: block; }
+
+/* code-step blocks */
+.lb-step {
+  background: var(--qg-bg-soft);
+  border: 1px solid var(--qg-border);
+  border-radius: 9px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.lb-step-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; background: var(--qg-bg-softer, var(--qg-bg-soft));
+  border-bottom: 1px solid var(--qg-border);
+}
+.lb-step-head .title {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 12px; font-weight: 600; color: var(--qg-fg);
+}
+.lb-step-head .num {
+  width: 18px; height: 18px; border-radius: 999px;
+  background: var(--qg-accent); color: #fff; font-size: 10.5px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.lb-step-head .hint {
+  color: var(--qg-fg-muted); font-size: 11px; font-weight: 400; margin-left: 4px;
+}
+.lb-copy-btn {
+  font-family: inherit; font-size: 11px; font-weight: 500;
+  padding: 4px 8px; border-radius: 6px;
+  border: 1px solid var(--qg-border); background: var(--qg-bg);
+  color: var(--qg-fg-muted); cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.lb-copy-btn:hover { color: var(--qg-fg); border-color: var(--qg-accent); }
+.lb-copy-btn.copied { color: var(--qg-accent); border-color: var(--qg-accent); }
+.lb-step pre {
+  margin: 0; padding: 12px 14px; overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace; font-size: 11.5px; line-height: 1.55;
+  color: var(--qg-fg);
+  scrollbar-width: thin; scrollbar-color: var(--qg-border) transparent;
+}
+.lb-step pre::-webkit-scrollbar { height: 7px; }
+.lb-step pre::-webkit-scrollbar-thumb { background: var(--qg-border); border-radius: 6px; }
+.lb-step pre .flag { color: #a78bfa; }
+.lb-step pre .val  { color: #6ee7b7; }
+
+.lb-exp-footer {
+  display: flex; gap: 10px; align-items: center;
+  margin-top: 6px; font-size: 11.5px; color: var(--qg-fg-muted);
+  flex-wrap: wrap;
+}
+.lb-exp-footer a { color: var(--qg-accent); text-decoration: none; }
+.lb-exp-footer a:hover { text-decoration: underline; }
+
+/* responsive */
+@media (max-width: 1280px) {
+  table.lb { --axis-w-2: 76px; --axis-w-3: 122px; --axis-w-4: 88px; }
+  .lb-metric-cell { min-width: 62px; }
+  .lb-metric-cell.metric-primary { min-width: 74px; }
+}
+@media (max-width: 1100px) {
+  table.lb { font-size: 12px; }
+  .lb-metric-cell { min-width: 58px; }
+  .lb-metric-cell.metric-primary { min-width: 68px; }
+  .lb tbody td, .lb thead th { padding: 6px 6px; }
+}
+@media (max-width: 900px) {
+  .lb .ax { position: static; }
+  .lb .ax-4 { border-right: 0; }
+  .lb-table-card { height: auto; }
+  .lb-filter-row { gap: 12px; }
+  .lb-search-wrap { margin-left: 0; width: 100%; }
+  .lb-search-input { min-width: 0; flex: 1; }
 }
