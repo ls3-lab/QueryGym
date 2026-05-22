@@ -1,10 +1,10 @@
 ---
 import Default from "../../layouts/Default.astro";
 import EmptyState from "../../components/EmptyState.astro";
-import InteractiveTable from "../../components/InteractiveTable.astro";
-import FilterChips from "../../components/FilterChips.astro";
-import MatrixCell from "../../components/MatrixCell.astro";
 import retrievers from "../../data/retrievers.json";
+import runs from "../../data/runs.json";
+import matrix from "../../data/matrix.json";
+import { buildReproduceCmds, retrieveHint, evaluateHint, type RunLike } from "../../lib/reproduce";
 
 const shards = import.meta.glob<{ default: any }>(
   "../../data/views/retriever-*.json",
@@ -40,9 +40,11 @@ const METRIC_LABEL: Record<string, string> = {
   ndcg_cut_10: "nDCG@10", recall_1000: "R@1k", recall_100: "R@100", map: "MAP",
 };
 
-const datasetCols = (await import("../../data/matrix.json")).default.dataset_columns;
+const datasetCols = matrix.dataset_columns;
+const beirCols = datasetCols.filter((d: any) => d.id.startsWith("beir-"));
+const dlCols = datasetCols.filter((d: any) => !d.id.startsWith("beir-"));
+
 const title = meta?.display_name ?? id ?? "Retriever";
-const tableId = "qg-retriever-table";
 
 const uniq = (xs: any[], key: string, displayKey?: string) => {
   const m = new Map<string, string>();
@@ -51,85 +53,498 @@ const uniq = (xs: any[], key: string, displayKey?: string) => {
 };
 const methodChoices = uniq(rows, "method_id", "method_display");
 const modelChoices = uniq(rows, "model", "model_display");
+
+const runsMap = runs as Record<string, any>;
+type Step = { num: number; title: string; hint: string; code: string };
+const reproCache: Record<string, Step[]> = {};
+function stepsFor(runId: string): Step[] | null {
+  if (!runId) return null;
+  if (reproCache[runId]) return reproCache[runId];
+  const r = runsMap[runId] as RunLike | undefined;
+  if (!r) return null;
+  const cmds = buildReproduceCmds(r);
+  const retrieverDisp = (r as any).retriever_display ?? (r as any).retriever_id ?? "";
+  const steps: Step[] = [
+    { num: 1, title: "reformulate", hint: "querygym → reformulated_queries.tsv", code: cmds.reformulate },
+  ];
+  if (cmds.retrieve) {
+    steps.push({ num: 2, title: "retrieve", hint: retrieveHint(retrieverDisp, cmds.paradigm), code: cmds.retrieve });
+  }
+  steps.push({
+    num: cmds.retrieve ? 3 : 2,
+    title: "evaluate",
+    hint: evaluateHint(Object.keys(r.metrics ?? {})),
+    code: cmds.evaluate,
+  });
+  reproCache[runId] = steps;
+  return steps;
+}
 ---
 
 <Default title={title} description={`Per-retriever leaderboard for ${title}.`}>
-  <a href="/retrievers/" class="text-sm text-qg-fg-muted hover:text-qg-fg">← All retrievers</a>
-  <h1 class="mt-2 text-2xl font-bold md:text-3xl">{title}</h1>
-  <div class="mt-1 qg-mono text-sm text-qg-fg-muted">{id} · {meta?.paradigm}</div>
-  <div class="mt-1 text-sm text-qg-fg-muted">{rows.length} method × model combinations</div>
-
   {rows.length === 0 ? (
-    <div class="mt-8">
-      <EmptyState title="No runs for this retriever yet" body="" />
-    </div>
+    <>
+      <a href="/retrievers/" class="text-xs text-qg-fg-muted hover:text-qg-fg">← All retrievers</a>
+      <div class="mt-6"><EmptyState title="No runs for this retriever yet" body="" /></div>
+    </>
   ) : (
     <>
-      <div class="mt-6 qg-filter-card">
-        <FilterChips
-          tableId={tableId}
-          groups={[
-            { key: "method", label: "Method",
-              values: [{ value: "", label: "All" }, ...methodChoices.map(([v, l]) => ({ value: v, label: l }))] },
-            { key: "model", label: "Model",
-              values: [{ value: "", label: "All" }, ...modelChoices.map(([v, l]) => ({ value: v, label: l }))] },
-            { key: "metric", label: "Metric",
-              values: [{ value: "primary", label: "nDCG@10" }, { value: "secondary", label: "Recall" }] },
-          ]}
-        />
-      </div>
+      <header class="mb-3">
+        <div class="mb-2 flex items-baseline gap-3">
+          <a href="/retrievers/" class="text-xs text-qg-fg-muted hover:text-qg-fg">← Retrievers</a>
+          <h2 class="text-xl font-semibold text-qg-fg md:text-2xl">{title}</h2>
+          <span class="qg-mono text-xs text-qg-fg-muted">{meta?.paradigm ?? ""}</span>
+          <div class="h-px flex-1 bg-qg-border"></div>
+          <span class="text-[11px] uppercase tracking-wider text-qg-fg-muted">
+            All results produced by
+            <span class="qg-mono font-semibold text-qg-accent">QueryGym</span>
+            · fully reproducible!
+          </span>
+        </div>
+        <p class="max-w-4xl text-xs leading-relaxed text-qg-fg-muted">
+          {rows.length} method × LLM configurations using this retriever across BEIR, MS MARCO DL, and DL-HARD.
+          <br />
+          Click any row or the <strong class="text-qg-fg">+</strong> button to expand. Tabs switch dataset
+          context. The three steps (reformulate → retrieve → evaluate) update accordingly.
+        </p>
+      </header>
 
-      <InteractiveTable searchPlaceholder="Filter by method, model…">
-        <div class="qg-table-card">
-          <div class="qg-table-scroll">
-            <table
-              id={tableId}
-              class="w-full text-sm"
-              style="--qg-axis-w-1: 120px; --qg-axis-w-2: 180px;"
-            >
-              <thead class="text-xs uppercase tracking-wide text-qg-fg-muted">
-                <tr>
-                  <th class="qg-axis-1 px-3 py-2 text-left">Method</th>
-                  <th class="qg-axis-2 px-3 py-2 text-left">Model</th>
-                  {datasetCols.map((d: any) => (
-                    <th class="qg-mono px-2 py-2 text-right text-xs whitespace-nowrap" title={d.id}>
-                      <div><span>{SHORT[d.id] ?? d.name}</span><span class="qg-sort-arrow-slot"></span></div>
-                      <div class="qg-col-label-primary text-[10px] font-normal text-qg-fg-muted">
-                        {METRIC_LABEL[d.primary_metric] ?? d.primary_metric}
-                      </div>
-                      <div class="qg-col-label-secondary hidden text-[10px] font-normal text-qg-fg-muted">
-                        {METRIC_LABEL[d.secondary_metric] ?? d.secondary_metric}
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row: any) => (
-                  <tr
-                    class="border-t border-qg-border/60 hover:bg-qg-bg-soft"
-                    data-method={row.method_id}
-                    data-model={row.model}
-                  >
-                    <td class="qg-axis-1 px-3 py-2 font-medium">{row.method_display ?? row.method_id}</td>
-                    <td class="qg-axis-2 px-3 py-2 qg-mono text-xs" data-sort-value={row.model_display ?? row.model}>{row.model_display ?? row.model}</td>
-                    {datasetCols.map((d: any) => {
-                      const cell = row.values?.[d.id] ?? {};
-                      return (
-                        <MatrixCell
-                          primary={cell[d.primary_metric]}
-                          secondary={d.secondary_metric ? cell[d.secondary_metric] : null}
-                          runId={row.run_ids?.[d.id]}
-                        />
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div class="lb-filter-card" data-lb-filters>
+        <div class="lb-filter-row">
+          <div class="lb-filter-group" data-group="model">
+            <span class="lb-filter-label">Model</span>
+            <button class="lb-chip active" data-value="">All</button>
+            {modelChoices.map(([v, l]) => (
+              <button class="lb-chip" data-value={v}>{l}</button>
+            ))}
+          </div>
+          <div class="lb-filter-group" data-group="method">
+            <span class="lb-filter-label">Method</span>
+            <button class="lb-chip active" data-value="">All</button>
+            {methodChoices.map(([v, l]) => (
+              <button class="lb-chip" data-value={v}>{l}</button>
+            ))}
+          </div>
+          <div class="lb-filter-group">
+            <span class="lb-filter-label">Datasets</span>
+            <div class="lb-multi" id="lb-ds-multi">
+              <button class="lb-multi-trigger" type="button" aria-haspopup="true">
+                <span class="lb-multi-count">{datasetCols.length} / {datasetCols.length} selected</span>
+                <span class="caret">▾</span>
+              </button>
+              <div class="lb-multi-panel" role="menu">
+                {beirCols.length > 0 && (
+                  <div class="lb-multi-section" data-family="beir">
+                    <div class="lb-multi-section-head">
+                      <span class="label">BEIR</span>
+                      <span class="actions">
+                        <button type="button" data-action="all">all</button>
+                        <span>·</span>
+                        <button type="button" data-action="none">none</button>
+                      </span>
+                    </div>
+                    {beirCols.map((d: any) => (
+                      <label class="lb-multi-item">
+                        <input type="checkbox" data-ds={d.id} checked />
+                        <span class="name">{SHORT[d.id] ?? d.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {dlCols.length > 0 && (
+                  <div class="lb-multi-section" data-family="dl">
+                    <div class="lb-multi-section-head">
+                      <span class="label">MS MARCO DL</span>
+                      <span class="actions">
+                        <button type="button" data-action="all">all</button>
+                        <span>·</span>
+                        <button type="button" data-action="none">none</button>
+                      </span>
+                    </div>
+                    {dlCols.map((d: any) => (
+                      <label class="lb-multi-item">
+                        <input type="checkbox" data-ds={d.id} checked />
+                        <span class="name">{SHORT[d.id] ?? d.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div class="lb-filter-group">
+            <span class="lb-filter-label">Metric</span>
+            <div class="lb-seg" id="lb-metric-seg" role="tablist">
+              <button class="lb-seg-btn active" data-mode="both" role="tab">Both</button>
+              <button class="lb-seg-btn" data-mode="ndcg" role="tab">nDCG</button>
+              <button class="lb-seg-btn" data-mode="recall" role="tab">Recall</button>
+            </div>
           </div>
         </div>
-      </InteractiveTable>
+        <div class="lb-filter-row">
+          <div class="lb-search-wrap">
+            <div class="lb-search-input">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input id="lb-search" placeholder="Filter by method, model, dataset…" autocomplete="off" />
+            </div>
+            <span class="lb-row-count"><span id="lb-shown">{rows.length}</span> / {rows.length} configs</span>
+          </div>
+          <span class="lb-best-legend" style="margin-left:auto"><span class="dot"></span> best in column</span>
+        </div>
+      </div>
+
+      <div class="lb-table-card">
+        <div class="lb-table-scroll">
+          <table id="lb-matrix" class="lb">
+            <thead>
+              <tr class="top">
+                <th class="ax ax-1" rowspan="2"></th>
+                <th class="ax ax-2" rowspan="2">Method</th>
+                <th class="ax ax-3" rowspan="2">LLM</th>
+                {datasetCols.map((d: any) => (
+                  <th class="group" colspan="2" data-ds={d.id} title={d.id}>{SHORT[d.id] ?? d.name}</th>
+                ))}
+              </tr>
+              <tr class="bot">
+                {datasetCols.map((d: any, di: number) => (
+                  <>
+                    <th class:list={["metric", "metric-primary", di === 0 && "first"]} data-ds={d.id} data-sort-ds={d.id} data-sort-metric="primary">
+                      <span class="name">{METRIC_LABEL[d.primary_metric] ?? d.primary_metric}<span class="arrow"></span></span>
+                    </th>
+                    <th class="metric metric-secondary" data-ds={d.id} data-sort-ds={d.id} data-sort-metric="secondary">
+                      <span class="name">{METRIC_LABEL[d.secondary_metric] ?? d.secondary_metric}<span class="arrow"></span></span>
+                    </th>
+                  </>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row: any, i: number) => {
+                const datasetsWithRuns = datasetCols.filter((d: any) => row.run_ids?.[d.id]);
+                return (
+                  <>
+                    <tr
+                      class="data"
+                      data-idx={i}
+                      data-method={row.method_id}
+                      data-model={row.model}
+                    >
+                      <td class="ax ax-1"><button class="lb-exp-btn" aria-label="expand"></button></td>
+                      <td class="ax ax-2"><span class="lb-method-name">{row.method_display ?? row.method_id}</span></td>
+                      <td class="ax ax-3 qg-mono" style="font-size:11.5px">{row.model_display ?? row.model}</td>
+                      {datasetCols.map((d: any, di: number) => {
+                        const cell = row.values?.[d.id] ?? {};
+                        const p = cell[d.primary_metric];
+                        const s = d.secondary_metric ? cell[d.secondary_metric] : null;
+                        const pTxt = p ? p.value.toFixed(4) : "—";
+                        const sTxt = s ? s.value.toFixed(4) : "—";
+                        return (
+                          <>
+                            <td
+                              class:list={["lb-metric-cell", "metric-primary", p?.best && "best", di === 0 && "first"]}
+                              data-ds={d.id}
+                              data-primary-value={p?.value ?? ""}
+                            ><span class="primary">{pTxt}</span></td>
+                            <td
+                              class:list={["lb-metric-cell", "metric-secondary", s?.best && "best"]}
+                              data-ds={d.id}
+                              data-secondary-value={s?.value ?? ""}
+                            ><span class="secondary">{sTxt}</span></td>
+                          </>
+                        );
+                      })}
+                    </tr>
+                    <tr class="lb-exp-row">
+                      <td colspan={3 + datasetCols.length * 2}>
+                        <div class="lb-exp-wrap"><div class="lb-exp-inner">
+                          <div class="lb-exp-panel">
+                            <div class="lb-exp-meta">
+                              <span class="pill"><strong>method</strong>{row.method_display ?? row.method_id}</span>
+                              <span class="pill"><strong>llm</strong>{row.model_display ?? row.model}</span>
+                              <span class="pill"><strong>retriever</strong>{title}</span>
+                            </div>
+                            {datasetsWithRuns.length > 0 ? (
+                              <>
+                                <div class="lb-tabs" role="tablist">
+                                  {datasetsWithRuns.map((d: any, ti: number) => {
+                                    const cell = row.values?.[d.id] ?? {};
+                                    const p = cell[d.primary_metric];
+                                    return (
+                                      <button class:list={["lb-tab", ti === 0 && "active"]} data-tab={d.id}>
+                                        {SHORT[d.id] ?? d.name}
+                                        {p && <span class="score">{p.value.toFixed(3)}</span>}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                                <div>
+                                  {datasetsWithRuns.map((d: any, ti: number) => {
+                                    const runId = row.run_ids[d.id];
+                                    const steps = stepsFor(runId);
+                                    return (
+                                      <div class:list={["lb-tab-pane", ti === 0 && "active"]} data-pane={d.id}>
+                                        {steps?.map((st) => (
+                                          <div class="lb-step">
+                                            <div class="lb-step-head">
+                                              <div class="title">
+                                                <span class="num">{st.num}</span>
+                                                {st.title}
+                                                <span class="hint">{st.hint}</span>
+                                              </div>
+                                              <button class="lb-copy-btn" data-copy>copy</button>
+                                            </div>
+                                            <pre>{st.code}</pre>
+                                          </div>
+                                        ))}
+                                        <div class="lb-exp-footer">
+                                          <span>Run id <span class="qg-mono">{runId}</span></span>
+                                          <span>·</span>
+                                          <a href={`/runs/${runId}`}>open full run detail →</a>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </>
+                            ) : (
+                              <div class="text-sm text-qg-fg-muted">No runs recorded.</div>
+                            )}
+                          </div>
+                        </div></div>
+                      </td>
+                    </tr>
+                  </>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </>
   )}
 </Default>
+
+<script>
+  const scrollEl = document.querySelector<HTMLElement>(".lb-table-scroll");
+  function updateVp() {
+    if (scrollEl) scrollEl.style.setProperty("--lb-vp-w", scrollEl.clientWidth + "px");
+  }
+  updateVp();
+  window.addEventListener("resize", updateVp);
+
+  const filterRoot = document.querySelector<HTMLElement>("[data-lb-filters]");
+  const table = document.getElementById("lb-matrix") as HTMLTableElement | null;
+  const tbody = table?.querySelector("tbody");
+  const search = document.getElementById("lb-search") as HTMLInputElement | null;
+  const shownEl = document.getElementById("lb-shown");
+
+  const filterState: Record<string, string> = { method: "", model: "" };
+
+  filterRoot?.querySelectorAll<HTMLElement>("[data-group]").forEach((g) => {
+    const key = g.dataset.group!;
+    g.querySelectorAll<HTMLButtonElement>("button.lb-chip").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        g.querySelectorAll("button.lb-chip").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        filterState[key] = btn.dataset.value ?? "";
+        applyVisibility();
+      });
+    });
+  });
+  function applyVisibility() {
+    if (!tbody) return;
+    const q = (search?.value ?? "").trim().toLowerCase();
+    let shown = 0;
+    tbody.querySelectorAll<HTMLTableRowElement>("tr.data").forEach((tr) => {
+      let hide = false;
+      for (const [k, v] of Object.entries(filterState)) {
+        if (v && tr.dataset[k] !== v) { hide = true; break; }
+      }
+      if (!hide && q) {
+        const txt = (tr.textContent ?? "").toLowerCase();
+        if (!txt.includes(q)) hide = true;
+      }
+      tr.style.display = hide ? "none" : "";
+      const exp = tr.nextElementSibling as HTMLElement | null;
+      if (exp?.classList.contains("lb-exp-row")) exp.style.display = hide ? "none" : "";
+      if (!hide) shown++;
+    });
+    if (shownEl) shownEl.textContent = String(shown);
+  }
+  search?.addEventListener("input", applyVisibility);
+
+  const dsMulti = document.getElementById("lb-ds-multi");
+  const dsTrigger = dsMulti?.querySelector<HTMLButtonElement>(".lb-multi-trigger");
+  const dsCount = dsMulti?.querySelector<HTMLElement>(".lb-multi-count");
+  const dsPanel = dsMulti?.querySelector<HTMLElement>(".lb-multi-panel");
+  const dsCheckboxes = Array.from(dsMulti?.querySelectorAll<HTMLInputElement>('input[type="checkbox"][data-ds]') ?? []);
+
+  dsTrigger?.addEventListener("click", (e) => { e.stopPropagation(); dsMulti?.classList.toggle("open"); });
+  dsPanel?.addEventListener("click", (e) => e.stopPropagation());
+  document.addEventListener("click", () => dsMulti?.classList.remove("open"));
+  dsCheckboxes.forEach((cb) => cb.addEventListener("change", applyDsFilter));
+  dsMulti?.querySelectorAll<HTMLButtonElement>('button[data-action]').forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const fam = btn.closest<HTMLElement>("[data-family]")?.dataset.family;
+      const isAll = btn.dataset.action === "all";
+      dsCheckboxes.forEach((cb) => {
+        const dsId = cb.dataset.ds ?? "";
+        const cbFam = dsId.startsWith("beir-") ? "beir" : "dl";
+        if (cbFam === fam) cb.checked = isAll;
+      });
+      applyDsFilter();
+    });
+  });
+  function applyDsFilter() {
+    const hidden = new Set<string>();
+    dsCheckboxes.forEach((cb) => { if (!cb.checked) hidden.add(cb.dataset.ds ?? ""); });
+    document.querySelectorAll<HTMLElement>("table.lb [data-ds]").forEach((el) => {
+      el.classList.toggle("lb-hide-ds", hidden.has(el.dataset.ds ?? ""));
+    });
+    document.querySelectorAll<HTMLElement>(".lb-tab").forEach((tab) => {
+      tab.classList.toggle("lb-hide-ds", hidden.has(tab.dataset.tab ?? ""));
+    });
+    document.querySelectorAll<HTMLElement>(".lb-tab-pane").forEach((p) => {
+      p.classList.toggle("lb-hide-ds", hidden.has(p.dataset.pane ?? ""));
+    });
+    document.querySelectorAll<HTMLElement>(".lb-exp-row").forEach((exp) => {
+      const activeTab = exp.querySelector<HTMLElement>(".lb-tab.active:not(.lb-hide-ds)");
+      if (!activeTab) {
+        const firstVisible = exp.querySelector<HTMLElement>(".lb-tab:not(.lb-hide-ds)");
+        if (firstVisible) {
+          exp.querySelectorAll<HTMLElement>(".lb-tab").forEach((t) => t.classList.remove("active"));
+          firstVisible.classList.add("active");
+          const id = firstVisible.dataset.tab;
+          exp.querySelectorAll<HTMLElement>(".lb-tab-pane").forEach((p) =>
+            p.classList.toggle("active", p.dataset.pane === id && !p.classList.contains("lb-hide-ds"))
+          );
+        }
+      }
+    });
+    const total = dsCheckboxes.length;
+    const selected = dsCheckboxes.filter((c) => c.checked).length;
+    if (dsCount) dsCount.textContent = `${selected} / ${total} selected`;
+    dsTrigger?.classList.toggle("has-filter", selected < total);
+  }
+
+  let metricMode: "both" | "ndcg" | "recall" = "both";
+  const segBtns = document.querySelectorAll<HTMLButtonElement>("#lb-metric-seg .lb-seg-btn");
+  segBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (btn.classList.contains("active")) return;
+      segBtns.forEach((b) => b.classList.toggle("active", b === btn));
+      metricMode = (btn.dataset.mode as any) ?? "both";
+      applyMetricMode();
+    });
+  });
+  function applyMetricMode() {
+    if (!table) return;
+    const showP = metricMode === "ndcg" || metricMode === "both";
+    const showS = metricMode === "recall" || metricMode === "both";
+    table.classList.toggle("mode-single", !(showP && showS));
+    table.querySelectorAll(".metric-primary").forEach((el) => el.classList.toggle("lb-hide-metric", !showP));
+    table.querySelectorAll(".metric-secondary").forEach((el) => el.classList.toggle("lb-hide-metric", !showS));
+    const newSpan = (showP ? 1 : 0) + (showS ? 1 : 0);
+    table.querySelectorAll<HTMLTableCellElement>("thead tr.top th.group").forEach((th) => { th.colSpan = newSpan || 1; });
+    const datasets = Array.from(table.querySelectorAll<HTMLTableCellElement>("thead tr.top th.group")).map((th) => th.dataset.ds);
+    datasets.forEach((dsId, di) => {
+      const p = table!.querySelector<HTMLElement>(`thead tr.bot .metric-primary[data-sort-ds="${dsId}"]`);
+      const s = table!.querySelector<HTMLElement>(`thead tr.bot .metric-secondary[data-sort-ds="${dsId}"]`);
+      if (p) p.classList.toggle("first", di === 0 && showP);
+      if (s) s.classList.toggle("first", di === 0 && !showP);
+    });
+    table.querySelectorAll<HTMLTableRowElement>("tbody tr.data").forEach((tr) => {
+      datasets.forEach((dsId, di) => {
+        const ps = tr.querySelectorAll<HTMLElement>(".metric-primary");
+        const ss = tr.querySelectorAll<HTMLElement>(".metric-secondary");
+        const p = ps[di]; const s = ss[di];
+        if (p) p.classList.toggle("first", di === 0 && showP);
+        if (s) s.classList.toggle("first", di === 0 && !showP);
+      });
+    });
+    if (sortState.dsId) applySort();
+  }
+
+  const sortState: { dsId: string | null; metric: "primary" | "secondary" | null; dir: "asc" | "desc" | null } = {
+    dsId: null, metric: null, dir: null,
+  };
+  function applySort() {
+    if (!tbody || !sortState.dsId || !sortState.dir) return;
+    const attr = sortState.metric === "primary" ? "primaryValue" : "secondaryValue";
+    const dir = sortState.dir === "asc" ? 1 : -1;
+    const dsIdx = Array.from(table!.querySelectorAll<HTMLTableCellElement>("thead tr.top th.group")).findIndex((th) => th.dataset.ds === sortState.dsId);
+    if (dsIdx < 0) return;
+    const dataRows = Array.from(tbody.querySelectorAll<HTMLTableRowElement>("tr.data"));
+    const pairs = dataRows.map((tr) => {
+      const cells = tr.querySelectorAll<HTMLTableCellElement>(sortState.metric === "primary" ? ".metric-primary" : ".metric-secondary");
+      const cell = cells[dsIdx];
+      const raw = cell?.dataset[attr] ?? "";
+      const n = parseFloat(raw);
+      return { tr, exp: tr.nextElementSibling, v: Number.isFinite(n) ? n : null };
+    });
+    pairs.sort((a, b) => {
+      if (a.v === null && b.v === null) return 0;
+      if (a.v === null) return 1;
+      if (b.v === null) return -1;
+      return (a.v - b.v) * dir;
+    });
+    pairs.forEach((p) => {
+      tbody!.appendChild(p.tr);
+      if (p.exp) tbody!.appendChild(p.exp);
+    });
+  }
+  function updateSortIndicators() {
+    table?.querySelectorAll(".metric").forEach((th) => th.classList.remove("sort-asc", "sort-desc"));
+    if (sortState.dir) {
+      const th = table?.querySelector(`thead .metric[data-sort-ds="${sortState.dsId}"][data-sort-metric="${sortState.metric}"]`);
+      th?.classList.add(`sort-${sortState.dir}`);
+    }
+  }
+  function setSort(dsId: string, metric: "primary" | "secondary") {
+    if (sortState.dsId === dsId && sortState.metric === metric) {
+      sortState.dir = sortState.dir === "desc" ? "asc" : "desc";
+    } else {
+      sortState.dsId = dsId; sortState.metric = metric; sortState.dir = "desc";
+    }
+    applySort();
+    updateSortIndicators();
+  }
+  table?.querySelectorAll<HTMLElement>("thead .metric").forEach((th) => {
+    th.addEventListener("click", () => {
+      const dsId = th.dataset.sortDs;
+      const m = th.dataset.sortMetric as "primary" | "secondary" | undefined;
+      if (dsId && m) setSort(dsId, m);
+    });
+  });
+
+  tbody?.querySelectorAll<HTMLTableRowElement>("tr.data").forEach((tr) => {
+    const exp = tr.nextElementSibling as HTMLElement | null;
+    if (!exp?.classList.contains("lb-exp-row")) return;
+    const toggle = (e?: Event) => {
+      if (e && (e.target as HTMLElement).closest("a, button.lb-copy-btn, button.lb-tab")) return;
+      const open = tr.classList.toggle("expanded");
+      exp.classList.toggle("show", open);
+    };
+    tr.addEventListener("click", toggle);
+    exp.querySelectorAll<HTMLButtonElement>(".lb-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        exp.querySelectorAll(".lb-tab").forEach((t) => t.classList.toggle("active", t === tab));
+        const id = tab.dataset.tab;
+        exp.querySelectorAll<HTMLElement>(".lb-tab-pane").forEach((p) => p.classList.toggle("active", p.dataset.pane === id));
+      });
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-copy]");
+    if (!btn) return;
+    const pre = btn.closest(".lb-step")?.querySelector("pre");
+    if (!pre) return;
+    navigator.clipboard.writeText(pre.textContent ?? "");
+    const prev = btn.textContent;
+    btn.textContent = "copied ✓";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = prev; btn.classList.remove("copied"); }, 1400);
+  });
+</script>

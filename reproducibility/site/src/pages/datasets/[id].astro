@@ -1,9 +1,9 @@
 ---
 import Default from "../../layouts/Default.astro";
 import EmptyState from "../../components/EmptyState.astro";
-import InteractiveTable from "../../components/InteractiveTable.astro";
-import FilterChips from "../../components/FilterChips.astro";
 import datasetsList from "../../data/datasets.json";
+import runs from "../../data/runs.json";
+import { buildReproduceCmds, retrieveHint, evaluateHint, type RunLike } from "../../lib/reproduce";
 
 const shards = import.meta.glob<{ default: any }>(
   "../../data/views/dataset-*.json",
@@ -26,113 +26,341 @@ const METRIC_LABEL: Record<string, string> = {
   map:         "MAP",
 };
 
+const SHORT: Record<string, string> = {
+  "msmarco-v1-passage.trecdl2019": "DL 2019",
+  "msmarco-v1-passage.trecdl2020": "DL 2020",
+  "msmarco-v1-passage.dlhard":     "DL-HARD",
+  "beir-v1.0.0-scifact":           "SciFact",
+  "beir-v1.0.0-arguana":           "ArguAna",
+  "beir-v1.0.0-trec-covid":        "COVID",
+  "beir-v1.0.0-fiqa":              "FiQA",
+  "beir-v1.0.0-dbpedia-entity":    "DBPedia",
+  "beir-v1.0.0-trec-news":         "News",
+};
+
 const { id } = Astro.params;
 const view = shardFor(id!);
 const datasetMeta = datasetsList.find((d: any) => d.id === id);
-const runs = (view?.runs ?? []) as any[];
+const dataRows = (view?.runs ?? []) as any[];
 const metricCols: string[] = view?.metric_columns ?? [];
 
-const tableId = "qg-dataset-table";
+const title = SHORT[id!] ?? datasetMeta?.name ?? id ?? "Dataset";
 
 const uniq = (xs: any[], key: string, displayKey?: string) => {
   const m = new Map<string, string>();
   for (const r of xs) m.set(r[key], r[displayKey ?? key] ?? r[key]);
   return Array.from(m.entries()).sort((a, b) => a[0].localeCompare(b[0]));
 };
-const methodChoices = uniq(runs, "method_id", "method_display");
-const modelChoices = uniq(runs, "model", "model_display");
-const retrieverChoices = uniq(runs, "retriever_id", "retriever_display");
+const methodChoices = uniq(dataRows, "method_id", "method_display");
+const modelChoices = uniq(dataRows, "model", "model_display");
+const retrieverChoices = uniq(dataRows, "retriever_id", "retriever_display");
+
+const runsMap = runs as Record<string, any>;
+type Step = { num: number; title: string; hint: string; code: string };
+const reproCache: Record<string, Step[]> = {};
+function stepsFor(runId: string): Step[] | null {
+  if (!runId) return null;
+  if (reproCache[runId]) return reproCache[runId];
+  const r = runsMap[runId] as RunLike | undefined;
+  if (!r) return null;
+  const cmds = buildReproduceCmds(r);
+  const retrieverDisp = (r as any).retriever_display ?? (r as any).retriever_id ?? "";
+  const steps: Step[] = [
+    { num: 1, title: "reformulate", hint: "querygym → reformulated_queries.tsv", code: cmds.reformulate },
+  ];
+  if (cmds.retrieve) {
+    steps.push({ num: 2, title: "retrieve", hint: retrieveHint(retrieverDisp, cmds.paradigm), code: cmds.retrieve });
+  }
+  steps.push({
+    num: cmds.retrieve ? 3 : 2,
+    title: "evaluate",
+    hint: evaluateHint(Object.keys(r.metrics ?? {})),
+    code: cmds.evaluate,
+  });
+  reproCache[runId] = steps;
+  return steps;
+}
+
+const colCount = 4 + metricCols.length;
 ---
 
-<Default
-  title={datasetMeta?.name ?? id}
-  description={`Per-method leaderboard for ${id}.`}
->
-  <a href="/datasets/" class="text-sm text-qg-fg-muted hover:text-qg-fg">← All datasets</a>
-  <h1 class="mt-2 text-2xl font-bold md:text-3xl">
-    {datasetMeta?.name ?? id}
-  </h1>
-  <div class="mt-1 qg-mono text-sm text-qg-fg-muted">{id}</div>
-
-  {runs.length === 0 ? (
-    <div class="mt-8">
-      <EmptyState
-        title="No runs for this dataset yet"
-        body="Submit one — your numbers will land here on merge."
-      />
-    </div>
-  ) : (
-    <div class="mt-6">
-      <div class="qg-filter-card">
-        <FilterChips
-          tableId={tableId}
-          groups={[
-            { key: "method", label: "Method",
-              values: [{ value: "", label: "All" }, ...methodChoices.map(([v, l]) => ({ value: v, label: l }))] },
-            { key: "model", label: "Model",
-              values: [{ value: "", label: "All" }, ...modelChoices.map(([v, l]) => ({ value: v, label: l }))] },
-            { key: "retriever", label: "Retriever",
-              values: [{ value: "", label: "All" }, ...retrieverChoices.map(([v, l]) => ({ value: v, label: l }))] },
-          ]}
-        />
+<Default title={title} description={`Per-dataset leaderboard for ${id}.`}>
+  {dataRows.length === 0 ? (
+    <>
+      <a href="/datasets/" class="text-xs text-qg-fg-muted hover:text-qg-fg">← All datasets</a>
+      <div class="mt-6">
+        <EmptyState title="No runs for this dataset yet" body="Submit one — your numbers will land here on merge." />
       </div>
+    </>
+  ) : (
+    <>
+      <header class="mb-3">
+        <div class="mb-2 flex items-baseline gap-3">
+          <a href="/datasets/" class="text-xs text-qg-fg-muted hover:text-qg-fg">← Datasets</a>
+          <h2 class="text-xl font-semibold text-qg-fg md:text-2xl">{title}</h2>
+          <span class="qg-mono text-xs text-qg-fg-muted">{id}</span>
+          <div class="h-px flex-1 bg-qg-border"></div>
+          <span class="text-[11px] uppercase tracking-wider text-qg-fg-muted">
+            All results produced by
+            <span class="qg-mono font-semibold text-qg-accent">QueryGym</span>
+            · fully reproducible!
+          </span>
+        </div>
+        <p class="max-w-4xl text-xs leading-relaxed text-qg-fg-muted">
+          {dataRows.length} (method × LLM × retriever) configurations evaluated on this dataset.
+          <br />
+          Click any row or the <strong class="text-qg-fg">+</strong> button to expand. The three steps
+          (reformulate → retrieve → evaluate) for that run appear inline.
+        </p>
+      </header>
 
-      <InteractiveTable searchPlaceholder="Filter by method, model, retriever…">
-        <div class="qg-table-card">
-          <div class="qg-table-scroll">
-            <table
-              id={tableId}
-              class="w-full text-sm"
-              style="--qg-axis-w-1: 120px; --qg-axis-w-2: 180px;"
-            >
-              <thead class="text-xs uppercase tracking-wide text-qg-fg-muted">
-                <tr class="text-left">
-                  <th class="qg-axis-1 px-3 py-2 whitespace-nowrap">Method</th>
-                  <th class="qg-axis-2 px-3 py-2 whitespace-nowrap">Model</th>
-                  <th class="qg-axis-3 px-3 py-2 whitespace-nowrap">Retriever</th>
-                  {metricCols.map((m) => (
-                    <th class="qg-mono px-3 py-2 text-right text-xs whitespace-nowrap">
-                      {METRIC_LABEL[m] ?? m}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {runs.map((r: any) => (
-                  <tr
-                    class="border-b border-qg-border/60 hover:bg-qg-bg-soft"
-                    data-method={r.method_id}
-                    data-model={r.model}
-                    data-retriever={r.retriever_id}
-                  >
-                    <td class="qg-axis-1 px-3 py-2 font-medium">{r.method_display ?? r.method_id}</td>
-                    <td class="qg-axis-2 px-3 py-2 qg-mono text-xs" data-sort-value={r.model_display ?? r.model}>{r.model_display ?? r.model}</td>
-                    <td class="qg-axis-3 px-3 py-2 text-xs">{r.retriever_display ?? r.retriever_id}</td>
-                    {metricCols.map((m) => {
-                      const v = r.metrics?.[m];
-                      const isBest = !!r.best_for?.[m];
-                      const runId = r.run_ids?.[m] ?? r.run_id;
-                      return (
-                        <td class="qg-mono px-3 py-2 text-right tabular-nums" data-sort-value={v ?? ""}>
-                          {v == null ? (
-                            <span class="text-qg-fg-muted">—</span>
-                          ) : runId ? (
-                            <a class="hover:text-qg-accent hover:underline" href={`/runs/${runId}`} title="View run + reproduce">
-                              <span class={isBest ? "qg-cell-best" : ""}>{v.toFixed(4)}</span>
-                            </a>
-                          ) : (
-                            <span class={isBest ? "qg-cell-best" : ""}>{v.toFixed(4)}</span>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div class="lb-filter-card" data-lb-filters>
+        <div class="lb-filter-row">
+          <div class="lb-filter-group" data-group="retriever">
+            <span class="lb-filter-label">Retriever</span>
+            <button class="lb-chip active" data-value="">All</button>
+            {retrieverChoices.map(([v, l]) => (
+              <button class="lb-chip" data-value={v}>{l}</button>
+            ))}
+          </div>
+          <div class="lb-filter-group" data-group="model">
+            <span class="lb-filter-label">Model</span>
+            <button class="lb-chip active" data-value="">All</button>
+            {modelChoices.map(([v, l]) => (
+              <button class="lb-chip" data-value={v}>{l}</button>
+            ))}
+          </div>
+          <div class="lb-filter-group" data-group="method">
+            <span class="lb-filter-label">Method</span>
+            <button class="lb-chip active" data-value="">All</button>
+            {methodChoices.map(([v, l]) => (
+              <button class="lb-chip" data-value={v}>{l}</button>
+            ))}
           </div>
         </div>
-      </InteractiveTable>
-    </div>
+        <div class="lb-filter-row">
+          <div class="lb-search-wrap">
+            <div class="lb-search-input">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input id="lb-search" placeholder="Filter by method, model, retriever…" autocomplete="off" />
+            </div>
+            <span class="lb-row-count"><span id="lb-shown">{dataRows.length}</span> / {dataRows.length} runs</span>
+          </div>
+          <span class="lb-best-legend" style="margin-left:auto"><span class="dot"></span> best in column</span>
+        </div>
+      </div>
+
+      <div class="lb-table-card">
+        <div class="lb-table-scroll">
+          <table id="lb-matrix" class="lb">
+            <thead>
+              <tr class="top">
+                <th class="ax ax-1"></th>
+                <th class="ax ax-2">Method</th>
+                <th class="ax ax-3">LLM</th>
+                <th class="ax ax-4">Retriever</th>
+                {metricCols.map((m, i) => (
+                  <th class:list={["metric", i === 0 && "first"]} data-sort-col={i}>
+                    <span class="name">{METRIC_LABEL[m] ?? m}<span class="arrow"></span></span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {dataRows.map((r: any, i: number) => {
+                const steps = stepsFor(r.run_id);
+                return (
+                  <>
+                    <tr
+                      class="data"
+                      data-idx={i}
+                      data-method={r.method_id}
+                      data-model={r.model}
+                      data-retriever={r.retriever_id}
+                    >
+                      <td class="ax ax-1"><button class="lb-exp-btn" aria-label="expand"></button></td>
+                      <td class="ax ax-2"><span class="lb-method-name">{r.method_display ?? r.method_id}</span></td>
+                      <td class="ax ax-3 qg-mono" style="font-size:11.5px">{r.model_display ?? r.model}</td>
+                      <td class="ax ax-4">{r.retriever_display ?? r.retriever_id}</td>
+                      {metricCols.map((m, mi) => {
+                        const v = r.metrics?.[m];
+                        const isBest = !!r.best_for?.[m];
+                        return (
+                          <td
+                            class:list={["lb-metric-cell", isBest && "best", mi === 0 && "first"]}
+                            data-sort-value={v ?? ""}
+                          ><span class="primary">{v == null ? "—" : v.toFixed(4)}</span></td>
+                        );
+                      })}
+                    </tr>
+                    <tr class="lb-exp-row">
+                      <td colspan={colCount}>
+                        <div class="lb-exp-wrap"><div class="lb-exp-inner">
+                          <div class="lb-exp-panel">
+                            <div class="lb-exp-meta">
+                              <span class="pill"><strong>method</strong>{r.method_display ?? r.method_id}</span>
+                              <span class="pill"><strong>llm</strong>{r.model_display ?? r.model}</span>
+                              <span class="pill"><strong>retriever</strong>{r.retriever_display ?? r.retriever_id}</span>
+                              <span class="pill"><strong>dataset</strong>{title}</span>
+                            </div>
+                            {steps ? (
+                              <>
+                                {steps.map((st) => (
+                                  <div class="lb-step">
+                                    <div class="lb-step-head">
+                                      <div class="title">
+                                        <span class="num">{st.num}</span>
+                                        {st.title}
+                                        <span class="hint">{st.hint}</span>
+                                      </div>
+                                      <button class="lb-copy-btn" data-copy>copy</button>
+                                    </div>
+                                    <pre>{st.code}</pre>
+                                  </div>
+                                ))}
+                                <div class="lb-exp-footer">
+                                  <span>Run id <span class="qg-mono">{r.run_id}</span></span>
+                                  <span>·</span>
+                                  <a href={`/runs/${r.run_id}`}>open full run detail →</a>
+                                </div>
+                              </>
+                            ) : (
+                              <div class="text-sm text-qg-fg-muted">No run config available.</div>
+                            )}
+                          </div>
+                        </div></div>
+                      </td>
+                    </tr>
+                  </>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
   )}
 </Default>
+
+<script>
+  const scrollEl = document.querySelector<HTMLElement>(".lb-table-scroll");
+  function updateVp() {
+    if (scrollEl) scrollEl.style.setProperty("--lb-vp-w", scrollEl.clientWidth + "px");
+  }
+  updateVp();
+  window.addEventListener("resize", updateVp);
+
+  const filterRoot = document.querySelector<HTMLElement>("[data-lb-filters]");
+  const table = document.getElementById("lb-matrix") as HTMLTableElement | null;
+  const tbody = table?.querySelector("tbody");
+  const search = document.getElementById("lb-search") as HTMLInputElement | null;
+  const shownEl = document.getElementById("lb-shown");
+
+  const filterState: Record<string, string> = { method: "", model: "", retriever: "" };
+
+  filterRoot?.querySelectorAll<HTMLElement>("[data-group]").forEach((g) => {
+    const key = g.dataset.group!;
+    g.querySelectorAll<HTMLButtonElement>("button.lb-chip").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        g.querySelectorAll("button.lb-chip").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        filterState[key] = btn.dataset.value ?? "";
+        applyVisibility();
+      });
+    });
+  });
+  function applyVisibility() {
+    if (!tbody) return;
+    const q = (search?.value ?? "").trim().toLowerCase();
+    let shown = 0;
+    tbody.querySelectorAll<HTMLTableRowElement>("tr.data").forEach((tr) => {
+      let hide = false;
+      for (const [k, v] of Object.entries(filterState)) {
+        if (v && tr.dataset[k] !== v) { hide = true; break; }
+      }
+      if (!hide && q) {
+        const txt = (tr.textContent ?? "").toLowerCase();
+        if (!txt.includes(q)) hide = true;
+      }
+      tr.style.display = hide ? "none" : "";
+      const exp = tr.nextElementSibling as HTMLElement | null;
+      if (exp?.classList.contains("lb-exp-row")) exp.style.display = hide ? "none" : "";
+      if (!hide) shown++;
+    });
+    if (shownEl) shownEl.textContent = String(shown);
+  }
+  search?.addEventListener("input", applyVisibility);
+
+  // sort — single-row thead, column index based
+  const sortState: { col: number | null; dir: "asc" | "desc" | null } = { col: null, dir: null };
+  const AXIS_COL_COUNT = 4;
+  function applySort() {
+    if (!tbody || sortState.col === null || !sortState.dir) return;
+    const cellIdx = AXIS_COL_COUNT + sortState.col;
+    const dir = sortState.dir === "asc" ? 1 : -1;
+    const dataRows = Array.from(tbody.querySelectorAll<HTMLTableRowElement>("tr.data"));
+    const pairs = dataRows.map((tr) => {
+      const cell = tr.cells[cellIdx] as HTMLTableCellElement | undefined;
+      const raw = cell?.dataset.sortValue ?? "";
+      const n = parseFloat(raw);
+      return { tr, exp: tr.nextElementSibling, v: Number.isFinite(n) ? n : null };
+    });
+    pairs.sort((a, b) => {
+      if (a.v === null && b.v === null) return 0;
+      if (a.v === null) return 1;
+      if (b.v === null) return -1;
+      return (a.v - b.v) * dir;
+    });
+    pairs.forEach((p) => {
+      tbody!.appendChild(p.tr);
+      if (p.exp) tbody!.appendChild(p.exp);
+    });
+  }
+  function updateSortIndicators() {
+    table?.querySelectorAll(".metric").forEach((th) => th.classList.remove("sort-asc", "sort-desc"));
+    if (sortState.dir !== null) {
+      const th = table?.querySelector(`thead .metric[data-sort-col="${sortState.col}"]`);
+      th?.classList.add(`sort-${sortState.dir}`);
+    }
+  }
+  function setSort(col: number) {
+    if (sortState.col === col) {
+      sortState.dir = sortState.dir === "desc" ? "asc" : "desc";
+    } else {
+      sortState.col = col; sortState.dir = "desc";
+    }
+    applySort();
+    updateSortIndicators();
+  }
+  table?.querySelectorAll<HTMLElement>("thead .metric").forEach((th) => {
+    th.addEventListener("click", () => {
+      const c = parseInt(th.dataset.sortCol ?? "");
+      if (!Number.isNaN(c)) setSort(c);
+    });
+  });
+
+  // row expand
+  tbody?.querySelectorAll<HTMLTableRowElement>("tr.data").forEach((tr) => {
+    const exp = tr.nextElementSibling as HTMLElement | null;
+    if (!exp?.classList.contains("lb-exp-row")) return;
+    const toggle = (e?: Event) => {
+      if (e && (e.target as HTMLElement).closest("a, button.lb-copy-btn")) return;
+      const open = tr.classList.toggle("expanded");
+      exp.classList.toggle("show", open);
+    };
+    tr.addEventListener("click", toggle);
+  });
+
+  // copy buttons
+  document.addEventListener("click", (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-copy]");
+    if (!btn) return;
+    const pre = btn.closest(".lb-step")?.querySelector("pre");
+    if (!pre) return;
+    navigator.clipboard.writeText(pre.textContent ?? "");
+    const prev = btn.textContent;
+    btn.textContent = "copied ✓";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = prev; btn.classList.remove("copied"); }, 1400);
+  });
+</script>
