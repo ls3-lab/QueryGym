@@ -13,40 +13,61 @@ const wwwBibtex = `@misc{bigdeli2025querygymtoolkitreproduciblellmbased,
 }`;
 
 const sigirBibtex = `@inproceedings{querygym2026reproducibility,
-  title={Reproducing LLM-Based Query Reformulation Across Backends with QueryGym},
+  title={A Reproducibility Study of LLM-Based Query Reformulation},
   author={Amin Bigdeli and Radin Hamidi Rad and Mert Incesu and Negar Arabzadeh and Charles L. A. Clarke and Ebrahim Bagheri},
   booktitle={Proceedings of the 49th International ACM SIGIR Conference on Research and Development in Information Retrieval},
   series={SIGIR '26},
   year={2026},
   note={Reproducibility Track},
+  eprint={2604.27421},
+  archivePrefix={arXiv},
+  primaryClass={cs.IR},
+  url={https://arxiv.org/abs/2604.27421},
 }`;
 
-// JSON-LD ScholarlyArticle for the WWW 2026 Demos paper. Search engines use
-// this to surface the paper as a research artifact in scholar-aware results.
+// JSON-LD: two ScholarlyArticle entries (WWW Demos + SIGIR Reproducibility).
+// Search engines use these to surface the papers as research artifacts in
+// scholar-aware results.
+const sharedAuthors = [
+  { "@type": "Person", name: "Amin Bigdeli" },
+  { "@type": "Person", name: "Radin Hamidi Rad" },
+  { "@type": "Person", name: "Mert Incesu" },
+  { "@type": "Person", name: "Negar Arabzadeh" },
+  { "@type": "Person", name: "Charles L. A. Clarke" },
+  { "@type": "Person", name: "Ebrahim Bagheri" },
+];
 const jsonLd = JSON.stringify({
   "@context": "https://schema.org",
-  "@type": "ScholarlyArticle",
-  name: "QueryGym: A Toolkit for Reproducible LLM-Based Query Reformulation",
-  url: "https://arxiv.org/abs/2511.15996",
-  identifier: "arXiv:2511.15996",
-  datePublished: "2025-11-20",
-  inLanguage: "en",
-  isAccessibleForFree: true,
-  publisher: { "@type": "Organization", name: "arXiv" },
-  author: [
-    { "@type": "Person", name: "Amin Bigdeli" },
-    { "@type": "Person", name: "Radin Hamidi Rad" },
-    { "@type": "Person", name: "Mert Incesu" },
-    { "@type": "Person", name: "Negar Arabzadeh" },
-    { "@type": "Person", name: "Charles L. A. Clarke" },
-    { "@type": "Person", name: "Ebrahim Bagheri" },
+  "@graph": [
+    {
+      "@type": "ScholarlyArticle",
+      name: "QueryGym: A Toolkit for Reproducible LLM-Based Query Reformulation",
+      url: "https://arxiv.org/abs/2511.15996",
+      identifier: "arXiv:2511.15996",
+      datePublished: "2025-11-20",
+      inLanguage: "en",
+      isAccessibleForFree: true,
+      publisher: { "@type": "Organization", name: "arXiv" },
+      author: sharedAuthors,
+    },
+    {
+      "@type": "ScholarlyArticle",
+      name: "A Reproducibility Study of LLM-Based Query Reformulation",
+      url: "https://arxiv.org/abs/2604.27421",
+      identifier: "arXiv:2604.27421",
+      datePublished: "2026",
+      inLanguage: "en",
+      isAccessibleForFree: true,
+      publisher: { "@type": "Organization", name: "arXiv" },
+      author: sharedAuthors,
+    },
   ],
 });
 ---
 
 <Default
   title="Cite"
-  description="How to cite QueryGym in research papers — BibTeX for the WWW 2026 Demos paper and the SIGIR 2026 Reproducibility Track paper."
+  description="How to cite QueryGym — BibTeX for the WWW 2026 Demos paper (QueryGym: A Toolkit for Reproducible LLM-Based Query Reformulation) and the SIGIR 2026 Reproducibility Track paper (A Reproducibility Study of LLM-Based Query Reformulation)."
   ogType="article"
   jsonLd={jsonLd}
 >
@@ -67,10 +88,11 @@ const jsonLd = JSON.stringify({
         url="https://arxiv.org/abs/2511.15996"
       />
       <CitationCard
-        title="Reproducing LLM-Based Query Reformulation Across Backends with QueryGym"
+        title="A Reproducibility Study of LLM-Based Query Reformulation"
         venue="SIGIR 2026 — Reproducibility Track"
         authors="Bigdeli, Hamidi Rad, Incesu, Arabzadeh, Clarke, Bagheri"
         bibtex={sigirBibtex}
+        url="https://arxiv.org/abs/2604.27421"
       />
     </div>
   </section>

@@ -40,6 +40,46 @@ const datasetCols = matrix.dataset_columns;
 const beirCols = datasetCols.filter((d: any) => d.id.startsWith("beir-"));
 const dlCols = datasetCols.filter((d: any) => !d.id.startsWith("beir-"));
 
+// JSON-LD: Dataset schema for the leaderboard itself, linked back to the
+// SoftwareApplication entry on querygym.com via sameAs. Helps Google build a
+// richer search result + connect both surfaces in the knowledge graph.
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  name: "QueryGym Leaderboard",
+  description: "Reproducible benchmarks for LLM-based query reformulation across BEIR, MS MARCO DL, and DL-HARD — with click-to-reproduce commands for every result.",
+  url: "https://leaderboard.querygym.com/",
+  license: "https://www.apache.org/licenses/LICENSE-2.0",
+  isAccessibleForFree: true,
+  keywords: [
+    "query reformulation",
+    "large language models",
+    "information retrieval",
+    "BEIR",
+    "MS MARCO",
+    "TREC Deep Learning",
+    "reproducibility",
+    "leaderboard",
+  ],
+  creator: {
+    "@type": "Organization",
+    name: "ls3-lab",
+    url: "https://querygym.com",
+    sameAs: ["https://github.com/ls3-lab"],
+  },
+  sameAs: [
+    "https://querygym.com",
+    "https://github.com/ls3-lab/QueryGym",
+    "https://arxiv.org/abs/2511.15996",
+    "https://arxiv.org/abs/2604.27421",
+  ],
+  variableMeasured: [
+    "nDCG@10",
+    "Recall@100",
+    "Recall@1000",
+  ],
+});
+
 // pre-build reproduce cmds for every (row, dataset) cell that has a run.
 // Keyed by run_id so the same lookup powers all tabs.
 const runsMap = runs as Record<string, any>;
@@ -71,7 +111,8 @@ function stepsFor(runId: string): Step[] | null {
 
 <Default
   title="Leaderboard"
-  description="QueryGym reproducibility leaderboard — query reformulation methods × LLMs × retrievers across IR benchmarks."
+  description="Reproducible benchmarks for LLM query reformulation. Click any row to see the exact commands that produced each score — methods × LLMs × retrievers (BM25, SPLADE++, BGE) across BEIR, MS MARCO DL, and DL-HARD."
+  jsonLd={jsonLd}
 >
   {populated && (
     <header class="mb-3">
