@@ -7,9 +7,34 @@ import GoogleAnalytics from "@qg/shared/components/GoogleAnalytics.astro";
 interface Props {
   title: string;
   description?: string;
+  /** Optional 1200×630 PNG/JPG path; defaults to the logo. Override per page when relevant. */
+  ogImage?: string;
+  /** Explicit Open Graph type — "website" by default; "article" for citation pages, etc. */
+  ogType?: "website" | "article";
+  /** Optional JSON-LD structured-data string emitted into <head> (e.g. Dataset / SoftwareApplication). */
+  jsonLd?: string;
 }
 
-const { title, description } = Astro.props;
+const {
+  title,
+  description,
+  ogImage = "/querygym-logo.png",
+  ogType = "website",
+  jsonLd,
+} = Astro.props;
+
+const SITE_URL = "https://leaderboard.querygym.com";
+const SITE_NAME = "QueryGym Leaderboard";
+const TAGLINE = "Reproducible benchmarks for LLM query reformulation.";
+const DEFAULT_DESC = "Reproducible benchmarks for LLM-based query reformulation. Click any row for the exact commands that produced each score — methods × LLMs × retrievers (BM25, SPLADE++, BGE) across BEIR, MS MARCO DL, and DL-HARD.";
+
+// Home/index pages pass title="Leaderboard"; avoid the "Leaderboard — QueryGym Leaderboard" doubling.
+const fullTitle = title === "Leaderboard" || title === SITE_NAME
+  ? `${SITE_NAME} — ${TAGLINE}`
+  : `${title} — ${SITE_NAME}`;
+const desc = description ?? DEFAULT_DESC;
+const canonical = new URL(Astro.url.pathname, SITE_URL).toString();
+const ogImageAbsolute = new URL(ogImage, SITE_URL).toString();
 
 // Top-menu linkout items (external: true) open in a new tab so the user
 // keeps their place on the leaderboard when they cross to a sibling site.
@@ -29,17 +54,41 @@ const navLinks = [
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} — QueryGym Leaderboard</title>
-    {description && <meta name="description" content={description} />}
+    <meta name="theme-color" content="#0b0d12" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{fullTitle}</title>
+    <meta name="description" content={desc} />
+    <meta name="author" content="ls3-lab" />
+    <link rel="canonical" href={canonical} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageAbsolute} />
+    <meta property="og:image:alt" content="QueryGym Leaderboard logo" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={desc} />
+    <meta name="twitter:image" content={ogImageAbsolute} />
+
     <link rel="icon" type="image/png" href="/querygym-logo.png" />
     <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap-index.xml" />
+
+    {jsonLd && <script type="application/ld+json" set:html={jsonLd} />}
 
     <GoogleAnalytics />
   </head>
   <body class="flex h-screen flex-col overflow-hidden bg-qg-bg text-qg-fg">
     <Header
       title="QueryGym Leaderboard"
-      tagline="SIGIR 2026 Reproducibility — Query Reformulation × LLMs × Datasets"
+      tagline="Reproducible benchmarks for LLM query reformulation."
       links={navLinks}
     />
     <main class="mx-auto flex w-[90%] min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-3 pb-3">
