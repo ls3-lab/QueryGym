@@ -29,7 +29,7 @@
 
 - Single **Prompt Bank** (YAML) with metadata
 - **Simple DataLoader**: Dependency-free file loading for queries, qrels, and contexts
-- **Format Loaders**: Optional BEIR and MS MARCO format loaders in `querygym.loaders`
+- **Format Loaders**: Optional BEIR, MS MARCO, and BRIGHT format loaders in `querygym.loaders`
 - **OpenAI-compatible** LLM client (works with any OpenAI API–compatible endpoint)
 - **Pyserini** optional: either pass contexts (JSONL) or pass a retriever instance to build contexts
 - Export-only: emits reformulated queries; optionally generates a **bash** script for Pyserini + `trec_eval`
@@ -134,6 +134,20 @@ import querygym as qg
 # Load from local files (download with ir_datasets)
 queries = qg.loaders.msmarco.load_queries("queries.tsv")
 qrels = qg.loaders.msmarco.load_qrels("qrels.tsv")
+```
+
+**BRIGHT:**
+```python
+import querygym as qg
+from datasets import load_dataset
+
+examples  = load_dataset("xlangai/BRIGHT", "examples")["biology"]
+documents = load_dataset("xlangai/BRIGHT", "documents")["biology"]
+
+queries           = qg.loaders.bright.load_queries(examples)           
+reasoning_queries = qg.loaders.bright.load_reasoning_queries(examples)  
+qrels        = qg.loaders.bright.load_qrels(examples)
+corpus       = qg.loaders.bright.load_corpus(documents)
 ```
 
 ## Examples

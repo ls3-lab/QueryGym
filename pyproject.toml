@@ -39,6 +39,7 @@ dependencies = [
 # Data loading extras
 hf = ["datasets>=2.20.0"]
 beir = ["beir>=2.0.0"]
+bright = ["datasets>=2.20.0"]
 pyserini = ["pyserini>=0.22.0"]
 
 # Development dependencies
