@@ -668,7 +668,6 @@ result = reformulator.reformulate_batch([qg.QueryItem("q1", "quantum computing")
 
 **Method Name:** `"reformer"`
 **Requires Context:** Yes
-**Paper:** [Bigdeli et al., 2026](https://arxiv.org/abs/2604.01417)
 **Description:** Pattern-based, document-conditioned query reformulation. For each query, two LLM calls are made: first to select the best-fitting reformulation pattern from a pre-learned library (guided by top retrieved documents), then to apply that pattern's transformation rule to produce the final reformulated query. The output replaces the original query entirely.
 
 #### Parameters
