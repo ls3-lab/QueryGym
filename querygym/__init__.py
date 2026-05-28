@@ -47,6 +47,7 @@ from .methods import (
     Query2E,
     CSQE,
     ThinkQE,
+    ReFormeR,
 )
 
 # High-level runner
@@ -239,6 +240,7 @@ __all__ = [
     "Query2E",
     "CSQE",
     "ThinkQE",
+    "ReFormeR",
     # High-level API
     "run_method",
     "build_llm",

@@ -16,6 +16,7 @@ Complete reference guide for all query reformulation methods in QueryGym, includ
   - [Query2E](#query2e)
   - [CSQE](#csqe)
   - [ThinkQE](#thinkqe)
+  - [ReFormeR](#reformer)
 
 ---
 
@@ -660,6 +661,78 @@ result = reformulator.reformulate_batch([qg.QueryItem("q1", "quantum computing")
 4. **Performance:**
    - Enable `parallel=True` for GenQR Ensemble and MuGI when using multiple generations
    - Use appropriate `threads` for batch retrieval in context-based methods
+
+---
+
+### ReFormeR
+
+**Method Name:** `"reformer"`
+**Requires Context:** Yes
+**Paper:** [Bigdeli et al., 2026](https://arxiv.org/abs/2604.01417)
+**Description:** Pattern-based, document-conditioned query reformulation. For each query, two LLM calls are made: first to select the best-fitting reformulation pattern from a pre-learned library (guided by top retrieved documents), then to apply that pattern's transformation rule to produce the final reformulated query. The output replaces the original query entirely.
+
+#### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `retrieval_k` | int | 10 | Number of documents to retrieve per query |
+| `context_docs` | int | 3 | Number of top retrieved documents fed to pattern selection (step 1) |
+| `patterns_path` | str | None | Path to a custom patterns JSON file; if omitted, the built-in 10-pattern library is used |
+| `threads` | int | 16 | Number of threads for batch retrieval |
+
+#### LLM Configuration
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `temperature` | 0.1 | Sampling temperature for both LLM calls |
+| `max_tokens` | 500 | Maximum tokens per generation |
+
+#### Usage Example
+
+```python
+import querygym as qg
+
+reformulator = qg.create_reformulator(
+    "reformer",
+    model="gpt-4.1",
+    params={
+        "searcher_type": "pyserini",
+        "searcher_kwargs": {"index": "msmarco-v1-passage"},
+        "retrieval_k": 10,
+        "context_docs": 3,
+    },
+    llm_config={"temperature": 0.1, "max_tokens": 500},
+)
+
+result = reformulator.reformulate(qg.QueryItem("q1", "what causes diabetes"))
+print(result.reformulated)
+print(result.metadata["selected_pattern"])  # e.g. "Semantic Clarification"
+```
+
+#### Custom Patterns
+
+To use your own extracted patterns, pass a path to a JSON file with the same structure as the built-in library:
+
+```python
+reformulator = qg.create_reformulator(
+    "reformer",
+    model="gpt-4.1",
+    params={
+        "patterns_path": "/path/to/my_patterns.json",
+        "searcher_type": "pyserini",
+        "searcher_kwargs": {"index": "msmarco-v1-passage"},
+    },
+)
+```
+
+Each pattern in the JSON must have: `pattern_name`, `description`, `transformation_rule`, and `examples` (list of `[original, reformulated]` pairs).
+
+#### How It Works
+
+1. **Pattern selection** (`reformer.pattern_selection.v1`): The LLM receives the query, the top `context_docs` retrieved documents, and the full pattern library as JSON. It returns the single best-fitting pattern as JSON.
+2. **Pattern application** (`reformer.pattern_application.v1`): The LLM receives the query, the selected pattern's `transformation_rule`, and its `examples`. It returns only the reformulated query string.
+
+If the pattern selection response cannot be parsed as valid JSON, the method falls back to the first pattern in the library and records `"pattern_fallback": true` in the result metadata.
 
 ---
 

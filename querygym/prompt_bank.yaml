@@ -502,3 +502,51 @@
       Keywords:
   notes: |
     Few-shot Q2E reformulation prompt
+
+- id: reformer.pattern_selection.v1
+  method_family: reformer
+  version: 1
+  introduced_by: "ReFormeR pattern selection"
+  license: "CC-BY-4.0"
+  authors: ["queryGym Team"]
+  tags: ["context-based", "pattern", "selection"]
+  template:
+    system: |
+      You are an expert in query reformulation. Select the most appropriate pattern based on the query and document context.
+    user: |
+      Given the following query and retrieved documents, select the most appropriate reformulation pattern.
+
+      Query: {query}
+
+      Retrieved Documents:
+      {documents_text}
+
+      Available Patterns:
+      {patterns_json}
+
+      Select the pattern that best fits the query and document context. Return only the JSON of the selected pattern.
+  notes: |
+    ReFormeR step 1: given query + top retrieved docs + full pattern library, returns the single best-fitting pattern as JSON.
+
+- id: reformer.pattern_application.v1
+  method_family: reformer
+  version: 1
+  introduced_by: "ReFormeR pattern application"
+  license: "CC-BY-4.0"
+  authors: ["queryGym Team"]
+  tags: ["context-based", "pattern", "application"]
+  template:
+    system: |
+      You are an expert in query reformulation. Apply the transformation rule to create a better query.
+    user: |
+      Apply the following transformation rule to the query:
+
+      Query: {query}
+      Transformation Rule: {transformation_rule}
+
+      Examples of this pattern:
+      {examples_json}
+
+      Return only the reformulated query.
+  notes: |
+    ReFormeR step 2: applies the selected pattern's transformation rule to produce the final reformulated query.

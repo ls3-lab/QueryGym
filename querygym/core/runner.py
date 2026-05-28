@@ -15,6 +15,7 @@ from ..methods.lamer import LameR
 from ..methods.query2e import Query2E
 from ..methods.csqe import CSQE
 from ..methods.thinkqe import ThinkQE
+from ..methods.reformer import ReFormeR
 
 
 def build_llm(cfg: MethodConfig):

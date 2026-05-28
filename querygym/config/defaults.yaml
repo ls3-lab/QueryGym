@@ -62,5 +62,14 @@ mugi:
     parallel: false  # Sequential generation by default (set true for parallel)
     mode: "zs"  # "zs" (zero-shot) or "fs" (few-shot)
 
+reformer:
+  llm:
+    temperature: 0.1
+    max_tokens: 500
+  params:
+    retrieval_k: 10
+    context_docs: 3   # top-N docs fed to pattern selection (step 1)
+    # patterns_path: null  # override to load a custom patterns JSON file
+
 seed: 17
 retries: 2
