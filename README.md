@@ -188,13 +188,15 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 If you use QueryGym in your research, please cite:
 
 ```bibtex
-@misc{bigdeli2025querygymtoolkitreproduciblellmbased,
-      title={QueryGym: A Toolkit for Reproducible LLM-Based Query Reformulation}, 
-      author={Amin Bigdeli and Radin Hamidi Rad and Mert Incesu and Negar Arabzadeh and Charles L. A. Clarke and Ebrahim Bagheri},
-      year={2025},
-      eprint={2511.15996},
-      archivePrefix={arXiv},
-      primaryClass={cs.IR},
-      url={https://arxiv.org/abs/2511.15996}, 
+@inproceedings{10.1145/3774905.3793135,
+  author    = {Bigdeli, Amin and Hamidi Rad, Radin and Incesu, Mert and Arabzadeh, Negar and Clarke, Charles and Bagheri, Ebrahim},
+  title     = {QueryGym: A Toolkit for Reproducible LLM-Based Query Reformulation},
+  booktitle = {Companion Proceedings of the ACM Web Conference 2026},
+  series    = {WWW Companion '26},
+  year      = {2026},
+  pages     = {196--199},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/3774905.3793135},
+  url       = {https://doi.org/10.1145/3774905.3793135}
 }
 ```
