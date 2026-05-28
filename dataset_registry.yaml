@@ -146,3 +146,127 @@ datasets:
     output:
       runfile_template: "run.beir.bm25-flat.scifact.txt"
       eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
+
+################### BRIGHT Datasets ########################
+
+  bright-biology:
+    name: "BRIGHT — Biology"
+    index: {name: "bright-biology"}
+    topics: {name: "bright-biology"}
+    qrels:  {name: "bright-biology"}
+    bm25_weights: {k1: 0.9, b: 0.4}
+    output:
+      runfile_template: "run.bright.bm25.biology.txt"
+      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
+
+  bright-earth-science:
+    name: "BRIGHT — Earth Science"
+    index: {name: "bright-earth-science"}
+    topics: {name: "bright-earth-science"}
+    qrels:  {name: "bright-earth-science"}
+    bm25_weights: {k1: 0.9, b: 0.4}
+    output:
+      runfile_template: "run.bright.bm25.earth-science.txt"
+      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
+
+  bright-economics:
+    name: "BRIGHT — Economics"
+    index: {name: "bright-economics"}
+    topics: {name: "bright-economics"}
+    qrels:  {name: "bright-economics"}
+    bm25_weights: {k1: 0.9, b: 0.4}
+    output:
+      runfile_template: "run.bright.bm25.economics.txt"
+      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
+
+  bright-psychology:
+    name: "BRIGHT — Psychology"
+    index: {name: "bright-psychology"}
+    topics: {name: "bright-psychology"}
+    qrels:  {name: "bright-psychology"}
+    bm25_weights: {k1: 0.9, b: 0.4}
+    output:
+      runfile_template: "run.bright.bm25.psychology.txt"
+      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
+
+  bright-robotics:
+    name: "BRIGHT — Robotics"
+    index: {name: "bright-robotics"}
+    topics: {name: "bright-robotics"}
+    qrels:  {name: "bright-robotics"}
+    bm25_weights: {k1: 0.9, b: 0.4}
+    output:
+      runfile_template: "run.bright.bm25.robotics.txt"
+      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
+
+  bright-stackoverflow:
+    name: "BRIGHT — Stack Overflow"
+    index: {name: "bright-stackoverflow"}
+    topics: {name: "bright-stackoverflow"}
+    qrels:  {name: "bright-stackoverflow"}
+    bm25_weights: {k1: 0.9, b: 0.4}
+    output:
+      runfile_template: "run.bright.bm25.stackoverflow.txt"
+      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
+
+  bright-sustainable-living:
+    name: "BRIGHT — Sustainable Living"
+    index: {name: "bright-sustainable-living"}
+    topics: {name: "bright-sustainable-living"}
+    qrels:  {name: "bright-sustainable-living"}
+    bm25_weights: {k1: 0.9, b: 0.4}
+    output:
+      runfile_template: "run.bright.bm25.sustainable-living.txt"
+      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
+
+# Code & math reasoning categories (5):
+
+  bright-pony:
+    name: "BRIGHT — Pony"
+    index: {name: "bright-pony"}
+    topics: {name: "bright-pony"}
+    qrels:  {name: "bright-pony"}
+    bm25_weights: {k1: 0.9, b: 0.4}
+    output:
+      runfile_template: "run.bright.bm25.pony.txt"
+      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
+
+  bright-leetcode:
+    name: "BRIGHT — LeetCode"
+    index: {name: "bright-leetcode"}
+    topics: {name: "bright-leetcode"}
+    qrels:  {name: "bright-leetcode"}
+    bm25_weights: {k1: 0.9, b: 0.4}
+    output:
+      runfile_template: "run.bright.bm25.leetcode.txt"
+      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
+
+  bright-aops:
+    name: "BRIGHT — AOPS"
+    index: {name: "bright-aops"}
+    topics: {name: "bright-aops"}
+    qrels:  {name: "bright-aops"}
+    bm25_weights: {k1: 0.9, b: 0.4}
+    output:
+      runfile_template: "run.bright.bm25.aops.txt"
+      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
+
+  bright-theoremqa-theorems:
+    name: "BRIGHT — TheoremQA Theorems"
+    index: {name: "bright-theoremqa-theorems"}
+    topics: {name: "bright-theoremqa-theorems"}
+    qrels:  {name: "bright-theoremqa-theorems"}
+    bm25_weights: {k1: 0.9, b: 0.4}
+    output:
+      runfile_template: "run.bright.bm25.theoremqa-theorems.txt"
+      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
+
+  bright-theoremqa-questions:
+    name: "BRIGHT — TheoremQA Questions"
+    index: {name: "bright-theoremqa-questions"}
+    topics: {name: "bright-theoremqa-questions"}
+    qrels:  {name: "bright-theoremqa-questions"}
+    bm25_weights: {k1: 0.9, b: 0.4}
+    output:
+      runfile_template: "run.bright.bm25.theoremqa-questions.txt"
+      eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
