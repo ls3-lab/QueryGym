@@ -174,3 +174,6 @@ docs/leaderboard-demo.html
 test_examples.jsonl
 # local mockups, design scratchpads — not for the repo
 tmp/
+
+# local rules
+rules/
