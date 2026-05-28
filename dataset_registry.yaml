@@ -149,6 +149,8 @@ datasets:
 
 ################### BRIGHT Datasets ########################
 
+# Document-level reasoning categories:
+
   bright-biology:
     name: "BRIGHT — Biology"
     index: {name: "bright-biology"}
