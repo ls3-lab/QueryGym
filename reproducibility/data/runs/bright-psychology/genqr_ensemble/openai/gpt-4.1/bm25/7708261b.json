@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "run_id": "d9e1025d279c6187",
+  "params_hash": "7708261b",
+  "submitted_at": "2026-06-16T23:26:19Z",
+  "querygym_version": "0.1.0",
+  "environment": {
+    "python_version": "3.12.13",
+    "platform": "Linux-x86_64",
+    "git_commit": null
+  },
+  "pipeline": {
+    "dataset_id": "bright-psychology",
+    "method_id": "genqr_ensemble",
+    "model": "openai/gpt-4.1",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 2505.910741329193
+  },
+  "config": {
+    "method_params": {},
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "bright-psychology",
+      "index": "bright-psychology",
+      "num_queries": 101
+    },
+    "retrieval": {
+      "retriever_id": "bm25",
+      "paradigm": "lexical",
+      "params": {
+        "k1": 0.9,
+        "b": 0.4
+      },
+      "implementation": "pyserini:LuceneSearcher"
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.3198,
+    "recall_100": 0.6512
+  },
+  "timing": {
+    "reformulation_seconds": 2489.885854244232,
+    "retrieval_seconds": 2.190354108810425,
+    "evaluation_seconds": 12.907447099685669
+  },
+  "artifacts": {
+    "run_file": "7708261b.run.txt",
+    "reformulated_queries": "7708261b.queries.tsv"
+  }
+}

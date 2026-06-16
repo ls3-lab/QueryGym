@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "run_id": "7fe45f155d9242c4",
+  "params_hash": "19dde16a",
+  "submitted_at": "2026-06-16T23:26:21Z",
+  "querygym_version": "0.1.0",
+  "environment": {
+    "python_version": "3.12.13",
+    "platform": "Linux-x86_64",
+    "git_commit": null
+  },
+  "pipeline": {
+    "dataset_id": "bright-economics",
+    "method_id": "qa_expand",
+    "model": "openai/gpt-4.1",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 595.5306468009949
+  },
+  "config": {
+    "method_params": {},
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "bright-economics",
+      "index": "bright-economics",
+      "num_queries": 103
+    },
+    "retrieval": {
+      "retriever_id": "bm25",
+      "paradigm": "lexical",
+      "params": {
+        "k1": 0.9,
+        "b": 0.4
+      },
+      "implementation": "pyserini:LuceneSearcher"
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.1847,
+    "recall_100": 0.4392
+  },
+  "timing": {
+    "reformulation_seconds": 579.3379263877869,
+    "retrieval_seconds": 1.9834704399108887,
+    "evaluation_seconds": 13.07224726676941
+  },
+  "artifacts": {
+    "run_file": "19dde16a.run.txt",
+    "reformulated_queries": "19dde16a.queries.tsv"
+  }
+}

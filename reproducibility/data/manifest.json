@@ -1,8 +1,8 @@
 {
-  "content_hash": "16179cae01d920d8ceec91daac01bedbdbc04608df42e6022cf568719972de03",
-  "generated_at": "2026-05-20T04:13:24Z",
-  "querygym_version": "unknown",
-  "row_count": 2130,
-  "run_count": 1080,
+  "content_hash": "80d9e72b94b89de0a908d8ef39170465104fe3872efb283d520bbbd67a179b18",
+  "generated_at": "2026-06-16T23:36:52Z",
+  "querygym_version": "0.1.0",
+  "row_count": 2270,
+  "run_count": 1150,
   "schema_version": 1
 }

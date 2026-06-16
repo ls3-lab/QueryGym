@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "run_id": "838e6e30ead20344",
+  "params_hash": "7708261b",
+  "submitted_at": "2026-06-16T23:26:20Z",
+  "querygym_version": "0.1.0",
+  "environment": {
+    "python_version": "3.12.13",
+    "platform": "Linux-x86_64",
+    "git_commit": null
+  },
+  "pipeline": {
+    "dataset_id": "bright-stackoverflow",
+    "method_id": "genqr_ensemble",
+    "model": "openai/gpt-4.1",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 2969.402631998062
+  },
+  "config": {
+    "method_params": {},
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "bright-stackoverflow",
+      "index": "bright-stackoverflow",
+      "num_queries": 117
+    },
+    "retrieval": {
+      "retriever_id": "bm25",
+      "paradigm": "lexical",
+      "params": {
+        "k1": 0.9,
+        "b": 0.4
+      },
+      "implementation": "pyserini:LuceneSearcher"
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.2662,
+    "recall_100": 0.6268
+  },
+  "timing": {
+    "reformulation_seconds": 2952.030258655548,
+    "retrieval_seconds": 2.3961822986602783,
+    "evaluation_seconds": 13.94232439994812
+  },
+  "artifacts": {
+    "run_file": "7708261b.run.txt",
+    "reformulated_queries": "7708261b.queries.tsv"
+  }
+}

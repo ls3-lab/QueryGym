@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "run_id": "65f9252f550a129e",
+  "params_hash": "bb1e250c",
+  "submitted_at": "2026-06-16T23:26:19Z",
+  "querygym_version": "0.1.0",
+  "environment": {
+    "python_version": "3.12.13",
+    "platform": "Linux-x86_64",
+    "git_commit": null
+  },
+  "pipeline": {
+    "dataset_id": "bright-earth-science",
+    "method_id": "genqr",
+    "model": "openai/gpt-4.1",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 1006.7276303768158
+  },
+  "config": {
+    "method_params": {},
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "bright-earth-science",
+      "index": "bright-earth-science",
+      "num_queries": 116
+    },
+    "retrieval": {
+      "retriever_id": "bm25",
+      "paradigm": "lexical",
+      "params": {
+        "k1": 0.9,
+        "b": 0.4
+      },
+      "implementation": "pyserini:LuceneSearcher"
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.4393,
+    "recall_100": 0.7108
+  },
+  "timing": {
+    "reformulation_seconds": 989.0034556388855,
+    "retrieval_seconds": 3.0101823806762695,
+    "evaluation_seconds": 13.724879741668701
+  },
+  "artifacts": {
+    "run_file": "bb1e250c.run.txt",
+    "reformulated_queries": "bb1e250c.queries.tsv"
+  }
+}

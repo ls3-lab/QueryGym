@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "run_id": "a8ed3b954d68fe2c",
+  "params_hash": "109407ed",
+  "submitted_at": "2026-06-16T23:26:23Z",
+  "querygym_version": "0.1.0",
+  "environment": {
+    "python_version": "3.12.13",
+    "platform": "Linux-x86_64",
+    "git_commit": null
+  },
+  "pipeline": {
+    "dataset_id": "bright-sustainable-living",
+    "method_id": "query2doc",
+    "model": "openai/gpt-4.1",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 204.676096200943
+  },
+  "config": {
+    "method_params": {
+      "mode": "fs",
+      "num_examples": 4,
+      "collection_path": "/data/ssd7/abigdeli/projects/deep_retriever/BRIGHT_querygym/bright_fewshot_data/sustainable-living/collection.tsv",
+      "train_queries_path": "/data/ssd7/abigdeli/projects/deep_retriever/BRIGHT_querygym/bright_fewshot_data/sustainable-living/train_queries.tsv",
+      "train_qrels_path": "/data/ssd7/abigdeli/projects/deep_retriever/BRIGHT_querygym/bright_fewshot_data/sustainable-living/train_qrels.txt",
+      "dataset_type": "generic"
+    },
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "bright-sustainable-living",
+      "index": "bright-sustainable-living",
+      "num_queries": 108
+    },
+    "retrieval": {
+      "retriever_id": "bm25",
+      "paradigm": "lexical",
+      "params": {
+        "k1": 0.9,
+        "b": 0.4
+      },
+      "implementation": "pyserini:LuceneSearcher"
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.1705,
+    "recall_100": 0.4894
+  },
+  "timing": {
+    "reformulation_seconds": 189.2327754497528,
+    "retrieval_seconds": 2.094576358795166,
+    "evaluation_seconds": 13.34874439239502
+  },
+  "artifacts": {
+    "run_file": "109407ed.run.txt",
+    "reformulated_queries": "109407ed.queries.tsv"
+  }
+}
