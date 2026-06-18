@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "run_id": "5ca49944aed0b43a",
+  "run_id": "69964c07adc04d88",
   "params_hash": "8e1bb57c",
   "submitted_at": "2026-05-19T00:00:00Z",
   "querygym_version": "legacy-backfill",
@@ -31,7 +31,7 @@
       "max_tokens": 128
     },
     "dataset_config": {
-      "topics": "/mnt/data/son/Thesis/t5/data/dlhard/neutral_queries.tsv",
+      "topics": "dlhard/neutral_queries.tsv",
       "index": "msmarco-v1-passage",
       "num_queries": 50
     },
