@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import platform as _platform
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -16,6 +17,41 @@ SCHEMA_VERSION = 1
 def _stable_json(payload: Any) -> str:
     """Serialize with sorted keys and no whitespace — deterministic across runs."""
     return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+_ABS_PATH_RE = re.compile(r"^(?:/|[A-Za-z]:[\\/])")
+
+
+def _is_abs_path(value: Any) -> bool:
+    """True if `value` is a string that looks like a machine-specific absolute
+    filesystem path (POSIX '/...' or Windows 'C:\\...'). Registry keys and
+    relative paths are not absolute."""
+    return isinstance(value, str) and bool(_ABS_PATH_RE.match(value))
+
+
+def _portable_path(value: Any) -> Any:
+    """Collapse a machine-specific absolute path to a portable 'parent/name'
+    form so a run's identity is host-independent.
+
+        '/mnt/data/son/data/msmarco/collection.tsv' -> 'msmarco/collection.tsv'
+
+    Non-absolute strings (registry keys like 'dl19-passage', already-relative
+    paths) and non-strings pass through unchanged. Idempotent — applying it to
+    an already-portable value is a no-op.
+    """
+    if not _is_abs_path(value):
+        return value
+    parts = [p for p in re.split(r"[\\/]+", value) if p and p not in (".", "..")]
+    if parts and re.fullmatch(r"[A-Za-z]:", parts[0]):
+        parts = parts[1:]  # drop a Windows drive letter ('C:')
+    if not parts:
+        return value
+    return "/".join(parts[-2:])
+
+
+def _portabilize(mapping: Mapping[str, Any]) -> dict:
+    """Copy of `mapping` with any absolute-path string values made portable."""
+    return {k: _portable_path(v) for k, v in mapping.items()}
 
 
 def compute_params_hash(
@@ -143,6 +179,11 @@ def build_run_summary(
     writing — that adds runtime checks against the dataset/method/retriever
     registries.
     """
+    # Strip machine-specific absolute paths so the run identity is host-
+    # independent (e.g. a few-shot collection_path or a custom topics file).
+    # Done before hashing so params_hash is computed over the portable values.
+    method_params = _portabilize(method_params)
+
     params_hash = compute_params_hash(method_id, model, method_params, llm_config)
 
     retrieval_block: dict = {
@@ -172,8 +213,8 @@ def build_run_summary(
             "method_params": dict(method_params),
             "llm_config": dict(llm_config),
             "dataset_config": {
-                "topics": dataset_config["topics"],
-                "index": dataset_config["index"],
+                "topics": _portable_path(dataset_config["topics"]),
+                "index": _portable_path(dataset_config["index"]),
                 "num_queries": int(dataset_config["num_queries"]),
             },
             "retrieval": retrieval_block,
