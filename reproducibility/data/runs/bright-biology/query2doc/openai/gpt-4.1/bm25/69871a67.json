@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "run_id": "854003d9654899ec",
-  "params_hash": "71871441",
-  "submitted_at": "2026-06-18T01:23:03Z",
+  "run_id": "7f69d36cb68b0874",
+  "params_hash": "69871a67",
+  "submitted_at": "2026-06-18T01:34:36Z",
   "querygym_version": "0.1.0",
   "environment": {
     "python_version": "3.12.13",
     "platform": "Linux-5.15.0-181-generic-x86_64-with-glibc2.35",
-    "git_commit": "b07a3eb"
+    "git_commit": "de255bd"
   },
   "pipeline": {
     "dataset_id": "bright-biology",
@@ -24,6 +24,9 @@
     "method_params": {
       "mode": "fs",
       "num_examples": 4,
+      "collection_path": "biology/collection.tsv",
+      "train_queries_path": "biology/train_queries.tsv",
+      "train_qrels_path": "biology/train_qrels.txt",
       "dataset_type": "generic"
     },
     "llm_config": {
@@ -55,7 +58,7 @@
     "evaluation_seconds": 13.11411714553833
   },
   "artifacts": {
-    "run_file": "71871441.run.txt",
-    "reformulated_queries": "71871441.queries.tsv"
+    "run_file": "69871a67.run.txt",
+    "reformulated_queries": "69871a67.queries.tsv"
   }
 }

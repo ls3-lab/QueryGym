@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "run_id": "debdb765cf10137d",
-  "params_hash": "71871441",
-  "submitted_at": "2026-06-18T01:23:05Z",
+  "run_id": "1f9f9543ff213639",
+  "params_hash": "7cbb7af3",
+  "submitted_at": "2026-06-18T01:34:38Z",
   "querygym_version": "0.1.0",
   "environment": {
     "python_version": "3.12.13",
     "platform": "Linux-5.15.0-181-generic-x86_64-with-glibc2.35",
-    "git_commit": "b07a3eb"
+    "git_commit": "de255bd"
   },
   "pipeline": {
-    "dataset_id": "bright-stackoverflow",
+    "dataset_id": "bright-economics",
     "method_id": "query2doc",
     "model": "openai/gpt-4.1",
     "steps_completed": [
@@ -18,12 +18,15 @@
       "retrieve",
       "evaluate"
     ],
-    "total_time_seconds": 211.57536935806274
+    "total_time_seconds": 226.3765790462494
   },
   "config": {
     "method_params": {
       "mode": "fs",
       "num_examples": 4,
+      "collection_path": "economics/collection.tsv",
+      "train_queries_path": "economics/train_queries.tsv",
+      "train_qrels_path": "economics/train_qrels.txt",
       "dataset_type": "generic"
     },
     "llm_config": {
@@ -31,9 +34,9 @@
       "max_tokens": 128
     },
     "dataset_config": {
-      "topics": "bright-stackoverflow",
-      "index": "bright-stackoverflow",
-      "num_queries": 117
+      "topics": "bright-economics",
+      "index": "bright-economics",
+      "num_queries": 103
     },
     "retrieval": {
       "retriever_id": "bm25",
@@ -46,16 +49,16 @@
     }
   },
   "metrics": {
-    "ndcg_cut_10": 0.1813,
-    "recall_100": 0.4474
+    "ndcg_cut_10": 0.1791,
+    "recall_100": 0.4256
   },
   "timing": {
-    "reformulation_seconds": 195.0482861995697,
-    "retrieval_seconds": 2.699096202850342,
-    "evaluation_seconds": 13.8279869556427
+    "reformulation_seconds": 211.34015822410583,
+    "retrieval_seconds": 2.102174997329712,
+    "evaluation_seconds": 12.934245824813843
   },
   "artifacts": {
-    "run_file": "71871441.run.txt",
-    "reformulated_queries": "71871441.queries.tsv"
+    "run_file": "7cbb7af3.run.txt",
+    "reformulated_queries": "7cbb7af3.queries.tsv"
   }
 }

@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "run_id": "6c80421e78db45b1",
-  "params_hash": "71871441",
-  "submitted_at": "2026-06-18T01:23:05Z",
+  "run_id": "405463dc1d075900",
+  "params_hash": "97412198",
+  "submitted_at": "2026-06-18T01:34:38Z",
   "querygym_version": "0.1.0",
   "environment": {
     "python_version": "3.12.13",
     "platform": "Linux-5.15.0-181-generic-x86_64-with-glibc2.35",
-    "git_commit": "b07a3eb"
+    "git_commit": "de255bd"
   },
   "pipeline": {
-    "dataset_id": "bright-sustainable-living",
+    "dataset_id": "bright-earth-science",
     "method_id": "query2doc",
     "model": "openai/gpt-4.1",
     "steps_completed": [
@@ -18,12 +18,15 @@
       "retrieve",
       "evaluate"
     ],
-    "total_time_seconds": 204.676096200943
+    "total_time_seconds": 248.85952377319336
   },
   "config": {
     "method_params": {
       "mode": "fs",
       "num_examples": 4,
+      "collection_path": "earth-science/collection.tsv",
+      "train_queries_path": "earth-science/train_queries.tsv",
+      "train_qrels_path": "earth-science/train_qrels.txt",
       "dataset_type": "generic"
     },
     "llm_config": {
@@ -31,9 +34,9 @@
       "max_tokens": 128
     },
     "dataset_config": {
-      "topics": "bright-sustainable-living",
-      "index": "bright-sustainable-living",
-      "num_queries": 108
+      "topics": "bright-earth-science",
+      "index": "bright-earth-science",
+      "num_queries": 116
     },
     "retrieval": {
       "retriever_id": "bm25",
@@ -46,16 +49,16 @@
     }
   },
   "metrics": {
-    "ndcg_cut_10": 0.1705,
-    "recall_100": 0.4894
+    "ndcg_cut_10": 0.3678,
+    "recall_100": 0.6745
   },
   "timing": {
-    "reformulation_seconds": 189.2327754497528,
-    "retrieval_seconds": 2.094576358795166,
-    "evaluation_seconds": 13.34874439239502
+    "reformulation_seconds": 232.04400634765625,
+    "retrieval_seconds": 3.090280055999756,
+    "evaluation_seconds": 13.725237369537354
   },
   "artifacts": {
-    "run_file": "71871441.run.txt",
-    "reformulated_queries": "71871441.queries.tsv"
+    "run_file": "97412198.run.txt",
+    "reformulated_queries": "97412198.queries.tsv"
   }
 }

@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "run_id": "ef329897c7728584",
-  "params_hash": "71871441",
-  "submitted_at": "2026-06-18T01:23:05Z",
+  "run_id": "d95ebcd0babc045c",
+  "params_hash": "1b16c47d",
+  "submitted_at": "2026-06-18T01:34:38Z",
   "querygym_version": "0.1.0",
   "environment": {
     "python_version": "3.12.13",
     "platform": "Linux-5.15.0-181-generic-x86_64-with-glibc2.35",
-    "git_commit": "b07a3eb"
+    "git_commit": "de255bd"
   },
   "pipeline": {
-    "dataset_id": "bright-robotics",
+    "dataset_id": "bright-stackoverflow",
     "method_id": "query2doc",
     "model": "openai/gpt-4.1",
     "steps_completed": [
@@ -18,12 +18,15 @@
       "retrieve",
       "evaluate"
     ],
-    "total_time_seconds": 187.1052119731903
+    "total_time_seconds": 211.57536935806274
   },
   "config": {
     "method_params": {
       "mode": "fs",
       "num_examples": 4,
+      "collection_path": "stackoverflow/collection.tsv",
+      "train_queries_path": "stackoverflow/train_queries.tsv",
+      "train_qrels_path": "stackoverflow/train_qrels.txt",
       "dataset_type": "generic"
     },
     "llm_config": {
@@ -31,9 +34,9 @@
       "max_tokens": 128
     },
     "dataset_config": {
-      "topics": "bright-robotics",
-      "index": "bright-robotics",
-      "num_queries": 101
+      "topics": "bright-stackoverflow",
+      "index": "bright-stackoverflow",
+      "num_queries": 117
     },
     "retrieval": {
       "retriever_id": "bm25",
@@ -46,16 +49,16 @@
     }
   },
   "metrics": {
-    "ndcg_cut_10": 0.1141,
-    "recall_100": 0.4037
+    "ndcg_cut_10": 0.1813,
+    "recall_100": 0.4474
   },
   "timing": {
-    "reformulation_seconds": 172.33490800857544,
-    "retrieval_seconds": 2.2401225566864014,
-    "evaluation_seconds": 12.530181407928467
+    "reformulation_seconds": 195.0482861995697,
+    "retrieval_seconds": 2.699096202850342,
+    "evaluation_seconds": 13.8279869556427
   },
   "artifacts": {
-    "run_file": "71871441.run.txt",
-    "reformulated_queries": "71871441.queries.tsv"
+    "run_file": "1b16c47d.run.txt",
+    "reformulated_queries": "1b16c47d.queries.tsv"
   }
 }
