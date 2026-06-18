@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "run_id": "877c14345338134a",
+  "params_hash": "b6805dff",
+  "submitted_at": "2026-06-18T01:34:39Z",
+  "querygym_version": "0.1.0",
+  "environment": {
+    "python_version": "3.12.13",
+    "platform": "Linux-5.15.0-181-generic-x86_64-with-glibc2.35",
+    "git_commit": "de255bd"
+  },
+  "pipeline": {
+    "dataset_id": "bright-sustainable-living",
+    "method_id": "query2doc",
+    "model": "openai/gpt-4.1",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 204.676096200943
+  },
+  "config": {
+    "method_params": {
+      "mode": "fs",
+      "num_examples": 4,
+      "collection_path": "sustainable-living/collection.tsv",
+      "train_queries_path": "sustainable-living/train_queries.tsv",
+      "train_qrels_path": "sustainable-living/train_qrels.txt",
+      "dataset_type": "generic"
+    },
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "bright-sustainable-living",
+      "index": "bright-sustainable-living",
+      "num_queries": 108
+    },
+    "retrieval": {
+      "retriever_id": "bm25",
+      "paradigm": "lexical",
+      "params": {
+        "k1": 0.9,
+        "b": 0.4
+      },
+      "implementation": "pyserini:LuceneSearcher"
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.1705,
+    "recall_100": 0.4894
+  },
+  "timing": {
+    "reformulation_seconds": 189.2327754497528,
+    "retrieval_seconds": 2.094576358795166,
+    "evaluation_seconds": 13.34874439239502
+  },
+  "artifacts": {
+    "run_file": "b6805dff.run.txt",
+    "reformulated_queries": "b6805dff.queries.tsv"
+  }
+}

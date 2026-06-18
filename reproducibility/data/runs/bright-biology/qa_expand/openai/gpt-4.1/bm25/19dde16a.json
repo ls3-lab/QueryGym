@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "run_id": "b2cc3b6a56d2ffee",
+  "params_hash": "19dde16a",
+  "submitted_at": "2026-06-16T23:26:21Z",
+  "querygym_version": "0.1.0",
+  "environment": {
+    "python_version": "3.12.13",
+    "platform": "Linux-x86_64",
+    "git_commit": null
+  },
+  "pipeline": {
+    "dataset_id": "bright-biology",
+    "method_id": "qa_expand",
+    "model": "openai/gpt-4.1",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 669.1321349143982
+  },
+  "config": {
+    "method_params": {},
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "bright-biology",
+      "index": "bright-biology",
+      "num_queries": 103
+    },
+    "retrieval": {
+      "retriever_id": "bm25",
+      "paradigm": "lexical",
+      "params": {
+        "k1": 0.9,
+        "b": 0.4
+      },
+      "implementation": "pyserini:LuceneSearcher"
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.2667,
+    "recall_100": 0.5964
+  },
+  "timing": {
+    "reformulation_seconds": 652.9751968383789,
+    "retrieval_seconds": 2.1999576091766357,
+    "evaluation_seconds": 13.073083877563477
+  },
+  "artifacts": {
+    "run_file": "19dde16a.run.txt",
+    "reformulated_queries": "19dde16a.queries.tsv"
+  }
+}

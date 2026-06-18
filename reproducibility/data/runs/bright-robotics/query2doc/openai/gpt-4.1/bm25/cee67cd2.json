@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "run_id": "e68cc4ec275fc710",
+  "params_hash": "cee67cd2",
+  "submitted_at": "2026-06-18T01:34:38Z",
+  "querygym_version": "0.1.0",
+  "environment": {
+    "python_version": "3.12.13",
+    "platform": "Linux-5.15.0-181-generic-x86_64-with-glibc2.35",
+    "git_commit": "de255bd"
+  },
+  "pipeline": {
+    "dataset_id": "bright-robotics",
+    "method_id": "query2doc",
+    "model": "openai/gpt-4.1",
+    "steps_completed": [
+      "reformulate",
+      "retrieve",
+      "evaluate"
+    ],
+    "total_time_seconds": 187.1052119731903
+  },
+  "config": {
+    "method_params": {
+      "mode": "fs",
+      "num_examples": 4,
+      "collection_path": "robotics/collection.tsv",
+      "train_queries_path": "robotics/train_queries.tsv",
+      "train_qrels_path": "robotics/train_qrels.txt",
+      "dataset_type": "generic"
+    },
+    "llm_config": {
+      "temperature": 1.0,
+      "max_tokens": 128
+    },
+    "dataset_config": {
+      "topics": "bright-robotics",
+      "index": "bright-robotics",
+      "num_queries": 101
+    },
+    "retrieval": {
+      "retriever_id": "bm25",
+      "paradigm": "lexical",
+      "params": {
+        "k1": 0.9,
+        "b": 0.4
+      },
+      "implementation": "pyserini:LuceneSearcher"
+    }
+  },
+  "metrics": {
+    "ndcg_cut_10": 0.1141,
+    "recall_100": 0.4037
+  },
+  "timing": {
+    "reformulation_seconds": 172.33490800857544,
+    "retrieval_seconds": 2.2401225566864014,
+    "evaluation_seconds": 12.530181407928467
+  },
+  "artifacts": {
+    "run_file": "cee67cd2.run.txt",
+    "reformulated_queries": "cee67cd2.queries.tsv"
+  }
+}
