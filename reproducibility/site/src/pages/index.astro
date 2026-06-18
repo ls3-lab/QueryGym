@@ -11,15 +11,25 @@ import { buildReproduceCmds, retrieveHint, evaluateHint, type RunLike } from "..
 const populated = overview.run_count > 0;
 
 const SHORT: Record<string, string> = {
+  // BEIR
+  "beir-v1.0.0-scifact":        "SciFact",
+  "beir-v1.0.0-arguana":        "ArguAna",
+  "beir-v1.0.0-trec-covid":     "COVID",
+  "beir-v1.0.0-fiqa":           "FiQA",
+  "beir-v1.0.0-dbpedia-entity": "DBPedia",
+  "beir-v1.0.0-trec-news":      "News",
+  // MS MARCO DL
   "msmarco-v1-passage.trecdl2019": "DL 2019",
   "msmarco-v1-passage.trecdl2020": "DL 2020",
   "msmarco-v1-passage.dlhard":     "DL-HARD",
-  "beir-v1.0.0-scifact":           "SciFact",
-  "beir-v1.0.0-arguana":           "ArguAna",
-  "beir-v1.0.0-trec-covid":        "COVID",
-  "beir-v1.0.0-fiqa":              "FiQA",
-  "beir-v1.0.0-dbpedia-entity":    "DBPedia",
-  "beir-v1.0.0-trec-news":         "News",
+  // BRIGHT
+  "bright-biology":           "Biology",
+  "bright-earth-science":     "Earth Sci.",
+  "bright-economics":         "Economics",
+  "bright-psychology":        "Psychology",
+  "bright-robotics":          "Robotics",
+  "bright-stackoverflow":     "StackOverflow",
+  "bright-sustainable-living":"Sustain. Living",
 };
 
 const METRIC_LABEL: Record<string, string> = {
@@ -29,59 +39,57 @@ const METRIC_LABEL: Record<string, string> = {
   map:         "MAP",
 };
 
-const rows = [...matrix.rows].sort((a: any, b: any) => {
+// Sort dataset columns: MS MARCO → BEIR → BRIGHT, alphabetically within each group
+function benchOrder(id: string): number {
+  if (id.startsWith("msmarco-")) return 0;
+  if (id.startsWith("beir-"))    return 1;
+  if (id.startsWith("bright-"))  return 2;
+  return 3;
+}
+const datasetCols = [...matrix.dataset_columns].sort((a: any, b: any) => {
+  const diff = benchOrder(a.id) - benchOrder(b.id);
+  return diff !== 0 ? diff : a.id.localeCompare(b.id);
+});
+// Sort matrix rows alphabetically as stable base order
+const matrixRows = [...matrix.rows].sort((a: any, b: any) => {
   if (a.method_id !== b.method_id) return a.method_id.localeCompare(b.method_id);
   if (a.model !== b.model) return a.model.localeCompare(b.model);
   return a.retriever_id.localeCompare(b.retriever_id);
 });
 
-const datasetCols = matrix.dataset_columns;
-
-const beirCols = datasetCols.filter((d: any) => d.id.startsWith("beir-"));
-const dlCols = datasetCols.filter((d: any) => !d.id.startsWith("beir-"));
-
-// JSON-LD: Dataset schema for the leaderboard itself, linked back to the
-// SoftwareApplication entry on querygym.com via sameAs. Helps Google build a
-// richer search result + connect both surfaces in the knowledge graph.
-const jsonLd = JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "Dataset",
-  name: "QueryGym Leaderboard",
-  description: "Reproducible benchmarks for LLM-based query reformulation across BEIR, MS MARCO DL, and DL-HARD — with click-to-reproduce commands for every result.",
-  url: "https://leaderboard.querygym.com/",
-  license: "https://www.apache.org/licenses/LICENSE-2.0",
-  isAccessibleForFree: true,
-  keywords: [
-    "query reformulation",
-    "large language models",
-    "information retrieval",
-    "BEIR",
-    "MS MARCO",
-    "TREC Deep Learning",
-    "reproducibility",
-    "leaderboard",
-  ],
-  creator: {
-    "@type": "Organization",
-    name: "ls3-lab",
-    url: "https://querygym.com",
-    sameAs: ["https://github.com/ls3-lab"],
+// ── Benchmark groups (computed at build time, passed to JS via define:vars) ──
+// Order: MS MARCO first, then BEIR, then BRIGHT.
+const benchmarkGroups: { key: string; label: string; datasets: { id: string; name: string }[] }[] = [
+  {
+    key: "msmarco", label: "MS MARCO",
+    datasets: datasetCols
+      .filter((d: any) => d.id.startsWith("msmarco-"))
+      .map((d: any) => ({ id: d.id, name: SHORT[d.id] ?? d.name })),
   },
-  sameAs: [
-    "https://querygym.com",
-    "https://github.com/ls3-lab/QueryGym",
-    "https://arxiv.org/abs/2511.15996",
-    "https://arxiv.org/abs/2604.27421",
-  ],
-  variableMeasured: [
-    "nDCG@10",
-    "Recall@100",
-    "Recall@1000",
-  ],
-});
+  {
+    key: "beir", label: "BEIR",
+    datasets: datasetCols
+      .filter((d: any) => d.id.startsWith("beir-"))
+      .map((d: any) => ({ id: d.id, name: SHORT[d.id] ?? d.name })),
+  },
+  {
+    key: "bright", label: "BRIGHT",
+    datasets: datasetCols
+      .filter((d: any) => d.id.startsWith("bright-"))
+      .map((d: any) => ({ id: d.id, name: SHORT[d.id] ?? d.name })),
+  },
+].filter((g) => g.datasets.length > 0);
 
-// pre-build reproduce cmds for every (row, dataset) cell that has a run.
-// Keyed by run_id so the same lookup powers all tabs.
+const DEFAULT_DATASET_ID = "msmarco-v1-passage.trecdl2019";
+const defaultDataset = datasetCols.some((d: any) => d.id === DEFAULT_DATASET_ID)
+  ? DEFAULT_DATASET_ID
+  : (benchmarkGroups[0]?.datasets[0]?.id ?? "");
+const defaultBenchmark =
+  benchmarkGroups.find((g) => g.datasets.some((d) => d.id === defaultDataset))?.key
+  ?? benchmarkGroups[0]?.key
+  ?? "msmarco";
+
+// Pre-build reproduce steps for every run_id (used by expand panels)
 const runsMap = runs as Record<string, any>;
 type Step = { num: number; title: string; hint: string; code: string };
 const reproCache: Record<string, Step[]> = {};
@@ -107,511 +115,609 @@ function stepsFor(runId: string): Step[] | null {
   reproCache[runId] = steps;
   return steps;
 }
+
+// JSON-LD for SEO
+const jsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  name: "QueryGym Leaderboard",
+  description: "Reproducible benchmarks for LLM-based query reformulation across BEIR, MS MARCO DL, and DL-HARD — with click-to-reproduce commands for every result.",
+  url: "https://leaderboard.querygym.com/",
+  license: "https://www.apache.org/licenses/LICENSE-2.0",
+  isAccessibleForFree: true,
+  keywords: ["query reformulation","large language models","information retrieval","BEIR","MS MARCO","TREC Deep Learning","reproducibility","leaderboard"],
+  creator: { "@type": "Organization", name: "ls3-lab", url: "https://querygym.com", sameAs: ["https://github.com/ls3-lab"] },
+  sameAs: ["https://querygym.com","https://github.com/ls3-lab/QueryGym","https://arxiv.org/abs/2511.15996","https://arxiv.org/abs/2604.27421"],
+  variableMeasured: ["nDCG@10","Recall@100","Recall@1000"],
+});
 ---
 
 <Default
   title="Leaderboard"
-  description="Reproducible benchmarks for LLM query reformulation. Click any row to see the exact commands that produced each score — methods × LLMs × retrievers (BM25, SPLADE++, BGE) across BEIR, MS MARCO DL, and DL-HARD."
+  description="Reproducible benchmarks for LLM query reformulation. Select a dataset and retriever to compare methods — click any row for exact reproduce commands."
   jsonLd={jsonLd}
 >
-  {populated && (
-    <header class="mb-3">
-      <div class="mb-2 flex items-baseline gap-3">
-        <h2 class="text-xl font-semibold text-qg-fg md:text-2xl">Main Results</h2>
-        <div class="h-px flex-1 bg-qg-border"></div>
-        <span class="text-[11px] uppercase tracking-wider text-qg-fg-muted">
-          All results produced by
-          <span class="qg-mono font-semibold text-qg-accent">QueryGym</span>
-          · fully reproducible!
-        </span>
-      </div>
-      <p class="max-w-4xl text-xs leading-relaxed text-qg-fg-muted">
-        Query reformulation methods × LLMs × retrievers benchmarked across BEIR, MS MARCO DL, and DL-HARD.
-        <br />
-        Click any row or the <strong class="text-qg-fg">+</strong> button to expand. Tabs switch dataset
-        context. The three steps (reformulate → retrieve → evaluate) update accordingly.
-      </p>
-    </header>
-  )}
 
-  {populated && (
-    <div class="lb-filter-card" data-lb-filters>
-      <div class="lb-filter-row">
-        <div class="lb-filter-group" data-group="retriever">
-          <span class="lb-filter-label">Retriever</span>
-          <button class="lb-chip active" data-value="">All</button>
-          {retrievers.map((r: any) => (
-            <button class="lb-chip" data-value={r.id}>{r.display_name ?? r.id}</button>
+{populated && (
+  <header class="mb-4">
+    <div class="mb-2 flex items-baseline gap-3">
+      <h2 class="text-2xl font-semibold text-qg-fg md:text-3xl">Main Results</h2>
+      <div class="h-px flex-1 bg-qg-border"></div>
+      <span class="text-[12px] uppercase tracking-wider text-qg-fg-muted">
+        All results produced by
+        <span class="qg-mono font-semibold text-qg-accent">QueryGym</span>
+        · fully reproducible!
+      </span>
+    </div>
+    <p class="max-w-3xl text-sm leading-relaxed text-qg-fg-muted">
+      Select a dataset and retriever below, then filter by LLM or method.
+      Click any row to expand reproduce commands.
+    </p>
+  </header>
+)}
+
+{populated ? (
+  <>
+    {/* ── Selector card: Benchmark pills → Dataset dropdown → Retriever pills ── */}
+    <div class="lb-selector-card">
+      {/* Row 1: Benchmark */}
+      <div class="lb-selector-row">
+        <span class="lb-selector-label">Benchmark</span>
+        <div id="lb-bench-pills" class="lb-ret-pills">
+          {benchmarkGroups.map((g) => (
+            <button class:list={["lb-chip", g.key === defaultBenchmark && "active"]} data-bench={g.key}>
+              {g.label}
+            </button>
           ))}
         </div>
+      </div>
+      {/* Row 2: Dataset dropdown — populated entirely by JS on init */}
+      <div class="lb-selector-row">
+        <span class="lb-selector-label">Dataset</span>
+        <select id="lb-ds-select" class="lb-ds-select"></select>
+      </div>
+      {/* Row 3: Retriever */}
+      <div class="lb-selector-row">
+        <span class="lb-selector-label">Retriever</span>
+        <div class="lb-ret-pills" id="lb-ret-pills">
+          <button class="lb-chip active" data-ret="">All</button>
+          {retrievers.map((r: any) => (
+            <button class="lb-chip" data-ret={r.id}>{r.display_name ?? r.id}</button>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* ── Filter card: Model + Method chips + Search ── */}
+    <div class="lb-filter-card" data-lb-filters>
+      <div class="lb-filter-row">
         <div class="lb-filter-group" data-group="model">
-          <span class="lb-filter-label">Model</span>
+          <span class="lb-filter-label">LLM</span>
           <button class="lb-chip active" data-value="">All</button>
-          {models.map((m: any) => (
+          {(models as any[]).map((m) => (
             <button class="lb-chip" data-value={m.id}>{m.display ?? m.id}</button>
           ))}
         </div>
         <div class="lb-filter-group" data-group="method">
           <span class="lb-filter-label">Method</span>
           <button class="lb-chip active" data-value="">All</button>
-          {methods.map((m: any) => (
-            <button class="lb-chip" data-value={m.id}>{m.display_name ?? m.id}</button>
+          {(methods as any[]).map((m) => (
+            <button class="lb-chip" data-value={m.id}>{m.display ?? m.display_name ?? m.id}</button>
           ))}
-        </div>
-        <div class="lb-filter-group">
-          <span class="lb-filter-label">Datasets</span>
-          <div class="lb-multi" id="lb-ds-multi">
-            <button class="lb-multi-trigger" type="button" aria-haspopup="true">
-              <span class="lb-multi-count">{datasetCols.length} / {datasetCols.length} selected</span>
-              <span class="caret">▾</span>
-            </button>
-            <div class="lb-multi-panel" role="menu">
-              {beirCols.length > 0 && (
-                <div class="lb-multi-section" data-family="beir">
-                  <div class="lb-multi-section-head">
-                    <span class="label">BEIR</span>
-                    <span class="actions">
-                      <button type="button" data-action="all">all</button>
-                      <span>·</span>
-                      <button type="button" data-action="none">none</button>
-                    </span>
-                  </div>
-                  {beirCols.map((d: any) => (
-                    <label class="lb-multi-item">
-                      <input type="checkbox" data-ds={d.id} checked />
-                      <span class="name">{SHORT[d.id] ?? d.name}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-              {dlCols.length > 0 && (
-                <div class="lb-multi-section" data-family="dl">
-                  <div class="lb-multi-section-head">
-                    <span class="label">MS MARCO DL</span>
-                    <span class="actions">
-                      <button type="button" data-action="all">all</button>
-                      <span>·</span>
-                      <button type="button" data-action="none">none</button>
-                    </span>
-                  </div>
-                  {dlCols.map((d: any) => (
-                    <label class="lb-multi-item">
-                      <input type="checkbox" data-ds={d.id} checked />
-                      <span class="name">{SHORT[d.id] ?? d.name}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        <div class="lb-filter-group">
-          <span class="lb-filter-label">Metric</span>
-          <div class="lb-seg" id="lb-metric-seg" role="tablist">
-            <button class="lb-seg-btn active" data-mode="both" role="tab">Both</button>
-            <button class="lb-seg-btn" data-mode="ndcg" role="tab">nDCG</button>
-            <button class="lb-seg-btn" data-mode="recall" role="tab">Recall</button>
-          </div>
         </div>
       </div>
       <div class="lb-filter-row">
         <div class="lb-search-wrap">
           <div class="lb-search-input">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-            <input id="lb-search" placeholder="Filter by method, model, retriever, dataset…" autocomplete="off" />
+            <input id="lb-search" placeholder="Filter by method or LLM…" autocomplete="off" />
           </div>
-          <span class="lb-row-count"><span id="lb-shown">{rows.length}</span> / {rows.length} configs · {overview.run_count} runs</span>
+          <span class="lb-row-count">
+            <span id="lb-shown">0</span> / {matrixRows.length} configs · {overview.run_count} runs
+          </span>
         </div>
-        <span class="lb-best-legend" style="margin-left:auto"><span class="dot"></span> best in column</span>
+        <span class="lb-best-legend" style="margin-left:auto">
+          <span class="dot"></span> best in column
+        </span>
       </div>
     </div>
-  )}
 
-  {populated ? (
+    {/* ── Table ── */}
     <div class="lb-table-card">
-      <div class="lb-table-scroll">
-        <table id="lb-matrix" class="lb">
+      <div class="lb-table-scroll" id="lb-scroll">
+        <table id="lb-matrix" class="lb lb-flat">
           <thead>
-            <tr class="top">
-              <th class="ax ax-1" rowspan="2"></th>
-              <th class="ax ax-2" rowspan="2">Method</th>
-              <th class="ax ax-3" rowspan="2">LLM</th>
-              <th class="ax ax-4" rowspan="2">Retriever</th>
-              {datasetCols.map((d: any) => (
-                <th class="group" colspan="2" data-ds={d.id} title={d.id}>{SHORT[d.id] ?? d.name}</th>
-              ))}
-            </tr>
-            <tr class="bot">
-              {datasetCols.map((d: any, di: number) => (
-                <>
-                  <th class:list={["metric", "metric-primary", di === 0 && "first"]} data-ds={d.id} data-sort-ds={d.id} data-sort-metric="primary">
-                    <span class="name">{METRIC_LABEL[d.primary_metric] ?? d.primary_metric}<span class="arrow"></span></span>
-                  </th>
-                  <th class="metric metric-secondary" data-ds={d.id} data-sort-ds={d.id} data-sort-metric="secondary">
-                    <span class="name">{METRIC_LABEL[d.secondary_metric] ?? d.secondary_metric}<span class="arrow"></span></span>
-                  </th>
-                </>
-              ))}
+            <tr>
+              <th class="lb-col-rank">#</th>
+              <th class="lb-col-method">Method</th>
+              <th class="lb-col-model">LLM</th>
+              <th id="lb-th-retriever" class="lb-col-retriever lb-hidden">Retriever</th>
+              <th id="lb-th-primary" class="lb-col-metric sortable" data-sort-metric="primary">
+                <span class="name">nDCG@10<span class="arrow"></span></span>
+              </th>
+              <th id="lb-th-secondary" class="lb-col-metric sortable" data-sort-metric="secondary">
+                <span class="name">R@100<span class="arrow"></span></span>
+              </th>
+              <th class="lb-col-exp"></th>
             </tr>
           </thead>
-          <tbody>
-            {rows.map((row: any, i: number) => {
-              const datasetsWithRuns = datasetCols.filter((d: any) => row.run_ids?.[d.id]);
-              const firstDsId = datasetsWithRuns[0]?.id;
-              return (
-                <>
-                  <tr
-                    class="data"
-                    data-idx={i}
-                    data-method={row.method_id}
-                    data-model={row.model}
-                    data-retriever={row.retriever_id}
-                  >
-                    <td class="ax ax-1"><button class="lb-exp-btn" aria-label="expand"></button></td>
-                    <td class="ax ax-2"><span class="lb-method-name">{row.method_display ?? row.method_id}</span></td>
-                    <td class="ax ax-3 qg-mono" style="font-size:11.5px">{row.model_display ?? row.model}</td>
-                    <td class="ax ax-4">{row.retriever_display ?? row.retriever_id}</td>
-                    {datasetCols.map((d: any, di: number) => {
-                      const cell = row.values?.[d.id] ?? {};
-                      const p = cell[d.primary_metric];
-                      const s = d.secondary_metric ? cell[d.secondary_metric] : null;
-                      const pTxt = p ? p.value.toFixed(4) : "—";
-                      const sTxt = s ? s.value.toFixed(4) : "—";
-                      const pBest = p?.best ? " best" : "";
-                      const sBest = s?.best ? " best" : "";
-                      const first = di === 0 ? " first" : "";
-                      return (
-                        <>
-                          <td
-                            class:list={["lb-metric-cell", "metric-primary", p?.best && "best", di === 0 && "first"]}
-                            data-ds={d.id}
-                            data-primary-value={p?.value ?? ""}
-                          ><span class="primary">{pTxt}</span></td>
-                          <td
-                            class:list={["lb-metric-cell", "metric-secondary", s?.best && "best"]}
-                            data-ds={d.id}
-                            data-secondary-value={s?.value ?? ""}
-                          ><span class="secondary">{sTxt}</span></td>
-                        </>
-                      );
-                    })}
-                  </tr>
-                  <tr class="lb-exp-row">
-                    <td colspan={4 + datasetCols.length * 2}>
-                      <div class="lb-exp-wrap"><div class="lb-exp-inner">
-                        <div class="lb-exp-panel">
-                          <div class="lb-exp-meta">
-                            <span class="pill"><strong>method</strong>{row.method_display ?? row.method_id}</span>
-                            <span class="pill"><strong>llm</strong>{row.model_display ?? row.model}</span>
-                            <span class="pill"><strong>retriever</strong>{row.retriever_display ?? row.retriever_id}</span>
-                          </div>
-                          {datasetsWithRuns.length > 0 ? (
-                            <>
-                              <div class="lb-tabs" role="tablist">
-                                {datasetsWithRuns.map((d: any, ti: number) => {
-                                  const cell = row.values?.[d.id] ?? {};
-                                  const p = cell[d.primary_metric];
-                                  return (
-                                    <button class:list={["lb-tab", ti === 0 && "active"]} data-tab={d.id}>
-                                      {SHORT[d.id] ?? d.name}
-                                      {p && <span class="score">{p.value.toFixed(3)}</span>}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                              <div>
-                                {datasetsWithRuns.map((d: any, ti: number) => {
-                                  const runId = row.run_ids[d.id];
-                                  const steps = stepsFor(runId);
-                                  return (
-                                    <div class:list={["lb-tab-pane", ti === 0 && "active"]} data-pane={d.id}>
-                                      {steps?.map((st) => (
-                                        <div class="lb-step">
-                                          <div class="lb-step-head">
-                                            <div class="title">
-                                              <span class="num">{st.num}</span>
-                                              {st.title}
-                                              <span class="hint">{st.hint}</span>
-                                            </div>
-                                            <button class="lb-copy-btn" data-copy>copy</button>
-                                          </div>
-                                          <pre>{st.code}</pre>
-                                        </div>
-                                      ))}
-                                      <div class="lb-exp-footer">
-                                        <span>Run id <span class="qg-mono">{runId}</span></span>
-                                        <span>·</span>
-                                        <a href={`/runs/${runId}`}>open full run detail →</a>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </>
-                          ) : (
-                            <div class="text-sm text-qg-fg-muted">No runs recorded for this configuration.</div>
-                          )}
-                        </div>
-                      </div></div>
-                    </td>
-                  </tr>
-                </>
-              );
-            })}
+          <tbody id="lb-tbody">
+            {/* Built by JS */}
           </tbody>
         </table>
       </div>
     </div>
-  ) : (
-    <div class="mt-8 rounded-lg border border-qg-border bg-qg-bg-soft p-6 text-qg-fg-muted">
-      No runs yet. The matrix will populate when results land.
+
+    {/* ── Hidden expand-panel templates (pre-rendered at build time) ── */}
+    <div id="lb-exp-templates" hidden>
+      {matrixRows.map((row: any) => {
+        const rowKey = `${row.method_id}||${row.model}||${row.retriever_id}`;
+        const datasetsWithRuns = datasetCols.filter((d: any) => row.run_ids?.[d.id]);
+        return (
+          <div data-row-key={rowKey}>
+            <div class="lb-exp-panel">
+              <div class="lb-exp-meta">
+                <span class="pill"><strong>method</strong>{row.method_display ?? row.method_id}</span>
+                <span class="pill"><strong>llm</strong>{row.model_display ?? row.model}</span>
+                <span class="pill"><strong>retriever</strong>{row.retriever_display ?? row.retriever_id}</span>
+              </div>
+              {datasetsWithRuns.length > 0 ? (
+                <div class="lb-exp-body">
+                  {/* ── Left: dataset tabs + reproduce commands ── */}
+                  <div class="lb-exp-commands">
+                    <div class="lb-tabs" role="tablist">
+                      {datasetsWithRuns.map((d: any, ti: number) => {
+                        const cell = row.values?.[d.id] ?? {};
+                        const p = cell[d.primary_metric];
+                        return (
+                          <button class:list={["lb-tab", ti === 0 && "active"]} data-tab={d.id}>
+                            {SHORT[d.id] ?? d.name}
+                            {p && <span class="score">{p.value.toFixed(3)}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div>
+                      {datasetsWithRuns.map((d: any, ti: number) => {
+                        const runId = row.run_ids[d.id];
+                        const steps = stepsFor(runId);
+                        return (
+                          <div class:list={["lb-tab-pane", ti === 0 && "active"]} data-pane={d.id}>
+                            {steps?.map((st) => (
+                              <div class="lb-step">
+                                <div class="lb-step-head">
+                                  <div class="title">
+                                    <span class="num">{st.num}</span>
+                                    {st.title}
+                                    <span class="hint">{st.hint}</span>
+                                  </div>
+                                  <button class="lb-copy-btn" data-copy>copy</button>
+                                </div>
+                                <pre>{st.code}</pre>
+                              </div>
+                            ))}
+                            <div class="lb-exp-footer">
+                              <span>Run id <span class="qg-mono">{runId}</span></span>
+                              <span>·</span>
+                              <a href={`/runs/${runId}`}>open full run detail →</a>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  {/* ── Right: per-dataset bar chart ── */}
+                  <div class="lb-exp-barchart-wrap">
+                    <div class="lb-barchart-title">Per-dataset · nDCG@10</div>
+                    {datasetsWithRuns.map((d: any, ti: number) => {
+                      const val = (row.values?.[d.id] ?? {})[d.primary_metric]?.value;
+                      const pct = val != null ? (val * 100).toFixed(1) : 0;
+                      return (
+                        <div class:list={["lb-bar-row", ti === 0 && "active"]} data-bar-ds={d.id}>
+                          <span class="lb-bar-label">{SHORT[d.id] ?? d.name}</span>
+                          <div class="lb-bar-track">
+                            <div class="lb-bar" style={`width: ${pct}%`}></div>
+                          </div>
+                          <span class="lb-bar-val">{val != null ? val.toFixed(3) : "—"}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div class="text-sm text-qg-fg-muted">No runs recorded for this configuration.</div>
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
-  )}
+  </>
+) : (
+  <div class="mt-8 rounded-lg border border-qg-border bg-qg-bg-soft p-6 text-qg-fg-muted">
+    No runs yet. The leaderboard will populate when results land.
+  </div>
+)}
 
 </Default>
 
-<script>
-  // ------ viewport-width tracker for expand panel ------------------------
-  // The expand row's td has full table width via colspan, but we sticky-left
-  // its inner wrap and clamp it to the scroll container's visible width so
-  // the panel content always fits on screen and doesn't push horizontal
-  // scroll. JS sets --lb-vp-w on the scroll container; CSS uses it.
-  const scrollEl = document.querySelector<HTMLElement>(".lb-table-scroll");
+<script define:vars={{
+  matrixRowsData:   matrixRows,
+  datasetColsData:  datasetCols,
+  benchmarkGroupsData: benchmarkGroups,
+  defaultDatasetId: defaultDataset,
+  defaultBenchmarkKey: defaultBenchmark,
+  SHORT,
+  METRIC_LABEL,
+  methodsData:      methods,
+  modelsData:       models,
+}}>
+  // ------ viewport-width tracker for expand panel (sticky positioning) -------
+  const scrollEl = document.getElementById("lb-scroll");
   function updateVp() {
     if (scrollEl) scrollEl.style.setProperty("--lb-vp-w", scrollEl.clientWidth + "px");
   }
   updateVp();
   window.addEventListener("resize", updateVp);
 
-  // ------ filter chips (Retriever / Model / Method) ----------------------
-  const filterRoot = document.querySelector<HTMLElement>("[data-lb-filters]");
-  const table = document.getElementById("lb-matrix") as HTMLTableElement | null;
-  const tbody = table?.querySelector("tbody");
-  const search = document.getElementById("lb-search") as HTMLInputElement | null;
-  const shownEl = document.getElementById("lb-shown");
+  // ------ benchmark lookup (keyed by benchmark key) ---------------------------
+  // benchmarkGroupsData: [{ key, label, datasets: [{id, name}] }]
+  const BENCH_MAP = {};
+  benchmarkGroupsData.forEach((g) => { BENCH_MAP[g.key] = g.datasets; });
 
-  const filterState: Record<string, string> = { retriever: "", model: "", method: "" };
+  // ------ state ---------------------------------------------------------------
+  const state = {
+    benchmark:  defaultBenchmarkKey ?? benchmarkGroupsData[0]?.key ?? "msmarco",
+    dataset:    defaultDatasetId,
+    retriever:  "",
+    model:      "",
+    method:     "",
+    query:      "",
+    sortMetric: "primary",
+    sortDir:    "desc",
+  };
 
-  filterRoot?.querySelectorAll<HTMLElement>("[data-group]").forEach((g) => {
-    const key = g.dataset.group!;
-    if (key === "metric") return;
-    g.querySelectorAll<HTMLButtonElement>("button.lb-chip").forEach((btn) => {
+  // ------ color maps (stable: sorted order matches build-data output) ---------
+  // Methods use lb-mtag-{0..9}, models use lb-mdtag-{0..5}.
+  // Indices are assigned by alphabetical sort order so they never shift when
+  // new runs are added — only when a genuinely new method/model appears.
+  const methodColorMap = {};
+  (methodsData ?? []).forEach((m, i) => { methodColorMap[m.id] = i % 10; });
+  const modelColorMap = {};
+  (modelsData ?? []).forEach((m, i) => { modelColorMap[m.id] = i % 6; });
+
+  // ------ DOM refs ------------------------------------------------------------
+  const tbody     = document.getElementById("lb-tbody");
+  const shownEl   = document.getElementById("lb-shown");
+  const thPrimary = document.getElementById("lb-th-primary");
+  const thSec     = document.getElementById("lb-th-secondary");
+  const thRet     = document.getElementById("lb-th-retriever");
+  const expTpls   = document.getElementById("lb-exp-templates");
+
+  // Build a Map for O(1) template lookup (row keys contain "/" which breaks CSS selector)
+  const tplMap = new Map();
+  expTpls?.querySelectorAll("[data-row-key]").forEach((el) => {
+    tplMap.set(el.dataset.rowKey, el);
+  });
+
+  // ------ benchmark pills + dataset dropdown ----------------------------------
+  const dsSelect = document.getElementById("lb-ds-select");
+
+  function repopulateDatasetSelect(benchKey) {
+    if (!dsSelect) return;
+    const datasets = BENCH_MAP[benchKey] ?? [];
+    dsSelect.innerHTML = datasets
+      .map((d) => `<option value="${d.id}">${d.name}</option>`)
+      .join("");
+    // Preserve current dataset if it exists in the new benchmark; else first
+    const ids = datasets.map((d) => d.id);
+    state.dataset = ids.includes(state.dataset) ? state.dataset : (ids[0] ?? "");
+    dsSelect.value = state.dataset;
+  }
+
+  document.querySelectorAll("#lb-bench-pills button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#lb-bench-pills button").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      state.benchmark = btn.dataset.bench ?? "";
+      repopulateDatasetSelect(state.benchmark);
+      renderTable();
+    });
+  });
+
+  dsSelect?.addEventListener("change", (e) => {
+    state.dataset = e.target.value;
+    renderTable();
+  });
+
+  // ------ retriever pills -----------------------------------------------------
+  document.querySelectorAll("#lb-ret-pills button").forEach((btn) => {
+    // Seed state from whichever pill is active on load (the "All" pill = "")
+    if (btn.classList.contains("active")) state.retriever = btn.dataset.ret ?? "";
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#lb-ret-pills button").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      state.retriever = btn.dataset.ret ?? "";
+      renderTable();
+    });
+  });
+
+  // ------ model / method chips ------------------------------------------------
+  const filterState = { model: "", method: "" };
+  document.querySelectorAll("[data-lb-filters] [data-group]").forEach((g) => {
+    const key = g.dataset.group;
+    g.querySelectorAll("button.lb-chip").forEach((btn) => {
       btn.addEventListener("click", () => {
         g.querySelectorAll("button.lb-chip").forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
         filterState[key] = btn.dataset.value ?? "";
-        applyVisibility();
+        renderTable();
       });
     });
   });
 
-  function applyVisibility() {
-    if (!tbody) return;
-    const q = (search?.value ?? "").trim().toLowerCase();
-    let shown = 0;
-    tbody.querySelectorAll<HTMLTableRowElement>("tr.data").forEach((tr) => {
-      let hide = false;
-      for (const [k, v] of Object.entries(filterState)) {
-        if (v && tr.dataset[k] !== v) { hide = true; break; }
-      }
-      if (!hide && q) {
-        const txt = (tr.textContent ?? "").toLowerCase();
-        if (!txt.includes(q)) hide = true;
-      }
-      tr.style.display = hide ? "none" : "";
-      const exp = tr.nextElementSibling as HTMLElement | null;
-      if (exp?.classList.contains("lb-exp-row")) exp.style.display = hide ? "none" : "";
-      if (!hide) shown++;
-    });
-    if (shownEl) shownEl.textContent = String(shown);
-  }
-  search?.addEventListener("input", applyVisibility);
-
-  // ------ dataset multi-select dropdown ---------------------------------
-  const dsMulti = document.getElementById("lb-ds-multi");
-  const dsTrigger = dsMulti?.querySelector<HTMLButtonElement>(".lb-multi-trigger");
-  const dsCount = dsMulti?.querySelector<HTMLElement>(".lb-multi-count");
-  const dsPanel = dsMulti?.querySelector<HTMLElement>(".lb-multi-panel");
-  const dsCheckboxes = Array.from(dsMulti?.querySelectorAll<HTMLInputElement>('input[type="checkbox"][data-ds]') ?? []);
-
-  dsTrigger?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    dsMulti?.classList.toggle("open");
+  // ------ search --------------------------------------------------------------
+  document.getElementById("lb-search")?.addEventListener("input", (e) => {
+    state.query = e.target.value.trim().toLowerCase();
+    renderTable();
   });
-  dsPanel?.addEventListener("click", (e) => e.stopPropagation());
-  document.addEventListener("click", () => dsMulti?.classList.remove("open"));
 
-  dsCheckboxes.forEach((cb) => cb.addEventListener("change", applyDsFilter));
-
-  dsMulti?.querySelectorAll<HTMLButtonElement>('button[data-action]').forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const fam = btn.closest<HTMLElement>("[data-family]")?.dataset.family;
-      const isAll = btn.dataset.action === "all";
-      dsCheckboxes.forEach((cb) => {
-        const dsId = cb.dataset.ds ?? "";
-        const cbFam = dsId.startsWith("beir-") ? "beir" : "dl";
-        if (cbFam === fam) cb.checked = isAll;
-      });
-      applyDsFilter();
+  // ------ sort headers --------------------------------------------------------
+  [thPrimary, thSec].forEach((th) => {
+    if (!th) return;
+    th.addEventListener("click", () => {
+      const m = th.dataset.sortMetric;
+      if (state.sortMetric === m) {
+        state.sortDir = state.sortDir === "desc" ? "asc" : "desc";
+      } else {
+        state.sortMetric = m;
+        state.sortDir = "desc";
+      }
+      updateSortIndicators();
+      renderTable();
     });
   });
 
-  function applyDsFilter() {
-    const hidden = new Set<string>();
-    dsCheckboxes.forEach((cb) => { if (!cb.checked) hidden.add(cb.dataset.ds ?? ""); });
-    // hide column elements (group ths, metric subheader ths, body cells).
-    // Use lb-hide-ds so this state is independent of the metric-mode toggle.
-    document.querySelectorAll<HTMLElement>("table.lb [data-ds]").forEach((el) => {
-      el.classList.toggle("lb-hide-ds", hidden.has(el.dataset.ds ?? ""));
-    });
-    // hide tabs + panes in any expanded row
-    document.querySelectorAll<HTMLElement>(".lb-tab").forEach((tab) => {
-      tab.classList.toggle("lb-hide-ds", hidden.has(tab.dataset.tab ?? ""));
-    });
-    document.querySelectorAll<HTMLElement>(".lb-tab-pane").forEach((p) => {
-      p.classList.toggle("lb-hide-ds", hidden.has(p.dataset.pane ?? ""));
-    });
-    // if a panel's active tab is now hidden, activate the first visible one
-    document.querySelectorAll<HTMLElement>(".lb-exp-row").forEach((exp) => {
-      const activeTab = exp.querySelector<HTMLElement>(".lb-tab.active:not(.lb-hide-ds)");
-      if (!activeTab) {
-        const firstVisible = exp.querySelector<HTMLElement>(".lb-tab:not(.lb-hide-ds)");
-        if (firstVisible) {
-          exp.querySelectorAll<HTMLElement>(".lb-tab").forEach((t) => t.classList.remove("active"));
-          firstVisible.classList.add("active");
-          const id = firstVisible.dataset.tab;
-          exp.querySelectorAll<HTMLElement>(".lb-tab-pane").forEach((p) =>
-            p.classList.toggle("active", p.dataset.pane === id && !p.classList.contains("lb-hide-ds"))
-          );
-        }
-      }
-    });
-    // update trigger label
-    const total = dsCheckboxes.length;
-    const selected = dsCheckboxes.filter((c) => c.checked).length;
-    if (dsCount) dsCount.textContent = `${selected} / ${total} selected`;
-    dsTrigger?.classList.toggle("has-filter", selected < total);
-  }
-
-  // ------ metric segmented control --------------------------------------
-  let metricMode: "both" | "ndcg" | "recall" = "both";
-  const segBtns = document.querySelectorAll<HTMLButtonElement>("#lb-metric-seg .lb-seg-btn");
-  segBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      if (btn.classList.contains("active")) return;
-      segBtns.forEach((b) => b.classList.toggle("active", b === btn));
-      metricMode = (btn.dataset.mode as any) ?? "both";
-      applyMetricMode();
-    });
-  });
-  function applyMetricMode() {
-    if (!table) return;
-    const showP = metricMode === "ndcg" || metricMode === "both";
-    const showS = metricMode === "recall" || metricMode === "both";
-    table.classList.toggle("mode-single", !(showP && showS));
-    // use lb-hide-metric so this state is independent of the ds-filter
-    table.querySelectorAll(".metric-primary").forEach((el) => el.classList.toggle("lb-hide-metric", !showP));
-    table.querySelectorAll(".metric-secondary").forEach((el) => el.classList.toggle("lb-hide-metric", !showS));
-    const newSpan = (showP ? 1 : 0) + (showS ? 1 : 0);
-    table.querySelectorAll<HTMLTableCellElement>("thead tr.top th.group").forEach((th) => { th.colSpan = newSpan || 1; });
-    // re-flow the .first class so the leftmost visible metric in each group keeps the border
-    const datasets = Array.from(table.querySelectorAll<HTMLTableCellElement>("thead tr.top th.group")).map((th) => th.dataset.ds);
-    datasets.forEach((dsId, di) => {
-      const p = table!.querySelector<HTMLElement>(`thead tr.bot .metric-primary[data-sort-ds="${dsId}"]`);
-      const s = table!.querySelector<HTMLElement>(`thead tr.bot .metric-secondary[data-sort-ds="${dsId}"]`);
-      if (p) p.classList.toggle("first", di === 0 && showP);
-      if (s) s.classList.toggle("first", di === 0 && !showP);
-    });
-    table.querySelectorAll<HTMLTableRowElement>("tbody tr.data").forEach((tr) => {
-      datasets.forEach((dsId, di) => {
-        const ps = tr.querySelectorAll<HTMLElement>(".metric-primary");
-        const ss = tr.querySelectorAll<HTMLElement>(".metric-secondary");
-        const p = ps[di]; const s = ss[di];
-        if (p) p.classList.toggle("first", di === 0 && showP);
-        if (s) s.classList.toggle("first", di === 0 && !showP);
-      });
-    });
-    // re-apply current sort if any (so order matches what's visible)
-    if (sortState.dsId) applySort();
-  }
-
-  // ------ sort ----------------------------------------------------------
-  const sortState: { dsId: string | null; metric: "primary" | "secondary" | null; dir: "asc" | "desc" | null } = {
-    dsId: null, metric: null, dir: null,
-  };
-  function applySort() {
-    if (!tbody || !sortState.dsId || !sortState.dir) return;
-    const dsId = sortState.dsId;
-    const attr = sortState.metric === "primary" ? "primaryValue" : "secondaryValue";
-    const dir = sortState.dir === "asc" ? 1 : -1;
-    const dsIdx = Array.from(table!.querySelectorAll<HTMLTableCellElement>("thead tr.top th.group")).findIndex((th) => th.dataset.ds === dsId);
-    if (dsIdx < 0) return;
-    const dataRows = Array.from(tbody.querySelectorAll<HTMLTableRowElement>("tr.data"));
-    const pairs = dataRows.map((tr) => {
-      const cells = tr.querySelectorAll<HTMLTableCellElement>(sortState.metric === "primary" ? ".metric-primary" : ".metric-secondary");
-      const cell = cells[dsIdx];
-      const raw = cell?.dataset[attr] ?? "";
-      const n = parseFloat(raw);
-      return { tr, exp: tr.nextElementSibling, v: Number.isFinite(n) ? n : null };
-    });
-    pairs.sort((a, b) => {
-      if (a.v === null && b.v === null) return 0;
-      if (a.v === null) return 1;
-      if (b.v === null) return -1;
-      return (a.v - b.v) * dir;
-    });
-    pairs.forEach((p) => {
-      tbody!.appendChild(p.tr);
-      if (p.exp) tbody!.appendChild(p.exp);
-    });
-  }
   function updateSortIndicators() {
-    table?.querySelectorAll(".metric").forEach((th) => th.classList.remove("sort-asc", "sort-desc"));
-    if (sortState.dir) {
-      const th = table?.querySelector(`thead .metric[data-sort-ds="${sortState.dsId}"][data-sort-metric="${sortState.metric}"]`);
-      th?.classList.add(`sort-${sortState.dir}`);
-    }
+    [thPrimary, thSec].forEach((th) => {
+      if (!th) return;
+      th.classList.remove("sort-asc", "sort-desc");
+      if (th.dataset.sortMetric === state.sortMetric) {
+        th.classList.add(`sort-${state.sortDir}`);
+      }
+    });
   }
-  function setSort(dsId: string, metric: "primary" | "secondary") {
-    if (sortState.dsId === dsId && sortState.metric === metric) {
-      sortState.dir = sortState.dir === "desc" ? "asc" : "desc";
-    } else {
-      sortState.dsId = dsId; sortState.metric = metric; sortState.dir = "desc";
+
+  // ------ helpers -------------------------------------------------------------
+  function escHtml(str) {
+    return String(str ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function rankBadge(rank) {
+    const cls =
+      rank === 1 ? "lb-rank lb-rank-1" :
+      rank === 2 ? "lb-rank lb-rank-2" :
+      rank === 3 ? "lb-rank lb-rank-3" : "lb-rank lb-rank-n";
+    return `<span class="${cls}">${rank}</span>`;
+  }
+
+  function getDsCol() {
+    return datasetColsData.find((d) => d.id === state.dataset);
+  }
+
+  // ------ renderTable ---------------------------------------------------------
+  function renderTable() {
+    const dsCol = getDsCol();
+    if (!dsCol || !tbody) return;
+
+    const primaryMetric   = dsCol.primary_metric;
+    const secondaryMetric = dsCol.secondary_metric;
+
+    // Update column header labels (preserve the .arrow child span)
+    function setThLabel(th, label) {
+      if (!th) return;
+      const nameSpan = th.querySelector(".name");
+      if (nameSpan) {
+        const arrow = nameSpan.querySelector(".arrow");
+        nameSpan.textContent = label;
+        if (arrow) nameSpan.appendChild(arrow);
+      }
     }
-    applySort();
+    setThLabel(thPrimary, METRIC_LABEL[primaryMetric] ?? primaryMetric ?? "");
+    setThLabel(thSec,     METRIC_LABEL[secondaryMetric] ?? secondaryMetric ?? "");
+    if (thPrimary)  thPrimary.style.display  = primaryMetric   ? "" : "none";
+    if (thSec)      thSec.style.display      = secondaryMetric ? "" : "none";
+
+    const showRetrieverCol = !state.retriever;
+    if (thRet) thRet.classList.toggle("lb-hidden", !showRetrieverCol);
+
+    // 1. Filter
+    const filtered = matrixRowsData.filter((row) => {
+      if (state.retriever && row.retriever_id !== state.retriever) return false;
+      if (!row.values?.[state.dataset]) return false;
+      if (filterState.model && row.model !== filterState.model) return false;
+      if (filterState.method && row.method_id !== filterState.method) return false;
+      if (state.query) {
+        const txt = [
+          row.method_display ?? row.method_id,
+          row.model_display ?? row.model,
+          row.retriever_display ?? row.retriever_id,
+        ].join(" ").toLowerCase();
+        if (!txt.includes(state.query)) return false;
+      }
+      return true;
+    });
+
+    // 2. Sort
+    filtered.sort((a, b) => {
+      const metric = state.sortMetric === "primary" ? primaryMetric : secondaryMetric;
+      if (!metric) return 0;
+      const av = a.values?.[state.dataset]?.[metric]?.value ?? -Infinity;
+      const bv = b.values?.[state.dataset]?.[metric]?.value ?? -Infinity;
+      if (av === bv) return 0;
+      return state.sortDir === "desc" ? bv - av : av - bv;
+    });
+
+    // 3. Best-in-column for local highlighting
+    let bestP = -Infinity, bestS = -Infinity;
+    for (const row of filtered) {
+      const cell = row.values?.[state.dataset] ?? {};
+      const pv = cell[primaryMetric]?.value;
+      const sv = secondaryMetric ? cell[secondaryMetric]?.value : null;
+      if (pv != null && pv > bestP) bestP = pv;
+      if (sv != null && sv > bestS) bestS = sv;
+    }
+
+    // 4. Compute ranks (competition ranking: ties share rank, next rank jumps).
+    //    Rank is always relative to the currently sorted metric so badges stay
+    //    consistent with the displayed row order.
+    const rankMetric = state.sortMetric === "primary" ? primaryMetric : (secondaryMetric ?? primaryMetric);
+    const ranks = [];
+    for (let i = 0; i < filtered.length; i++) {
+      if (i === 0) {
+        ranks.push(1);
+      } else {
+        const prevPv = filtered[i - 1].values?.[state.dataset]?.[rankMetric]?.value;
+        const curPv  = filtered[i].values?.[state.dataset]?.[rankMetric]?.value;
+        ranks.push(curPv === prevPv ? ranks[i - 1] : i + 1);
+      }
+    }
+
+    // 5. Build HTML
+    const html = filtered.map((row, i) => {
+      const cell = row.values?.[state.dataset] ?? {};
+      const pv = cell[primaryMetric]?.value;
+      const sv = secondaryMetric ? cell[secondaryMetric]?.value : null;
+      const pBest = pv != null && pv === bestP;
+      const sBest = sv != null && sv === bestS;
+      const pvStr = pv != null ? pv.toFixed(4) : "—";
+      const svStr = sv != null ? sv.toFixed(4) : "—";
+      const rowKey = `${row.method_id}||${row.model}||${row.retriever_id}`;
+
+      const mTagIdx  = methodColorMap[row.method_id] ?? 0;
+      const mdTagIdx = modelColorMap[row.model] ?? 0;
+      const retrieverCell = showRetrieverCol
+        ? `<td class="lb-col-retriever">${escHtml(row.retriever_display ?? row.retriever_id)}</td>`
+        : "";
+      const colSpan = showRetrieverCol ? 7 : 6;
+      return `
+<tr class="data" data-row-key="${escHtml(rowKey)}" data-method="${escHtml(row.method_id)}" data-model="${escHtml(row.model)}" data-retriever="${escHtml(row.retriever_id)}">
+  <td class="lb-col-rank">${rankBadge(ranks[i])}</td>
+  <td class="lb-col-method"><span class="lb-badge lb-mtag-${mTagIdx}">${escHtml(row.method_display ?? row.method_id)}</span></td>
+  <td class="lb-col-model"><span class="lb-badge lb-mono lb-mdtag-${mdTagIdx}">${escHtml(row.model_display ?? row.model)}</span></td>
+  ${retrieverCell}
+  <td class="lb-col-metric${pBest ? " best" : ""}" data-primary-value="${pv ?? ""}">
+    <span class="metric-val">${pvStr}</span>
+  </td>
+  <td class="lb-col-metric secondary${sBest ? " best" : ""}${secondaryMetric ? "" : " lb-hidden"}" data-secondary-value="${sv ?? ""}">
+    <span class="metric-val">${svStr}</span>
+  </td>
+  <td class="lb-col-exp"><button class="lb-exp-btn" aria-label="expand row"></button></td>
+</tr>
+<tr class="lb-exp-row" data-row-key="${escHtml(rowKey)}">
+  <td colspan="${colSpan}">
+    <div class="lb-exp-wrap"><div class="lb-exp-inner"></div></div>
+  </td>
+</tr>`;
+    }).join("");
+
+    tbody.innerHTML = html;
+    if (shownEl) shownEl.textContent = String(filtered.length);
+
+    // 6. Attach expand-row handlers
+    attachExpandHandlers();
     updateSortIndicators();
   }
-  table?.querySelectorAll<HTMLElement>("thead .metric").forEach((th) => {
-    th.addEventListener("click", () => {
-      const dsId = th.dataset.sortDs;
-      const m = th.dataset.sortMetric as "primary" | "secondary" | undefined;
-      if (dsId && m) setSort(dsId, m);
-    });
-  });
 
-  // ------ row expand + tab switching ------------------------------------
-  tbody?.querySelectorAll<HTMLTableRowElement>("tr.data").forEach((tr) => {
-    const exp = tr.nextElementSibling as HTMLElement | null;
-    if (!exp?.classList.contains("lb-exp-row")) return;
-    const toggle = (e?: Event) => {
-      if (e && (e.target as HTMLElement).closest("a, button.lb-copy-btn, button.lb-tab")) return;
-      const open = tr.classList.toggle("expanded");
-      exp.classList.toggle("show", open);
-    };
-    tr.addEventListener("click", toggle);
-    exp.querySelectorAll<HTMLButtonElement>(".lb-tab").forEach((tab) => {
-      tab.addEventListener("click", () => {
-        exp.querySelectorAll(".lb-tab").forEach((t) => t.classList.toggle("active", t === tab));
-        const id = tab.dataset.tab;
-        exp.querySelectorAll<HTMLElement>(".lb-tab-pane").forEach((p) => p.classList.toggle("active", p.dataset.pane === id));
+  // ------ expand panel logic --------------------------------------------------
+  function attachExpandHandlers() {
+    if (!tbody) return;
+    tbody.querySelectorAll("tr.data").forEach((tr) => {
+      const expRow = tr.nextElementSibling;
+      if (!expRow?.classList.contains("lb-exp-row")) return;
+
+      tr.addEventListener("click", (e) => {
+        if (e.target.closest("a, button.lb-copy-btn, button.lb-tab")) return;
+        const wasOpen = tr.classList.contains("expanded");
+
+        // Close all open rows first
+        tbody.querySelectorAll("tr.data.expanded").forEach((r) => {
+          r.classList.remove("expanded");
+          const sibling = r.nextElementSibling;
+          if (sibling?.classList.contains("lb-exp-row")) sibling.classList.remove("show");
+        });
+
+        if (!wasOpen) {
+          tr.classList.add("expanded");
+          expRow.classList.add("show");
+
+          // Inject expand panel on first open
+          const inner = expRow.querySelector(".lb-exp-inner");
+          if (inner && inner.children.length === 0) {
+            const rowKey = tr.dataset.rowKey;
+            const tpl = tplMap.get(rowKey);
+            if (tpl) {
+              const panel = tpl.querySelector(".lb-exp-panel").cloneNode(true);
+              inner.appendChild(panel);
+              // Activate the tab for the currently selected dataset
+              activateDatasetTab(inner, state.dataset);
+              // Attach tab-switch handlers
+              inner.querySelectorAll(".lb-tab").forEach((tab) => {
+                tab.addEventListener("click", () => {
+                  inner.querySelectorAll(".lb-tab").forEach((t) =>
+                    t.classList.toggle("active", t === tab)
+                  );
+                  const id = tab.dataset.tab;
+                  inner.querySelectorAll(".lb-tab-pane").forEach((p) =>
+                    p.classList.toggle("active", p.dataset.pane === id)
+                  );
+                  // Sync bar chart highlight
+                  inner.querySelectorAll(".lb-bar-row").forEach((b) =>
+                    b.classList.toggle("active", b.dataset.barDs === id)
+                  );
+                });
+              });
+            }
+          }
+        }
       });
     });
-  });
+  }
 
-  // ------ copy buttons --------------------------------------------------
+  function activateDatasetTab(container, dsId) {
+    const tabs  = container.querySelectorAll(".lb-tab");
+    const panes = container.querySelectorAll(".lb-tab-pane");
+    const bars  = container.querySelectorAll(".lb-bar-row");
+    let found = false;
+    let activeTab = null;
+    tabs.forEach((t) => {
+      const match = t.dataset.tab === dsId;
+      t.classList.toggle("active", match);
+      if (match) { found = true; activeTab = t; }
+    });
+    panes.forEach((p) => p.classList.toggle("active", p.dataset.pane === dsId));
+    bars.forEach((b)  => b.classList.toggle("active",  b.dataset.barDs === dsId));
+    // Fall back to first tab if current dataset not in this row's runs
+    if (!found && tabs.length > 0) {
+      tabs[0].classList.add("active");
+      activeTab = tabs[0];
+      const firstId = tabs[0].dataset.tab;
+      panes.forEach((p) => p.classList.toggle("active", p.dataset.pane === firstId));
+      bars.forEach((b)  => b.classList.toggle("active",  b.dataset.barDs === firstId));
+    }
+    // Scroll the active tab into view within the tab strip
+    if (activeTab) {
+      activeTab.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
+  }
+
+  // ------ copy buttons (delegated) -------------------------------------------
   document.addEventListener("click", (e) => {
-    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-copy]");
+    const btn = e.target.closest("[data-copy]");
     if (!btn) return;
     const pre = btn.closest(".lb-step")?.querySelector("pre");
     if (!pre) return;
@@ -619,6 +725,15 @@ function stepsFor(runId: string): Step[] | null {
     const prev = btn.textContent;
     btn.textContent = "copied ✓";
     btn.classList.add("copied");
-    setTimeout(() => { btn.textContent = prev; btn.classList.remove("copied"); }, 1400);
+    setTimeout(() => {
+      btn.textContent = prev;
+      btn.classList.remove("copied");
+    }, 1400);
   });
+
+  // ------ initial render ------------------------------------------------------
+  // Populate dataset select for the default benchmark before first render
+  repopulateDatasetSelect(state.benchmark);
+  updateSortIndicators();
+  renderTable();
 </script>

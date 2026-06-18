@@ -81,6 +81,11 @@ const navLinks = [
     <link rel="icon" type="image/png" href="/querygym-logo.png" />
     <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap-index.xml" />
 
+    <!-- HuggingFace-style fonts (matching Gradio's default theme) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
     {jsonLd && <script type="application/ld+json" set:html={jsonLd} />}
 
     <GoogleAnalytics />
