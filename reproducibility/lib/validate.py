@@ -7,7 +7,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
-from .emit import compute_params_hash, compute_run_id
+from .emit import compute_params_hash, compute_run_id, _is_abs_path
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _SCHEMA_PATH = Path(__file__).resolve().parent.parent / "schema.json"
@@ -98,6 +98,7 @@ def validate(
     Pass skip_registry_checks=True only in tests that intentionally use unknown ids.
     """
     _jsonschema_validate(payload)
+    _validate_no_absolute_paths(payload)
 
     if not skip_registry_checks:
         if dataset_registry is None:
@@ -168,6 +169,31 @@ def _validate_registries(
         raise ValidationError(
             f"metric(s) {sorted(unknown)} not in eval_metrics for dataset "
             f"'{dataset_id}' (allowed: {sorted(allowed)})"
+        )
+
+
+def _validate_no_absolute_paths(payload: Mapping[str, Any]) -> None:
+    """Reject machine-specific absolute paths in the config — run identities
+    must be host-independent. build_run_summary normalizes these automatically;
+    this guard catches summaries produced by other (or hand-rolled) emitters so
+    CI blocks any run that would reintroduce a host path."""
+    config = payload["config"]
+    offenders = [
+        f"method_params.{k}"
+        for k, v in config.get("method_params", {}).items()
+        if _is_abs_path(v)
+    ]
+    dataset_config = config.get("dataset_config", {})
+    offenders += [
+        f"dataset_config.{k}"
+        for k in ("topics", "index")
+        if _is_abs_path(dataset_config.get(k))
+    ]
+    if offenders:
+        raise ValidationError(
+            f"machine-specific absolute path(s) in config: {offenders}. "
+            "Use portable relative paths (build_run_summary normalizes these "
+            "automatically)."
         )
 
 

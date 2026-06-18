@@ -601,3 +601,118 @@ def test_validator_accepts_dlhard_run():
     kw["metrics"] = {"ndcg_cut_10": 0.4038, "recall_1000": 0.8415}
     p = build_run_summary(**kw)
     validate(p)
+
+
+# ---------- Portable paths (no machine-specific absolute paths) --------------
+
+
+def test_portable_path_normalizes_absolute_paths():
+    from reproducibility.lib.emit import _portable_path
+
+    assert (
+        _portable_path("/mnt/data/son/data/msmarco/collection.tsv")
+        == "msmarco/collection.tsv"
+    )
+    assert (
+        _portable_path("/mnt/data/son/Thesis/t5/data/dlhard/neutral_queries.tsv")
+        == "dlhard/neutral_queries.tsv"
+    )
+    assert _portable_path(r"C:\Users\bob\data\msmarco\collection.tsv") == "msmarco/collection.tsv"
+
+
+def test_portable_path_leaves_identifiers_and_is_idempotent():
+    from reproducibility.lib.emit import _portable_path
+
+    # registry keys / short identifiers are not paths — untouched
+    assert _portable_path("dl19-passage") == "dl19-passage"
+    assert _portable_path("msmarco-v1-passage") == "msmarco-v1-passage"
+    assert _portable_path("beir-v1.0.0-arguana-test") == "beir-v1.0.0-arguana-test"
+    # non-strings pass through
+    assert _portable_path(4) == 4
+    # already-relative / already-normalized — idempotent
+    assert _portable_path("msmarco/collection.tsv") == "msmarco/collection.tsv"
+
+
+def test_build_run_summary_strips_absolute_method_params():
+    kw = _build_kwargs()
+    kw["method_id"] = "query2doc"
+    kw["method_params"] = {
+        "mode": "fs",
+        "collection_path": "/mnt/data/son/data/msmarco/collection.tsv",
+        "train_queries_path": "/mnt/data/son/data/msmarco/queries.train.tsv",
+    }
+    p = build_run_summary(**kw)
+    mp = p["config"]["method_params"]
+    assert mp["collection_path"] == "msmarco/collection.tsv"
+    assert mp["train_queries_path"] == "msmarco/queries.train.tsv"
+    # nothing host-specific survives anywhere in the payload
+    assert "/mnt/" not in json.dumps(p)
+
+
+def test_build_run_summary_strips_absolute_topics():
+    kw = _build_kwargs()
+    kw["dataset_id"] = "msmarco-v1-passage.dlhard"
+    kw["metrics"] = {"ndcg_cut_10": 0.4038, "recall_1000": 0.8415}
+    kw["dataset_config"] = {
+        "topics": "/mnt/data/son/Thesis/t5/data/dlhard/neutral_queries.tsv",
+        "index": "msmarco-v1-passage",
+        "num_queries": 343,
+    }
+    p = build_run_summary(**kw)
+    assert p["config"]["dataset_config"]["topics"] == "dlhard/neutral_queries.tsv"
+    assert p["config"]["dataset_config"]["index"] == "msmarco-v1-passage"
+
+
+def test_upstream_emit_reproduces_committed_legacy_hash():
+    """Normalizing an absolute few-shot path at emit time must reproduce the
+    params_hash already committed for that logical config (PR #32/#33), so a
+    fresh run of the same experiment keeps its canonical identity."""
+    h = compute_params_hash(
+        "query2doc",
+        "openai/gpt-4.1",
+        {
+            "mode": "fs",
+            "num_examples": 4,
+            "dataset_type": "msmarco",
+            "collection_path": "msmarco/collection.tsv",
+            "train_queries_path": "msmarco/queries.train.tsv",
+            "train_qrels_path": "msmarco/qrels.train.tsv",
+            "train_split": "train",
+        },
+        {"temperature": 1.0, "max_tokens": 128},
+    )
+    assert h == "97128a62"
+
+    # and building from the ABSOLUTE paths must arrive at the same hash
+    kw = _build_kwargs()
+    kw.update(
+        dataset_id="beir-v1.0.0-arguana",
+        method_id="query2doc",
+        model="openai/gpt-4.1",
+        method_params={
+            "mode": "fs",
+            "num_examples": 4,
+            "dataset_type": "msmarco",
+            "collection_path": "/mnt/data/son/data/msmarco/collection.tsv",
+            "train_queries_path": "/mnt/data/son/data/msmarco/queries.train.tsv",
+            "train_qrels_path": "/mnt/data/son/data/msmarco/qrels.train.tsv",
+            "train_split": "train",
+        },
+        llm_config={"temperature": 1.0, "max_tokens": 128},
+        metrics={"ndcg_cut_10": 0.4012, "recall_100": 0.941},
+    )
+    assert build_run_summary(**kw)["params_hash"] == "97128a62"
+
+
+def test_validator_rejects_absolute_path_in_method_params():
+    payload = _load_fixture()
+    payload["config"]["method_params"]["collection_path"] = "/mnt/data/son/data/msmarco/collection.tsv"
+    with pytest.raises(ValidationError, match="absolute path"):
+        validate(payload, skip_registry_checks=True)
+
+
+def test_validator_rejects_absolute_topics():
+    payload = _load_fixture()
+    payload["config"]["dataset_config"]["topics"] = "/abs/path/to/topics.tsv"
+    with pytest.raises(ValidationError, match="absolute path"):
+        validate(payload, skip_registry_checks=True)
