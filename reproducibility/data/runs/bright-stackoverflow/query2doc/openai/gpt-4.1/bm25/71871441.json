@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "run_id": "c0119576440cb23d",
-  "params_hash": "4d5400c1",
-  "submitted_at": "2026-06-16T23:26:23Z",
+  "run_id": "debdb765cf10137d",
+  "params_hash": "71871441",
+  "submitted_at": "2026-06-18T01:23:05Z",
   "querygym_version": "0.1.0",
   "environment": {
     "python_version": "3.12.13",
-    "platform": "Linux-x86_64",
-    "git_commit": null
+    "platform": "Linux-5.15.0-181-generic-x86_64-with-glibc2.35",
+    "git_commit": "b07a3eb"
   },
   "pipeline": {
     "dataset_id": "bright-stackoverflow",
@@ -24,9 +24,6 @@
     "method_params": {
       "mode": "fs",
       "num_examples": 4,
-      "collection_path": "/data/ssd7/abigdeli/projects/deep_retriever/BRIGHT_querygym/bright_fewshot_data/stackoverflow/collection.tsv",
-      "train_queries_path": "/data/ssd7/abigdeli/projects/deep_retriever/BRIGHT_querygym/bright_fewshot_data/stackoverflow/train_queries.tsv",
-      "train_qrels_path": "/data/ssd7/abigdeli/projects/deep_retriever/BRIGHT_querygym/bright_fewshot_data/stackoverflow/train_qrels.txt",
       "dataset_type": "generic"
     },
     "llm_config": {
@@ -58,7 +55,7 @@
     "evaluation_seconds": 13.8279869556427
   },
   "artifacts": {
-    "run_file": "4d5400c1.run.txt",
-    "reformulated_queries": "4d5400c1.queries.tsv"
+    "run_file": "71871441.run.txt",
+    "reformulated_queries": "71871441.queries.tsv"
   }
 }

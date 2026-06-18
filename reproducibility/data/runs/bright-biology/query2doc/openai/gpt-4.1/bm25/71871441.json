@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "run_id": "662f1bb9b3c8e91c",
-  "params_hash": "3500dbea",
-  "submitted_at": "2026-06-16T23:26:23Z",
+  "run_id": "854003d9654899ec",
+  "params_hash": "71871441",
+  "submitted_at": "2026-06-18T01:23:03Z",
   "querygym_version": "0.1.0",
   "environment": {
     "python_version": "3.12.13",
-    "platform": "Linux-x86_64",
-    "git_commit": null
+    "platform": "Linux-5.15.0-181-generic-x86_64-with-glibc2.35",
+    "git_commit": "b07a3eb"
   },
   "pipeline": {
     "dataset_id": "bright-biology",
@@ -24,9 +24,6 @@
     "method_params": {
       "mode": "fs",
       "num_examples": 4,
-      "collection_path": "/data/ssd7/abigdeli/projects/deep_retriever/BRIGHT_querygym/bright_fewshot_data/biology/collection.tsv",
-      "train_queries_path": "/data/ssd7/abigdeli/projects/deep_retriever/BRIGHT_querygym/bright_fewshot_data/biology/train_queries.tsv",
-      "train_qrels_path": "/data/ssd7/abigdeli/projects/deep_retriever/BRIGHT_querygym/bright_fewshot_data/biology/train_qrels.txt",
       "dataset_type": "generic"
     },
     "llm_config": {
@@ -58,7 +55,7 @@
     "evaluation_seconds": 13.11411714553833
   },
   "artifacts": {
-    "run_file": "3500dbea.run.txt",
-    "reformulated_queries": "3500dbea.queries.tsv"
+    "run_file": "71871441.run.txt",
+    "reformulated_queries": "71871441.queries.tsv"
   }
 }

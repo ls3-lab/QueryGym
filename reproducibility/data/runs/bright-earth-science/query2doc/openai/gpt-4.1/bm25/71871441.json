@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "run_id": "3d60ca2483e36f9f",
-  "params_hash": "ab47fcb1",
-  "submitted_at": "2026-06-16T23:26:23Z",
+  "run_id": "a1e6bafd74133f9a",
+  "params_hash": "71871441",
+  "submitted_at": "2026-06-18T01:23:05Z",
   "querygym_version": "0.1.0",
   "environment": {
     "python_version": "3.12.13",
-    "platform": "Linux-x86_64",
-    "git_commit": null
+    "platform": "Linux-5.15.0-181-generic-x86_64-with-glibc2.35",
+    "git_commit": "b07a3eb"
   },
   "pipeline": {
     "dataset_id": "bright-earth-science",
@@ -24,9 +24,6 @@
     "method_params": {
       "mode": "fs",
       "num_examples": 4,
-      "collection_path": "/data/ssd7/abigdeli/projects/deep_retriever/BRIGHT_querygym/bright_fewshot_data/earth-science/collection.tsv",
-      "train_queries_path": "/data/ssd7/abigdeli/projects/deep_retriever/BRIGHT_querygym/bright_fewshot_data/earth-science/train_queries.tsv",
-      "train_qrels_path": "/data/ssd7/abigdeli/projects/deep_retriever/BRIGHT_querygym/bright_fewshot_data/earth-science/train_qrels.txt",
       "dataset_type": "generic"
     },
     "llm_config": {
@@ -58,7 +55,7 @@
     "evaluation_seconds": 13.725237369537354
   },
   "artifacts": {
-    "run_file": "ab47fcb1.run.txt",
-    "reformulated_queries": "ab47fcb1.queries.tsv"
+    "run_file": "71871441.run.txt",
+    "reformulated_queries": "71871441.queries.tsv"
   }
 }

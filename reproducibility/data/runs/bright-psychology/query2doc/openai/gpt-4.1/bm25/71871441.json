@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "run_id": "2d955a77958309b7",
-  "params_hash": "fcc3d082",
-  "submitted_at": "2026-06-16T23:26:23Z",
+  "run_id": "56e45f0967798b1f",
+  "params_hash": "71871441",
+  "submitted_at": "2026-06-18T01:23:05Z",
   "querygym_version": "0.1.0",
   "environment": {
     "python_version": "3.12.13",
-    "platform": "Linux-x86_64",
-    "git_commit": null
+    "platform": "Linux-5.15.0-181-generic-x86_64-with-glibc2.35",
+    "git_commit": "b07a3eb"
   },
   "pipeline": {
     "dataset_id": "bright-psychology",
@@ -24,9 +24,6 @@
     "method_params": {
       "mode": "fs",
       "num_examples": 4,
-      "collection_path": "/data/ssd7/abigdeli/projects/deep_retriever/BRIGHT_querygym/bright_fewshot_data/psychology/collection.tsv",
-      "train_queries_path": "/data/ssd7/abigdeli/projects/deep_retriever/BRIGHT_querygym/bright_fewshot_data/psychology/train_queries.tsv",
-      "train_qrels_path": "/data/ssd7/abigdeli/projects/deep_retriever/BRIGHT_querygym/bright_fewshot_data/psychology/train_qrels.txt",
       "dataset_type": "generic"
     },
     "llm_config": {
@@ -58,7 +55,7 @@
     "evaluation_seconds": 12.870611429214478
   },
   "artifacts": {
-    "run_file": "fcc3d082.run.txt",
-    "reformulated_queries": "fcc3d082.queries.tsv"
+    "run_file": "71871441.run.txt",
+    "reformulated_queries": "71871441.queries.tsv"
   }
 }
