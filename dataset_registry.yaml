@@ -244,7 +244,7 @@ datasets:
       eval_metrics: ["ndcg_cut.10", "recall.100", "recall.1000"]
 
   bright-aops:
-    name: "BRIGHT — AOPS"
+    name: "BRIGHT — AoPS"
     index: {name: "bright-aops"}
     topics: {name: "bright-aops"}
     qrels:  {name: "bright-aops"}
