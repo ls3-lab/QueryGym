@@ -33,6 +33,7 @@
 /* ── Font family: Source Sans 3 matching HuggingFace / Gradio default theme ── */
 .lb-selector-card,
 .lb-filter-card,
+.lb-controls,
 .lb-table-card,
 table.lb,
 .lb-exp-panel,
@@ -140,6 +141,50 @@ table.lb,
 .lb-ds-select:focus { border-color: var(--qg-accent); box-shadow: 0 0 0 2px rgba(236,72,153,0.15); }
 /* Dark mode: keep options readable */
 .lb-ds-select option { background: var(--qg-bg, #1a1d27); color: var(--qg-fg, #e2e8f0); }
+
+/* ---------- unified controls bar (home page) ----------------------------- */
+/* Single card: Benchmark / Dataset / Retriever on row 1; LLM / Method /
+ * Search on row 2, groups separated by vertical dividers. Reuses .lb-chip,
+ * .lb-ds-select, .lb-search-*, .lb-best-legend primitives. */
+.lb-controls {
+  background: var(--qg-bg-soft);
+  border: 1px solid var(--qg-border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.lb-controls .lb-ctrl-row {
+  display: flex;
+  align-items: center;
+  gap: 8px 14px;
+  flex-wrap: wrap;
+}
+.lb-controls .lb-ctrl-row + .lb-ctrl-row {
+  border-top: 1px solid var(--qg-border-soft, var(--qg-border));
+  padding-top: 7px;
+}
+.lb-controls .lb-selector-label,
+.lb-controls .lb-filter-label { min-width: 0; margin: 0; }
+.lb-controls .lb-ctrl-grp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.lb-controls .lb-divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--qg-border);
+  margin: 1px 2px;
+}
+.lb-controls .lb-chip { font-size: 13.5px; padding: 4px 10px; }
+.lb-controls .lb-ds-select { font-size: 13.5px; padding: 5px 30px 5px 11px; min-width: 140px; }
+.lb-controls .lb-search-input { padding: 4px 9px; min-width: 200px; }
+.lb-controls .lb-search-input input { font-size: 12.5px; }
+@media (max-width: 760px) { .lb-controls .lb-divider { display: none; } }
 
 /* ---------- filter card -------------------------------------------------- */
 .lb-filter-card {
