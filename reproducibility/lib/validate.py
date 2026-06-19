@@ -99,6 +99,7 @@ def validate(
     """
     _jsonschema_validate(payload)
     _validate_no_absolute_paths(payload)
+    _validate_metric_ranges(payload)
 
     if not skip_registry_checks:
         if dataset_registry is None:
@@ -169,6 +170,28 @@ def _validate_registries(
         raise ValidationError(
             f"metric(s) {sorted(unknown)} not in eval_metrics for dataset "
             f"'{dataset_id}' (allowed: {sorted(allowed)})"
+        )
+
+
+def _validate_metric_ranges(payload: Mapping[str, Any]) -> None:
+    """Reject metric values outside [0, 1].
+
+    Every metric on the leaderboard (nDCG, recall, MAP, …) is a normalized
+    ranking score bounded in [0, 1]. The JSON Schema only types these as
+    `number`, so a corrupt value (e.g. a missing decimal point producing 23.0)
+    would otherwise pass schema validation and silently inflate aggregates. This
+    guard catches it at validate time so the aggregator and CI block any run that
+    carries an impossible score."""
+    offenders = [
+        f"{name}={value}"
+        for name, value in payload["metrics"].items()
+        if not (0.0 <= float(value) <= 1.0)
+    ]
+    if offenders:
+        raise ValidationError(
+            f"metric value(s) outside [0, 1]: {sorted(offenders)}. "
+            "All ranking metrics are normalized scores; a value out of range "
+            "indicates a corrupt or mis-scaled result."
         )
 
 

@@ -182,6 +182,33 @@ def test_validator_rejects_metric_outside_eval_metrics():
         validate(payload)
 
 
+def test_validator_rejects_metric_above_one():
+    """A corrupt score (e.g. 23.0 from a dropped decimal point) must be caught —
+    every ranking metric is normalized to [0, 1]."""
+    payload = _load_fixture()
+    payload["metrics"]["ndcg_cut_10"] = 23.0
+    payload["run_id"] = compute_run_id(payload)
+    with pytest.raises(ValidationError, match=r"outside \[0, 1\]"):
+        validate(payload)
+
+
+def test_validator_rejects_metric_below_zero():
+    payload = _load_fixture()
+    payload["metrics"]["ndcg_cut_10"] = -0.1
+    payload["run_id"] = compute_run_id(payload)
+    with pytest.raises(ValidationError, match=r"outside \[0, 1\]"):
+        validate(payload)
+
+
+def test_validator_accepts_metric_at_bounds():
+    """The bounds themselves are valid (a perfect or zero score)."""
+    payload = _load_fixture()
+    payload["metrics"]["ndcg_cut_10"] = 1.0
+    payload["metrics"]["recall_1000"] = 0.0
+    payload["run_id"] = compute_run_id(payload)
+    validate(payload)  # must not raise
+
+
 # ---------- Validator: hash-level rejections ---------------------------------
 
 
