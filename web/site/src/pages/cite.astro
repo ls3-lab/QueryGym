@@ -2,35 +2,45 @@
 import Default from "../layouts/Default.astro";
 import CitationCard from "../components/CitationCard.astro";
 
-const wwwBibtex = `@misc{bigdeli2025querygymtoolkitreproduciblellmbased,
-  title={QueryGym: A Toolkit for Reproducible LLM-Based Query Reformulation},
+const wwwBibtex = `@inproceedings{DBLP:conf/www/BigdeliRIACB26,
   author={Amin Bigdeli and Radin Hamidi Rad and Mert Incesu and Negar Arabzadeh and Charles L. A. Clarke and Ebrahim Bagheri},
-  year={2025},
-  eprint={2511.15996},
-  archivePrefix={arXiv},
-  primaryClass={cs.IR},
-  url={https://arxiv.org/abs/2511.15996},
+  title={QueryGym: {A} Toolkit for Reproducible LLM-Based Query Reformulation},
+  booktitle={Companion Proceedings of the ACM Web Conference 2026, WWW Companion 2026, Dubai, United Arab Emirates, 29 June 2026 - 3 July 2026},
+  pages={196--199},
+  publisher={ACM},
+  year={2026},
+  url={https://doi.org/10.1145/3774905.3793135},
+  doi={10.1145/3774905.3793135},
 }`;
 
-const sigirBibtex = `@inproceedings{querygym2026reproducibility,
+const sigirBibtex = `@article{DBLP:journals/corr/abs-2604-27421,
+  author={Amin Bigdeli and Radin Hamidi Rad and Hai Son Le and Mert Incesu and Negar Arabzadeh and Charles L. A. Clarke and Ebrahim Bagheri},
   title={A Reproducibility Study of LLM-Based Query Reformulation},
-  author={Amin Bigdeli and Radin Hamidi Rad and Mert Incesu and Negar Arabzadeh and Charles L. A. Clarke and Ebrahim Bagheri},
-  booktitle={Proceedings of the 49th International ACM SIGIR Conference on Research and Development in Information Retrieval},
-  series={SIGIR '26},
+  journal={CoRR},
+  volume={abs/2604.27421},
   year={2026},
-  note={Reproducibility Track},
+  url={https://doi.org/10.48550/arXiv.2604.27421},
+  doi={10.48550/ARXIV.2604.27421},
+  eprinttype={arXiv},
   eprint={2604.27421},
-  archivePrefix={arXiv},
-  primaryClass={cs.IR},
-  url={https://arxiv.org/abs/2604.27421},
 }`;
 
 // JSON-LD: two ScholarlyArticle entries (WWW Demos + SIGIR Reproducibility).
 // Search engines use these to surface the papers as research artifacts in
 // scholar-aware results.
-const sharedAuthors = [
+const wwwAuthors = [
   { "@type": "Person", name: "Amin Bigdeli" },
   { "@type": "Person", name: "Radin Hamidi Rad" },
+  { "@type": "Person", name: "Mert Incesu" },
+  { "@type": "Person", name: "Negar Arabzadeh" },
+  { "@type": "Person", name: "Charles L. A. Clarke" },
+  { "@type": "Person", name: "Ebrahim Bagheri" },
+];
+// The reproducibility paper adds Hai Son Le (3rd author); the toolkit paper does not.
+const sigirAuthors = [
+  { "@type": "Person", name: "Amin Bigdeli" },
+  { "@type": "Person", name: "Radin Hamidi Rad" },
+  { "@type": "Person", name: "Hai Son Le" },
   { "@type": "Person", name: "Mert Incesu" },
   { "@type": "Person", name: "Negar Arabzadeh" },
   { "@type": "Person", name: "Charles L. A. Clarke" },
@@ -48,7 +58,7 @@ const jsonLd = JSON.stringify({
       inLanguage: "en",
       isAccessibleForFree: true,
       publisher: { "@type": "Organization", name: "arXiv" },
-      author: sharedAuthors,
+      author: wwwAuthors,
     },
     {
       "@type": "ScholarlyArticle",
@@ -59,7 +69,7 @@ const jsonLd = JSON.stringify({
       inLanguage: "en",
       isAccessibleForFree: true,
       publisher: { "@type": "Organization", name: "arXiv" },
-      author: sharedAuthors,
+      author: sigirAuthors,
     },
   ],
 });
@@ -83,14 +93,14 @@ const jsonLd = JSON.stringify({
       <CitationCard
         title="QueryGym: A Toolkit for Reproducible LLM-Based Query Reformulation"
         venue="WWW 2026 — Demos"
-        authors="Bigdeli, Hamidi Rad, Incesu, Arabzadeh, Clarke, Bagheri"
+        authors="Amin Bigdeli, Radin Hamidi Rad, Mert Incesu, Negar Arabzadeh, Charles L. A. Clarke, Ebrahim Bagheri"
         bibtex={wwwBibtex}
         url="https://arxiv.org/abs/2511.15996"
       />
       <CitationCard
         title="A Reproducibility Study of LLM-Based Query Reformulation"
         venue="SIGIR 2026 — Reproducibility Track"
-        authors="Bigdeli, Hamidi Rad, Incesu, Arabzadeh, Clarke, Bagheri"
+        authors="Amin Bigdeli, Radin Hamidi Rad, Hai Son Le, Mert Incesu, Negar Arabzadeh, Charles L. A. Clarke, Ebrahim Bagheri"
         bibtex={sigirBibtex}
         url="https://arxiv.org/abs/2604.27421"
       />
