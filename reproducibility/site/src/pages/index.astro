@@ -158,62 +158,66 @@ const jsonLd = JSON.stringify({
 
 {populated ? (
   <>
-    {/* ── Selector card: Benchmark pills → Dataset dropdown → Retriever pills ── */}
-    <div class="lb-selector-card">
-      {/* Row 1: Benchmark */}
-      <div class="lb-selector-row">
-        <span class="lb-selector-label">Benchmark</span>
-        <div id="lb-bench-pills" class="lb-ret-pills">
-          {benchmarkGroups.map((g) => (
-            <button class:list={["lb-chip", g.key === defaultBenchmark && "active"]} data-bench={g.key}>
-              {g.label}
-            </button>
-          ))}
+    {/* ── Controls bar: Benchmark / Dataset / Retriever, then LLM / Method / Search ── */}
+    <div class="lb-controls" data-lb-filters>
+      {/* Row 1: Benchmark pills · Dataset dropdown · Retriever pills */}
+      <div class="lb-ctrl-row">
+        <div class="lb-ctrl-grp">
+          <span class="lb-selector-label">Benchmark</span>
+          <div id="lb-bench-pills" class="lb-ret-pills">
+            {benchmarkGroups.map((g) => (
+              <button class:list={["lb-chip", g.key === defaultBenchmark && "active"]} data-bench={g.key}>
+                {g.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div class="lb-divider"></div>
+        <div class="lb-ctrl-grp">
+          <span class="lb-selector-label">Dataset</span>
+          {/* populated entirely by JS on init */}
+          <select id="lb-ds-select" class="lb-ds-select"></select>
+        </div>
+        <div class="lb-divider"></div>
+        <div class="lb-ctrl-grp">
+          <span class="lb-selector-label">Retriever</span>
+          <div class="lb-ret-pills" id="lb-ret-pills">
+            <button class="lb-chip active" data-ret="">All</button>
+            {retrievers.map((r: any) => (
+              <button class="lb-chip" data-ret={r.id}>{r.display_name ?? r.id}</button>
+            ))}
+          </div>
         </div>
       </div>
-      {/* Row 2: Dataset dropdown — populated entirely by JS on init */}
-      <div class="lb-selector-row">
-        <span class="lb-selector-label">Dataset</span>
-        <select id="lb-ds-select" class="lb-ds-select"></select>
-      </div>
-      {/* Row 3: Retriever */}
-      <div class="lb-selector-row">
-        <span class="lb-selector-label">Retriever</span>
-        <div class="lb-ret-pills" id="lb-ret-pills">
-          <button class="lb-chip active" data-ret="">All</button>
-          {retrievers.map((r: any) => (
-            <button class="lb-chip" data-ret={r.id}>{r.display_name ?? r.id}</button>
-          ))}
-        </div>
-      </div>
-    </div>
-
-    {/* ── Filter card: Model + Method chips + Search ── */}
-    <div class="lb-filter-card" data-lb-filters>
-      <div class="lb-filter-row">
-        <div class="lb-filter-group" data-group="model">
+      {/* Row 2: LLM dropdown · Method dropdown · Search · legend */}
+      <div class="lb-ctrl-row">
+        <div class="lb-ctrl-grp">
           <span class="lb-filter-label">LLM</span>
-          <button class="lb-chip active" data-value="">All</button>
-          {(models as any[]).map((m) => (
-            <button class="lb-chip" data-value={m.id}>{m.display ?? m.id}</button>
-          ))}
+          <select id="lb-model-select" class="lb-ds-select">
+            <option value="">All LLMs</option>
+            {(models as any[]).map((m) => (
+              <option value={m.id}>{m.display ?? m.id}</option>
+            ))}
+          </select>
         </div>
-        <div class="lb-filter-group" data-group="method">
+        <div class="lb-divider"></div>
+        <div class="lb-ctrl-grp">
           <span class="lb-filter-label">Method</span>
-          <button class="lb-chip active" data-value="">All</button>
-          {(methods as any[]).map((m) => (
-            <button class="lb-chip" data-value={m.id}>{m.display ?? m.display_name ?? m.id}</button>
-          ))}
+          <select id="lb-method-select" class="lb-ds-select">
+            <option value="">All methods</option>
+            {(methods as any[]).map((m) => (
+              <option value={m.id}>{m.display ?? m.display_name ?? m.id}</option>
+            ))}
+          </select>
         </div>
-      </div>
-      <div class="lb-filter-row">
+        <div class="lb-divider"></div>
         <div class="lb-search-wrap">
           <div class="lb-search-input">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-            <input id="lb-search" placeholder="Filter by method or LLM…" autocomplete="off" />
+            <input id="lb-search" placeholder="Filter…" autocomplete="off" />
           </div>
           <span class="lb-row-count">
-            <span id="lb-shown">0</span> / {matrixRows.length} configs · {overview.run_count} runs
+            <span id="lb-shown">0</span> / {matrixRows.length} · {overview.run_count} runs
           </span>
         </div>
         <span class="lb-best-legend" style="margin-left:auto">
@@ -444,16 +448,13 @@ const jsonLd = JSON.stringify({
 
   // ------ model / method chips ------------------------------------------------
   const filterState = { model: "", method: "" };
-  document.querySelectorAll("[data-lb-filters] [data-group]").forEach((g) => {
-    const key = g.dataset.group;
-    g.querySelectorAll("button.lb-chip").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        g.querySelectorAll("button.lb-chip").forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        filterState[key] = btn.dataset.value ?? "";
-        renderTable();
-      });
-    });
+  document.getElementById("lb-model-select")?.addEventListener("change", (e) => {
+    filterState.model = e.target.value ?? "";
+    renderTable();
+  });
+  document.getElementById("lb-method-select")?.addEventListener("change", (e) => {
+    filterState.method = e.target.value ?? "";
+    renderTable();
   });
 
   // ------ search --------------------------------------------------------------

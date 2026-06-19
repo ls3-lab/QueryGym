@@ -11,17 +11,23 @@ interface FooterLink {
 interface Props {
   /** Lab / org name displayed in the copyright line. */
   org?: string;
+  /** Override the "Paper" link target (defaults to the WWW toolkit paper). */
+  paperHref?: string;
   /** Extra links appended after the defaults. */
   extraLinks?: FooterLink[];
 }
 
-const { org = "ls3-lab", extraLinks = [] } = Astro.props;
+const {
+  org = "ls3-lab",
+  paperHref = "https://arxiv.org/abs/2511.15996",
+  extraLinks = [],
+} = Astro.props;
 const year = new Date().getFullYear();
 
 const baseLinks: FooterLink[] = [
   { label: "GitHub", href: "https://github.com/ls3-lab/QueryGym" },
   { label: "Docs", href: "https://querygym.readthedocs.io" },
-  { label: "Paper", href: "https://arxiv.org/abs/2511.15996" },
+  { label: "Paper", href: paperHref },
 ];
 ---
 
