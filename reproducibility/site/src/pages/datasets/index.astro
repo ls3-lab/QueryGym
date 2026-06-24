@@ -23,6 +23,16 @@ import datasets from "../../data/datasets.json";
             </div>
             <div class="mt-1 qg-mono text-xs text-qg-fg-muted">{d.id}</div>
           </a>
+          {d.hf_url && (
+            <a
+              class="mt-2 inline-block text-xs font-medium text-qg-accent hover:underline"
+              href={d.hf_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              HuggingFace ↗
+            </a>
+          )}
         </li>
       ))
     }

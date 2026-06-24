@@ -99,6 +99,16 @@ const colCount = 4 + metricCols.length;
           <a href="/datasets/" class="text-xs text-qg-fg-muted hover:text-qg-fg">← Datasets</a>
           <h2 class="text-xl font-semibold text-qg-fg md:text-2xl">{title}</h2>
           <span class="qg-mono text-xs text-qg-fg-muted">{id}</span>
+          {datasetMeta?.hf_url && (
+            <a
+              class="text-xs font-medium text-qg-accent hover:underline"
+              href={datasetMeta.hf_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              HuggingFace ↗
+            </a>
+          )}
           <div class="h-px flex-1 bg-qg-border"></div>
           <span class="text-[11px] uppercase tracking-wider text-qg-fg-muted">
             All results produced by

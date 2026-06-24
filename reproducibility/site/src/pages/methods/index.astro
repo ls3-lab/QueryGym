@@ -25,6 +25,16 @@ import methods from "../../data/methods.json";
                 {m.run_count} run{m.run_count === 1 ? "" : "s"}
               </div>
             </a>
+            {m.paper_url && (
+              <a
+                class="mt-2 inline-block text-xs font-medium text-qg-accent hover:underline"
+                href={m.paper_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {m.paper} ↗
+              </a>
+            )}
           </li>
         ))}
       </ul>

@@ -185,6 +185,71 @@ table.lb,
 .lb-controls .lb-search-input { padding: 4px 9px; min-width: 200px; }
 .lb-controls .lb-search-input input { font-size: 12.5px; }
 @media (max-width: 760px) { .lb-controls .lb-divider { display: none; } }
+/* HuggingFace / paper accent links beside a native control */
+.lb-hf-link {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--qg-accent);
+  white-space: nowrap;
+  text-decoration: none;
+}
+.lb-hf-link:hover { text-decoration: underline; }
+
+/* ---------- custom method dropdown (per-row paper links) ----------------- */
+.lb-dropdown { position: relative; display: inline-flex; }
+.lb-dd-toggle {
+  display: inline-flex;
+  align-items: center;
+  text-align: left;
+}
+.lb-dd-toggle-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-dd-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
+  min-width: 240px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 4px;
+  background: var(--qg-bg);
+  border: 1px solid var(--qg-border);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+}
+.lb-dd-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--qg-fg);
+}
+.lb-dd-opt:hover { background: var(--qg-bg-soft); }
+.lb-dd-opt.selected { background: var(--qg-bg-soft); }
+.lb-dd-opt.selected .lb-dd-opt-name { color: var(--qg-accent); }
+.lb-dd-paper {
+  flex: none;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--qg-accent);
+  white-space: nowrap;
+  text-decoration: none;
+}
+.lb-dd-paper:hover { text-decoration: underline; }
+
+/* ---------- provider logo icon ------------------------------------------- */
+.lb-model-icon {
+  width: 1em;
+  height: 1em;
+  flex: none;
+  vertical-align: -0.125em;
+  margin-right: 0.4em;
+}
 
 /* ---------- filter card -------------------------------------------------- */
 .lb-filter-card {
