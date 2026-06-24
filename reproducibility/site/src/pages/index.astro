@@ -6,7 +6,19 @@ import runs from "../data/runs.json";
 import retrievers from "../data/retrievers.json";
 import models from "../data/models.json";
 import methods from "../data/methods.json";
+import datasets from "../data/datasets.json";
 import { buildReproduceCmds, retrieveHint, evaluateHint, type RunLike } from "../lib/reproduce";
+import { providerIconMap } from "../lib/providerIcon";
+
+// id → HuggingFace dataset URL, for the link beside the dataset selector.
+const datasetHfMap: Record<string, string> = Object.fromEntries(
+  (datasets as any[]).filter((d) => d.hf_url).map((d) => [d.id, d.hf_url]),
+);
+// id → polished display + provider, for icons in the table's LLM column.
+const modelMetaMap: Record<string, { display: string; provider: string }> = Object.fromEntries(
+  (models as any[]).map((m) => [m.id, { display: m.display ?? m.id, provider: m.provider ?? "" }]),
+);
+const PROVIDER_ICONS = providerIconMap();
 
 const populated = overview.run_count > 0;
 
@@ -182,6 +194,7 @@ const jsonLd = JSON.stringify({
           <span class="lb-selector-label">Dataset</span>
           {/* populated entirely by JS on init */}
           <select id="lb-ds-select" class="lb-ds-select"></select>
+          <a id="lb-ds-hf" class="lb-hf-link lb-hidden" target="_blank" rel="noopener noreferrer">HuggingFace ↗</a>
         </div>
         <div class="lb-divider"></div>
         <div class="lb-ctrl-grp">
@@ -208,12 +221,25 @@ const jsonLd = JSON.stringify({
         <div class="lb-divider"></div>
         <div class="lb-ctrl-grp">
           <span class="lb-filter-label">Method</span>
-          <select id="lb-method-select" class="lb-ds-select">
-            <option value="">All methods</option>
-            {(methods as any[]).map((m) => (
-              <option value={m.id}>{m.display ?? m.display_name ?? m.id}</option>
-            ))}
-          </select>
+          {/* Custom dropdown: native <select> can't host the per-row paper link */}
+          <div class="lb-dropdown" id="lb-method-dd">
+            <button type="button" id="lb-method-toggle" class="lb-ds-select lb-dd-toggle" aria-haspopup="listbox" aria-expanded="false">
+              <span id="lb-method-label" class="lb-dd-toggle-label">All methods</span>
+            </button>
+            <div id="lb-method-menu" class="lb-dd-menu lb-hidden" role="listbox">
+              <div class="lb-dd-opt" role="option" data-value="">
+                <span class="lb-dd-opt-name">All methods</span>
+              </div>
+              {(methods as any[]).map((m) => (
+                <div class="lb-dd-opt" role="option" data-value={m.id}>
+                  <span class="lb-dd-opt-name">{m.display ?? m.display_name ?? m.id}</span>
+                  {m.paper_url && (
+                    <a class="lb-dd-paper" href={m.paper_url} target="_blank" rel="noopener noreferrer" data-paper>paper ↗</a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
         <div class="lb-divider"></div>
         <div class="lb-search-wrap">
@@ -360,6 +386,9 @@ const jsonLd = JSON.stringify({
   METRIC_LABEL,
   methodsData:      methods,
   modelsData:       models,
+  datasetHfMap,
+  modelMetaMap,
+  PROVIDER_ICONS,
 }}>
   // ------ viewport-width tracker for expand panel (sticky positioning) -------
   const scrollEl = document.getElementById("lb-scroll");
@@ -422,6 +451,7 @@ const jsonLd = JSON.stringify({
     const ids = datasets.map((d) => d.id);
     state.dataset = ids.includes(state.dataset) ? state.dataset : (ids[0] ?? "");
     dsSelect.value = state.dataset;
+    updateDatasetHf(state.dataset);
   }
 
   document.querySelectorAll("#lb-bench-pills button").forEach((btn) => {
@@ -434,8 +464,23 @@ const jsonLd = JSON.stringify({
     });
   });
 
+  // HuggingFace link beside the dataset selector — updates with selection.
+  const dsHfLink = document.getElementById("lb-ds-hf");
+  function updateDatasetHf(id) {
+    if (!dsHfLink) return;
+    const url = (datasetHfMap ?? {})[id];
+    if (url) {
+      dsHfLink.href = url;
+      dsHfLink.classList.remove("lb-hidden");
+    } else {
+      dsHfLink.removeAttribute("href");
+      dsHfLink.classList.add("lb-hidden");
+    }
+  }
+
   dsSelect?.addEventListener("change", (e) => {
     state.dataset = e.target.value;
+    updateDatasetHf(state.dataset);
     renderTable();
   });
 
@@ -457,9 +502,41 @@ const jsonLd = JSON.stringify({
     filterState.model = e.target.value ?? "";
     renderTable();
   });
-  document.getElementById("lb-method-select")?.addEventListener("change", (e) => {
-    filterState.method = e.target.value ?? "";
-    renderTable();
+  // ------ method custom dropdown (per-row paper links) ------------------------
+  const methodDd     = document.getElementById("lb-method-dd");
+  const methodToggle = document.getElementById("lb-method-toggle");
+  const methodMenu   = document.getElementById("lb-method-menu");
+  const methodLabel  = document.getElementById("lb-method-label");
+
+  function closeMethodMenu() {
+    methodMenu?.classList.add("lb-hidden");
+    methodToggle?.setAttribute("aria-expanded", "false");
+  }
+  function openMethodMenu() {
+    methodMenu?.classList.remove("lb-hidden");
+    methodToggle?.setAttribute("aria-expanded", "true");
+  }
+  methodToggle?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (methodMenu?.classList.contains("lb-hidden")) openMethodMenu();
+    else closeMethodMenu();
+  });
+  methodMenu?.querySelectorAll(".lb-dd-opt").forEach((opt) => {
+    opt.addEventListener("click", (e) => {
+      // Clicks on the paper link open the paper without changing selection.
+      if (e.target.closest("[data-paper]")) { e.stopPropagation(); return; }
+      filterState.method = opt.dataset.value ?? "";
+      if (methodLabel) {
+        methodLabel.textContent = opt.querySelector(".lb-dd-opt-name")?.textContent ?? "All methods";
+      }
+      methodMenu.querySelectorAll(".lb-dd-opt").forEach((o) => o.classList.remove("selected"));
+      opt.classList.add("selected");
+      closeMethodMenu();
+      renderTable();
+    });
+  });
+  document.addEventListener("click", (e) => {
+    if (methodDd && !methodDd.contains(e.target)) closeMethodMenu();
   });
 
   // ------ search --------------------------------------------------------------
@@ -606,6 +683,7 @@ const jsonLd = JSON.stringify({
 
       const mTagIdx  = methodColorMap[row.method_id] ?? 0;
       const mdTagIdx = modelColorMap[row.model] ?? 0;
+      const modelIcon = PROVIDER_ICONS[(modelMetaMap[row.model] ?? {}).provider] ?? "";
       const retrieverCell = showRetrieverCol
         ? `<td class="lb-col-retriever">${escHtml(row.retriever_display ?? row.retriever_id)}</td>`
         : "";
@@ -614,7 +692,7 @@ const jsonLd = JSON.stringify({
 <tr class="data" data-row-key="${escHtml(rowKey)}" data-method="${escHtml(row.method_id)}" data-model="${escHtml(row.model)}" data-retriever="${escHtml(row.retriever_id)}">
   <td class="lb-col-rank">${rankBadge(ranks[i])}</td>
   <td class="lb-col-method"><span class="lb-badge lb-mtag-${mTagIdx}">${escHtml(row.method_display ?? row.method_id)}</span></td>
-  <td class="lb-col-model"><span class="lb-badge lb-mono lb-mdtag-${mdTagIdx}">${escHtml(row.model_display ?? row.model)}</span></td>
+  <td class="lb-col-model"><span class="lb-badge lb-mono lb-mdtag-${mdTagIdx}">${modelIcon}${escHtml(row.model_display ?? row.model)}</span></td>
   ${retrieverCell}
   <td class="lb-col-metric${pBest ? " best" : ""}" data-primary-value="${pv ?? ""}">
     <span class="metric-val">${pvStr}</span>

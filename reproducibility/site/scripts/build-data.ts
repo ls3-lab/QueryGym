@@ -11,9 +11,9 @@
  *
  * Outputs (gitignored, written to src/data/):
  *   - overview.json    summary used on /
- *   - datasets.json    [{id, name, run_count, eval_metrics}]
- *   - methods.json     [{id, run_count}]
- *   - models.json      [{id, run_count}]
+ *   - datasets.json    [{id, name, run_count, eval_metrics, hf_url?}]
+ *   - methods.json     [{id, run_count, display, paper?, paper_url?}]
+ *   - models.json      [{id, run_count, display, provider, slug}]
  *   - retrievers.json  [{id, display_name, paradigm, run_count}]
  *   - matrix.json      flat matrix: rows = (method, model, retriever), values per dataset
  *   - runs.json        full run index, keyed by run_id
@@ -44,6 +44,17 @@ const RETRIEVER_REGISTRY_YAML = path.join(
   REPO_ROOT,
   "reproducibility",
   "retriever_registry.yaml",
+);
+// Curated method→paper citations (single source of truth, shared with the
+// marketing site). Keyed by logical method id; variant ids (e.g. query2doc-cot)
+// fall back to their base id (query2doc).
+const METHOD_CITATIONS_JSON = path.join(
+  REPO_ROOT,
+  "web",
+  "site",
+  "src",
+  "data",
+  "methods.json",
 );
 
 const OUT_DIR = path.join(SITE_ROOT, "src", "data");
@@ -80,7 +91,45 @@ interface DatasetEntry {
   bm25_weights?: { k1: number; b: number };
   eval_metrics: string[];
   run_count: number;
+  hf_url?: string;
 }
+
+// Canonical HuggingFace dataset/subset pages, keyed by dataset id. BEIR repos
+// are first-party (BeIR org); BRIGHT links target the per-domain split in the
+// `examples` config of the single xlangai/BRIGHT repo; the MS MARCO / TREC-DL
+// links point to the cleanest public HF mirror of each passage task.
+const DATASET_HF_URLS: Record<string, string> = {
+  "msmarco-v1-passage.trecdl2019": "https://huggingface.co/datasets/whybe-choi/trec-dl-2019",
+  "msmarco-v1-passage.trecdl2020": "https://huggingface.co/datasets/whybe-choi/trec-dl-2020",
+  "msmarco-v1-passage.dlhard": "https://huggingface.co/datasets/irds/msmarco-passage_trec-dl-hard",
+  "beir-v1.0.0-trec-covid": "https://huggingface.co/datasets/BeIR/trec-covid",
+  "beir-v1.0.0-fiqa": "https://huggingface.co/datasets/BeIR/fiqa",
+  "beir-v1.0.0-trec-news": "https://huggingface.co/datasets/BeIR/trec-news-generated-queries",
+  "beir-v1.0.0-arguana": "https://huggingface.co/datasets/BeIR/arguana",
+  "beir-v1.0.0-dbpedia-entity": "https://huggingface.co/datasets/BeIR/dbpedia-entity",
+  "beir-v1.0.0-scifact": "https://huggingface.co/datasets/BeIR/scifact",
+  "bright-biology": "https://huggingface.co/datasets/xlangai/BRIGHT/viewer/examples/biology",
+  "bright-earth-science": "https://huggingface.co/datasets/xlangai/BRIGHT/viewer/examples/earth_science",
+  "bright-economics": "https://huggingface.co/datasets/xlangai/BRIGHT/viewer/examples/economics",
+  "bright-psychology": "https://huggingface.co/datasets/xlangai/BRIGHT/viewer/examples/psychology",
+  "bright-robotics": "https://huggingface.co/datasets/xlangai/BRIGHT/viewer/examples/robotics",
+  "bright-stackoverflow": "https://huggingface.co/datasets/xlangai/BRIGHT/viewer/examples/stackoverflow",
+  "bright-sustainable-living": "https://huggingface.co/datasets/xlangai/BRIGHT/viewer/examples/sustainable_living",
+  "bright-pony": "https://huggingface.co/datasets/xlangai/BRIGHT/viewer/examples/pony",
+  "bright-leetcode": "https://huggingface.co/datasets/xlangai/BRIGHT/viewer/examples/leetcode",
+  "bright-aops": "https://huggingface.co/datasets/xlangai/BRIGHT/viewer/examples/aops",
+  "bright-theoremqa-theorems": "https://huggingface.co/datasets/xlangai/BRIGHT/viewer/examples/theoremqa_theorems",
+  "bright-theoremqa-questions": "https://huggingface.co/datasets/xlangai/BRIGHT/viewer/examples/theoremqa_questions",
+};
+
+// Polished display name + provider slug per model id. Provider drives the logo
+// icon shown next to the model in the UI; falls back to the org prefix.
+const MODEL_META: Record<string, { display: string; provider: string }> = {
+  "openai/gpt-4.1": { display: "GPT-4.1", provider: "openai" },
+  "openai/gpt-4.1-nano": { display: "GPT-4.1 nano", provider: "openai" },
+  "Qwen/Qwen2.5-72B-Instruct": { display: "Qwen2.5 72B Instruct", provider: "qwen" },
+  "Qwen/Qwen2.5-7B-Instruct": { display: "Qwen2.5 7B Instruct", provider: "qwen" },
+};
 
 interface RetrieverEntry {
   id: string;
@@ -171,6 +220,29 @@ function readRetrieverRegistry(): Record<string, { display_name: string; paradig
     retrievers?: Record<string, { display_name: string; paradigm: string }>;
   };
   return doc.retrievers ?? {};
+}
+
+function readMethodCitations(): Record<string, { paper: string; paper_url: string }> {
+  if (!fs.existsSync(METHOD_CITATIONS_JSON)) return {};
+  const list = JSON.parse(fs.readFileSync(METHOD_CITATIONS_JSON, "utf-8")) as Array<{
+    id: string;
+    paper?: string;
+    paper_url?: string;
+  }>;
+  const map: Record<string, { paper: string; paper_url: string }> = {};
+  for (const m of list) {
+    if (m.paper && m.paper_url) map[m.id] = { paper: m.paper, paper_url: m.paper_url };
+  }
+  return map;
+}
+
+// Resolve a (possibly variant) method id to its citation, falling back to the
+// base id before the first "-" (e.g. query2doc-cot → query2doc).
+function citationFor(
+  id: string,
+  cites: Record<string, { paper: string; paper_url: string }>,
+): { paper: string; paper_url: string } | null {
+  return cites[id] ?? cites[id.split("-")[0]] ?? null;
 }
 
 function* iterRunFiles(): Generator<string> {
@@ -534,8 +606,17 @@ function encodePathSegment(s: string): string {
 // Strip provider prefix from a model id for display: "openai/gpt-4.1" → "gpt-4.1".
 // The canonical id stays in the data; this is purely cosmetic.
 function displayModel(s: string): string {
+  if (MODEL_META[s]) return MODEL_META[s].display;
   const i = s.indexOf("/");
   return i >= 0 ? s.slice(i + 1) : s;
+}
+
+function modelProvider(s: string): string {
+  if (MODEL_META[s]) return MODEL_META[s].provider;
+  const org = s.includes("/") ? s.slice(0, s.indexOf("/")).toLowerCase() : "";
+  if (org.includes("openai")) return "openai";
+  if (org.includes("qwen")) return "qwen";
+  return "";
 }
 
 // ---------- main ------------------------------------------------------------
@@ -548,6 +629,7 @@ function main() {
   const manifest = readManifest();
   const datasets = readDatasetRegistry();
   const retrieverReg = readRetrieverRegistry();
+  const methodCites = readMethodCitations();
   const runDetails = readRunDetails(retrieverReg);
 
   // Counts.
@@ -591,12 +673,21 @@ function main() {
   const datasetList: DatasetEntry[] = Object.values(datasets).map((d) => ({
     ...d,
     run_count: datasetCounts.get(d.id) ?? 0,
+    ...(DATASET_HF_URLS[d.id] ? { hf_url: DATASET_HF_URLS[d.id] } : {}),
   }));
   datasetList.sort((a, b) => a.id.localeCompare(b.id));
   writeJSON(path.join(OUT_DIR, "datasets.json"), datasetList);
 
   const methodList = Array.from(methodCounts.entries())
-    .map(([id, run_count]) => ({ id, run_count, display: methodDisplay.get(id) ?? id }))
+    .map(([id, run_count]) => {
+      const cite = citationFor(id, methodCites);
+      return {
+        id,
+        run_count,
+        display: methodDisplay.get(id) ?? id,
+        ...(cite ? { paper: cite.paper, paper_url: cite.paper_url } : {}),
+      };
+    })
     .sort((a, b) => a.id.localeCompare(b.id));
   writeJSON(path.join(OUT_DIR, "methods.json"), methodList);
 
@@ -604,6 +695,7 @@ function main() {
     .map(([id, run_count]) => ({
       id,
       display: displayModel(id),
+      provider: modelProvider(id),
       run_count,
       slug: encodePathSegment(id),
     }))
