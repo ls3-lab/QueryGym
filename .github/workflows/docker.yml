@@ -32,7 +32,7 @@ jobs:
             description: "GPU-enabled (default)"
           - dockerfile: Dockerfile.cpu
             tag-suffix: "-cpu"
-            extra-tags: "type=raw,value=cpu,enable={{is_default_branch}}"
+            extra-tags: "type=raw,value=cpu,enable=${{ (github.event_name == 'release' && !github.event.release.prerelease) || github.ref_name == github.event.repository.default_branch }}"
             platforms: linux/amd64,linux/arm64
             description: "CPU-only (lightweight)"
 
@@ -62,7 +62,7 @@ jobs:
             type=semver,pattern={{version}}${{ matrix.tag-suffix }}
             type=semver,pattern={{major}}.{{minor}}${{ matrix.tag-suffix }}
             type=sha,prefix=sha-,suffix=${{ matrix.tag-suffix }},enable=${{ github.event_name != 'release' }}
-            type=raw,value=latest${{ matrix.tag-suffix }},enable={{is_default_branch}}
+            type=raw,value=latest${{ matrix.tag-suffix }},enable=${{ (github.event_name == 'release' && !github.event.release.prerelease) || github.ref_name == github.event.repository.default_branch }}
             ${{ matrix.extra-tags }}
           labels: |
             org.opencontainers.image.title=QueryGym
