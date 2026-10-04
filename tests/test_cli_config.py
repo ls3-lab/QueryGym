@@ -15,7 +15,7 @@ def test_bundled_method_block_applies():
     assert cfg["llm"]["max_tokens"] == 256
     assert cfg["params"]["mode"] == "fs"
     assert cfg["params"]["index"] == "msmarco-v1-passage"
-    assert cfg["seed"] == 17
+    assert cfg["seed"] == 42
 
 
 def test_bundled_top_level_applies_without_method_block():
