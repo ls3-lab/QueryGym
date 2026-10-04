@@ -60,6 +60,11 @@ def run(
     mode: Optional[str] = typer.Option(
         None, "--mode", help="Mode for methods: 'zs' (zero-shot) or 'fs' (few-shot)"
     ),
+    clean_output: Optional[bool] = typer.Option(
+        None,
+        "--clean-output/--no-clean-output",
+        help="Query2E: remove chat-model framing from LLM output before keyword parsing (default: on)",
+    ),
     # Few-shot data loading options
     dataset_type: Optional[str] = typer.Option(
         None, "--dataset-type", help="Dataset type: 'msmarco', 'beir', or 'generic'"
@@ -114,6 +119,8 @@ def run(
         params["parallel"] = parallel
     if mode is not None:
         params["mode"] = mode
+    if clean_output is not None:
+        params["clean_output"] = clean_output
     if dataset_type is not None:
         params["dataset_type"] = dataset_type
     if collection_path is not None:

@@ -108,6 +108,16 @@ for r in results:
     print(f"{r.qid}: {r.reformulated}")
 ```
 
+#### effective_params
+
+```python
+params = reformulator.effective_params()
+```
+
+Method parameters that identify a run's configuration: the JSON-serializable subset of the configured params (runtime objects such as a searcher are dropped). Methods override it to record a parameter whose default changed, e.g. Query2E adds `clean_output: true` when output cleanup is enabled.
+
+**Returns:** `Dict[str, Any]`
+
 #### concatenate_result
 
 ```python

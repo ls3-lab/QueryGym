@@ -5,6 +5,17 @@ All notable changes to querygym will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `BaseReformulator.effective_params()`: method parameters that identify a run's configuration
+- `querygym.core.utils.strip_think_trace()` helper for removing `<think>` reasoning traces
+- `--clean-output/--no-clean-output` CLI flag
+
+### Changed
+- Query2E removes chat-model framing (`<think>` traces, introductory/closing sentences, markdown headings, category labels, term descriptions) from the LLM output before keyword parsing ([#42](https://github.com/ls3-lab/QueryGym/issues/42)). Controlled by the new `clean_output` parameter (default `True`); `clean_output=False` parses the raw output as before. Query2E method version 2.0
+- Query2E runs record `clean_output: true` in their method parameters when output cleanup is enabled
+
 ## [0.2.0] - 2026-04-12
 
 ### Added

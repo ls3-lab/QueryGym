@@ -75,7 +75,7 @@ results = reformulator.reformulate_batch(queries, contexts=contexts)
 
 ### Query2E
 
-Query to entity expansion.
+Query to keyword expansion. Chat-model framing (introductory sentences, markdown, `<think>` traces) is removed from the LLM output before keyword parsing; pass `clean_output=False` to parse the raw output.
 
 ```python
 reformulator = qg.create_reformulator("query2e", model="gpt-4")
