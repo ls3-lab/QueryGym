@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Query2E removes chat-model framing (`<think>` traces, introductory/closing sentences, markdown headings, category labels, term descriptions) from the LLM output before keyword parsing ([#42](https://github.com/ls3-lab/QueryGym/issues/42)). Controlled by the new `clean_output` parameter (default `True`); `clean_output=False` parses the raw output as before. Query2E method version 2.0
 - Query2E runs record `clean_output: true` in their method parameters when output cleanup is enabled
+- `querygym run` applies the per-method blocks in `querygym/config/defaults.yaml` (GenQR, GenQR Ensemble, Query2E, QA-Expand, MuGI, ReFormeR). Previously every method ran with the top-level `temperature: 1.0` / `max_tokens: 1024`; CLI output changes for GenQR, GenQR Ensemble, Query2E, QA-Expand and ReFormeR. Query2E runs few-shot by default (`mode: fs`); pass `--mode zs` for zero-shot
+- `--cfg-path` is merged over the bundled defaults instead of replacing them, so a config file only needs the settings it changes
 
 ## [0.2.0] - 2026-04-12
 

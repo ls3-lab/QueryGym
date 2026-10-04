@@ -1,7 +1,7 @@
 from __future__ import annotations
-import typer, csv, json
+import typer, csv, json, os, re
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional, Tuple
 
 from .core.base import MethodConfig
 from .core.runner import run_method
@@ -9,6 +9,67 @@ from .core.prompts import PromptBank
 from .data.dataloader import UnifiedQuerySource
 
 app = typer.Typer(help="querygym Toolkit CLI")
+
+DEFAULT_CONFIG = Path(__file__).parent / "config" / "defaults.yaml"
+
+
+def _expand_env_vars(text: str) -> str:
+    """Expand ${VAR} and ${VAR:-default} in YAML content."""
+
+    def replace_env_var(match):
+        var_expr = match.group(1)
+        if ":-" in var_expr:
+            var_name, default_value = var_expr.split(":-", 1)
+            return os.getenv(var_name, default_value)
+        return os.getenv(var_expr, "")
+
+    return re.sub(r"\$\{([^}]+)\}", replace_env_var, text)
+
+
+def _read_config(path: Path) -> Dict[str, Any]:
+    import yaml
+
+    return yaml.safe_load(_expand_env_vars(Path(path).read_text())) or {}
+
+
+def _method_settings(cfg: Dict[str, Any], method: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """Top-level llm/params with the method's own block applied on top."""
+    block = cfg.get(method) or {}
+    llm = {**(cfg.get("llm") or {}), **(block.get("llm") or {})}
+    params = {**(cfg.get("params") or {}), **(block.get("params") or {})}
+    return llm, params
+
+
+def resolve_config(method: str, cfg_path: Optional[Path] = None) -> Dict[str, Any]:
+    """Resolve the run configuration for a method.
+
+    Precedence (highest first): the user config file (its method block, then its
+    top-level settings), the method block in the bundled defaults, the bundled
+    top-level defaults. Top-level `params` of the bundled defaults (index and
+    retrieval settings) only apply when no user config file is given.
+
+    Returns:
+        Dict with keys llm, params, seed, retries
+    """
+    defaults = _read_config(DEFAULT_CONFIG)
+    llm, params = _method_settings(defaults, method)
+    resolved = {
+        "llm": llm,
+        "params": params,
+        "seed": defaults.get("seed", 42),
+        "retries": defaults.get("retries", 2),
+    }
+    if cfg_path is not None:
+        user = _read_config(cfg_path)
+        user_llm, user_params = _method_settings(user, method)
+        method_defaults = (defaults.get(method) or {}).get("params") or {}
+        resolved = {
+            "llm": {**llm, **user_llm},
+            "params": {**method_defaults, **user_params},
+            "seed": user.get("seed", 42),
+            "retries": user.get("retries", 2),
+        }
+    return resolved
 
 
 def build_script_lines(
@@ -88,33 +149,10 @@ def run(
         None, "--num-examples", help="Number of few-shot examples"
     ),
 ):
-    import yaml
-    import os
-    import re
-
-    def expand_env_vars(text):
-        """Expand environment variables in YAML content"""
-
-        def replace_env_var(match):
-            var_expr = match.group(1)
-            if ":-" in var_expr:
-                var_name, default_value = var_expr.split(":-", 1)
-                return os.getenv(var_name, default_value)
-            else:
-                return os.getenv(var_expr, "")
-
-        return re.sub(r"\$\{([^}]+)\}", replace_env_var, text)
-
-    # Default to defaults.yaml if no config path provided
-    if cfg_path is None:
-        cfg_path = Path(__file__).parent / "config" / "defaults.yaml"
-
-    yaml_content = cfg_path.read_text()
-    expanded_content = expand_env_vars(yaml_content)
-    cfg = yaml.safe_load(expanded_content)
+    cfg = resolve_config(method, cfg_path)
 
     # Override parameters if provided via CLI
-    params = cfg.get("params", {})
+    params = cfg["params"]
     if parallel is not None:
         params["parallel"] = parallel
     if mode is not None:
@@ -167,8 +205,8 @@ def run(
         name=method,
         params=params,
         llm=cfg["llm"],
-        seed=cfg.get("seed", 42),
-        retries=cfg.get("retries", 2),
+        seed=cfg["seed"],
+        retries=cfg["retries"],
     )
     src = UnifiedQuerySource(backend="local", format="tsv", path=queries_tsv)
     queries = list(src.iter())

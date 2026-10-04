@@ -107,8 +107,7 @@ querygym also provides a command-line interface:
 querygym run \
   --method genqr_ensemble \
   --queries-tsv queries.tsv \
-  --output-tsv reformulated.tsv \
-  --cfg-path querygym/config/defaults.yaml
+  --output-tsv reformulated.tsv
 ```
 
 See [CLI Usage](../user-guide/cli.md) for more details.
