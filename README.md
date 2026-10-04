@@ -107,8 +107,7 @@ export OPENAI_API_KEY=sk-...
 # Run a method (e.g., genqr_ensemble)
 querygym run --method genqr_ensemble \
   --queries-tsv queries.tsv \
-  --output-tsv reformulated.tsv \
-  --cfg-path querygym/config/defaults.yaml
+  --output-tsv reformulated.tsv
 ```
 
 ### Loading Datasets

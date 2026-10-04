@@ -71,5 +71,5 @@ reformer:
     context_docs: 3   # top-N docs fed to pattern selection (step 1)
     # patterns_path: null  # override to load a custom patterns JSON file
 
-seed: 17
+seed: 42
 retries: 2
