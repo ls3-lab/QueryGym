@@ -1,4 +1,5 @@
 from __future__ import annotations
+import json
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 from tqdm import tqdm
@@ -106,6 +107,26 @@ class BaseReformulator:
         self.cfg = cfg
         self.llm = llm_client
         self.prompts = prompt_resolver
+
+    def effective_params(self) -> Dict[str, Any]:
+        """Method parameters that identify a run's configuration.
+
+        Returns the JSON-serializable subset of the configured params (runtime
+        objects such as a searcher are dropped). Methods override this to record
+        a parameter whose default changed, so runs with different behavior are
+        distinguishable from runs recorded before the change.
+
+        Returns:
+            Dict of parameter names to values
+        """
+        params = {}
+        for k, v in self.cfg.params.items():
+            try:
+                json.dumps(v)
+            except (TypeError, ValueError):
+                continue
+            params[k] = v
+        return params
 
     def reformulate(
         self, q: QueryItem, contexts: Optional[List[str]] = None

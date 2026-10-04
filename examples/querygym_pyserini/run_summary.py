@@ -76,7 +76,10 @@ def _build_v1_summary(
         'implementation': f'pyserini:{searcher_class}',
     }
 
-    eff_method_params = reform_inner.get('method_params') or dict(method_params or {})
+    if 'method_params' in reform_inner:
+        eff_method_params = dict(reform_inner['method_params'])
+    else:
+        eff_method_params = dict(method_params or {})
     eff_method_params = {
         k: v for k, v in eff_method_params.items()
         if not callable(v) and not hasattr(v, '__dict__') or isinstance(v, (dict, list, str, int, float, bool, type(None)))

@@ -445,6 +445,7 @@ result = reformulator.reformulate(qg.QueryItem("q1", "machine learning"))
 | `mode` | str | `"zs"` | Mode: `"zs"`/`"zeroshot"` (zero-shot) or `"fs"`/`"fewshot"` (few-shot) |
 | `num_examples` | int | `4` | Number of few-shot examples (only for `mode="fs"`) |
 | `max_keywords` | int | `20` | Maximum number of keywords to extract |
+| `clean_output` | bool | `True` | Remove chat-model framing from the LLM output before keyword parsing: `<think>` traces, introductory/closing sentences, markdown headings, category labels and term descriptions. `False` parses the raw output |
 | `dataset_type` | str | `None` | Dataset type for few-shot: `"msmarco"`, `"beir"`, or `"generic"` |
 | `collection_path` | str | `None` | Path to collection file (for MS MARCO/generic) |
 | `train_queries_path` | str | `None` | Path to training queries file |
@@ -491,7 +492,7 @@ result = reformulator.reformulate(qg.QueryItem("q1", "deep learning"))
 #### Output Format
 
 - **Concatenation:** `(query × 5) + keywords`
-- **Metadata:** Includes `mode`, `keywords` list, `prompt_id`, `num_examples` (for few-shot)
+- **Metadata:** Includes `mode`, `keywords` list, `prompt_id`, `num_examples` (for few-shot). With `clean_output`, also `clean_output` and, when applicable, `unclosed_think` (reasoning trace not closed), `truncated_at_query` (model continued with another few-shot example), `cleanup_fallback` (raw keyword list used) or `cleanup_empty` (no keywords found)
 
 ---
 

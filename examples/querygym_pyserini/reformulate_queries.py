@@ -181,8 +181,8 @@ def reformulate_queries(
     qg.DataLoader.save_queries(queries, output_queries_original, format='tsv')
     logging.info(f"Saved original queries: {output_queries_original}")
     
-    # Prepare method params for metadata (exclude non-serializable searcher object)
-    metadata_params = {k: v for k, v in method_params.items() if k != 'searcher'}
+    # Method params that identify the run (excludes runtime objects such as the searcher)
+    metadata_params = reformulator.effective_params()
     
     # Build dataset metadata - handle both registry-based and file-based inputs
     if dataset_name:

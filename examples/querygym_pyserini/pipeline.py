@@ -123,7 +123,19 @@ def run_pipeline(
         except Exception as e:
             logging.error(f"✗ Reformulation failed: {e}")
             raise
-    
+    elif (output_dir / 'reformulation_metadata.json').exists():
+        # Reuse the configuration that produced the existing reformulated queries
+        with open(output_dir / 'reformulation_metadata.json') as f:
+            metadata = json.load(f)
+        recorded = metadata.get('reformulation', {})
+        if (recorded.get('method'), recorded.get('model')) != (method, model):
+            raise ValueError(
+                f"Reformulated queries in {output_dir} were produced with "
+                f"method={recorded.get('method')}, model={recorded.get('model')}; "
+                f"got method={method}, model={model}"
+            )
+        results['reformulation'] = metadata
+
     # Step 2: Retrieve documents
     if 'retrieve' in steps:
         logging.info("\n" + "="*60)

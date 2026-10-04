@@ -743,3 +743,63 @@ def test_validator_rejects_absolute_topics():
     payload["config"]["dataset_config"]["topics"] = "/abs/path/to/topics.tsv"
     with pytest.raises(ValidationError, match="absolute path"):
         validate(payload, skip_registry_checks=True)
+
+
+def test_run_summary_keeps_empty_recorded_method_params():
+    import importlib
+
+    rs = importlib.import_module("examples.querygym_pyserini.run_summary")
+    results = {
+        "reformulation": {
+            "dataset": {"topics": "dl19-passage", "index": "msmarco-v1-passage",
+                        "num_queries": 43, "bm25_weights": {"k1": 0.9, "b": 0.4}},
+            "reformulation": {"method_params": {},
+                              "llm_config": {"temperature": 1.0, "max_tokens": 128}},
+            "timing": {"total_time_seconds": 1.0},
+        },
+        "evaluation": {"timing": {"eval_time_seconds": 1.0}, "results": {"ndcg_cut_10": 0.5}},
+    }
+    payload = rs._build_v1_summary(
+        results=results,
+        dataset_name="msmarco-v1-passage.trecdl2019",
+        method="query2e",
+        model="openai/gpt-4.1",
+        method_params={"clean_output": False},
+        llm_config={"temperature": 1.0, "max_tokens": 128},
+        steps=["reformulate", "retrieve", "evaluate"],
+        pipeline_time=3.0,
+        registry_path="dataset_registry.yaml",
+        queries_file=None,
+        index_name="msmarco-v1-passage",
+    )
+    assert payload["config"]["method_params"] == {}
+
+
+@pytest.mark.parametrize(
+    "run_path",
+    [
+        "bright-biology/query2e/openai/gpt-4.1/bm25/edce8c2a.json",
+        "beir-v1.0.0-arguana/query2e/Qwen/Qwen2.5-72B-Instruct/bge-base-en-v1.5/eaea15f7.json",
+    ],
+)
+def test_query2e_clean_output_params_hash(run_path):
+    from querygym.core.base import MethodConfig
+    from querygym.core.prompts import PromptBank
+    from querygym.methods.query2e import Query2E
+
+    root = Path(__file__).resolve().parents[2]
+    run = json.loads((root / "reproducibility" / "data" / "runs" / run_path).read_text())
+    model = run["pipeline"]["model"]
+    params = run["config"]["method_params"]
+    llm_config = run["config"]["llm_config"]
+    bank = PromptBank(root / "querygym" / "prompt_bank.yaml")
+
+    def params_hash(extra):
+        cfg = MethodConfig(name="query2e", params={**params, **extra}, llm={})
+        effective = Query2E(cfg, None, bank).effective_params()
+        return compute_params_hash("query2e", model, effective, llm_config)
+
+    # Raw-output parsing reproduces the recorded run identity
+    assert params_hash({"clean_output": False}) == run["params_hash"]
+    # Cleaned output (the default) is a different configuration
+    assert params_hash({}) != run["params_hash"]
