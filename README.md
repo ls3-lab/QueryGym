@@ -1,4 +1,4 @@
-[![Ask DeepWiki about this repo](https://deepwiki.com/badge.svg)](https://deepwiki.com/ls3-lab/QueryGym)
+[![Ask DeepWiki about this repo](https://img.shields.io/badge/Ask-DeepWiki-blue.svg)](https://deepwiki.com/ls3-lab/QueryGym)
 [![Publish to PyPI](https://github.com/ls3-lab/QueryGym/actions/workflows/publish.yml/badge.svg)](https://github.com/ls3-lab/QueryGym/actions/workflows/publish.yml)
 [![Build and Push Docker Images](https://github.com/ls3-lab/QueryGym/actions/workflows/docker.yml/badge.svg)](https://github.com/ls3-lab/QueryGym/actions/workflows/docker.yml)
 [![PyPI version](https://badge.fury.io/py/querygym.svg)](https://pypi.org/project/querygym/)
