@@ -52,7 +52,7 @@ If you use QueryGym in your research, please cite:
 ```bibtex
 @misc{bigdeli2025querygymtoolkitreproduciblellmbased,
       title={QueryGym: A Toolkit for Reproducible LLM-Based Query Reformulation}, 
-      author={Amin Bigdeli and Radin Hamidi Rad and Mert Incesu and Negar Arabzadeh and Charles L. A. Clarke and Ebrahim Bagheri},
+      author={Amin Bigdeli and Radin {Hamidi Rad} and Mert Incesu and Negar Arabzadeh and Charles L. A. Clarke and Ebrahim Bagheri},
       year={2025},
       eprint={2511.15996},
       archivePrefix={arXiv},

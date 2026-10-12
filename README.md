@@ -187,7 +187,7 @@ If you use QueryGym in your research, please cite:
 
 ```bibtex
 @inproceedings{10.1145/3774905.3793135,
-  author    = {Bigdeli, Amin and Hamidi Rad, Radin and Incesu, Mert and Arabzadeh, Negar and Clarke, Charles and Bagheri, Ebrahim},
+  author    = {Bigdeli, Amin and {Hamidi Rad}, Radin and Incesu, Mert and Arabzadeh, Negar and Clarke, Charles and Bagheri, Ebrahim},
   title     = {QueryGym: A Toolkit for Reproducible LLM-Based Query Reformulation},
   booktitle = {Companion Proceedings of the ACM Web Conference 2026},
   series    = {WWW Companion '26},
