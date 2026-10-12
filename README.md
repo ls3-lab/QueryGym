@@ -183,7 +183,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ### Citation
 
-If you use QueryGym in your research, please cite:
+If you use QueryGym in your research, please cite the toolkit paper:
 
 ```bibtex
 @inproceedings{10.1145/3774905.3793135,
@@ -196,5 +196,21 @@ If you use QueryGym in your research, please cite:
   publisher = {Association for Computing Machinery},
   doi       = {10.1145/3774905.3793135},
   url       = {https://doi.org/10.1145/3774905.3793135}
+}
+```
+
+If you refer to the SIGIR 2026 reproducibility results or the leaderboard, please also cite:
+
+```bibtex
+@inproceedings{10.1145/3805712.3808560,
+  author    = {Bigdeli, Amin and {Hamidi Rad}, Radin and Le, Hai Son and Incesu, Mert and Arabzadeh, Negar and Clarke, Charles L. A. and Bagheri, Ebrahim},
+  title     = {A Reproducibility Study of LLM-Based Query Reformulation},
+  booktitle = {Proceedings of the 49th International ACM SIGIR Conference on Research and Development in Information Retrieval},
+  series    = {SIGIR '26},
+  year      = {2026},
+  pages     = {2824--2834},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/3805712.3808560},
+  url       = {https://doi.org/10.1145/3805712.3808560}
 }
 ```
