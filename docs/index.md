@@ -93,17 +93,33 @@ pip install querygym[dev]
 
 ## Citation
 
-If you use QueryGym in your research, please cite:
+If you use QueryGym in your research, please cite the toolkit paper:
 
 ```bibtex
-@misc{bigdeli2025querygymtoolkitreproduciblellmbased,
-      title={QueryGym: A Toolkit for Reproducible LLM-Based Query Reformulation}, 
-      author={Amin Bigdeli and Radin Hamidi Rad and Mert Incesu and Negar Arabzadeh and Charles L. A. Clarke and Ebrahim Bagheri},
-      year={2025},
-      eprint={2511.15996},
-      archivePrefix={arXiv},
-      primaryClass={cs.IR},
-      url={https://arxiv.org/abs/2511.15996}, 
+@inproceedings{DBLP:conf/www/BigdeliRIACB26,
+  author={Amin Bigdeli and Radin {Hamidi Rad} and Mert Incesu and Negar Arabzadeh and Charles L. A. Clarke and Ebrahim Bagheri},
+  title={QueryGym: {A} Toolkit for Reproducible LLM-Based Query Reformulation},
+  booktitle={Companion Proceedings of the ACM Web Conference 2026, WWW Companion 2026, Dubai, United Arab Emirates, 29 June 2026 - 3 July 2026},
+  pages={196--199},
+  publisher={ACM},
+  year={2026},
+  url={https://doi.org/10.1145/3774905.3793135},
+  doi={10.1145/3774905.3793135},
+}
+```
+
+If you refer to the SIGIR 2026 reproducibility results or the leaderboard, please also cite:
+
+```bibtex
+@inproceedings{DBLP:conf/sigir/BigdeliRLIACB26,
+  author={Amin Bigdeli and Radin {Hamidi Rad} and Hai Son Le and Mert Incesu and Negar Arabzadeh and Charles L. A. Clarke and Ebrahim Bagheri},
+  title={A Reproducibility Study of LLM-Based Query Reformulation},
+  booktitle={Proceedings of the 49th International {ACM} {SIGIR} Conference on Research and Development in Information Retrieval, {SIGIR} 2026, Melbourne, VIC, Australia, July 20-24, 2026},
+  pages={2824--2834},
+  publisher={ACM},
+  year={2026},
+  url={https://doi.org/10.1145/3805712.3808560},
+  doi={10.1145/3805712.3808560},
 }
 ```
 
