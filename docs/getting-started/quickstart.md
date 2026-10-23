@@ -49,6 +49,8 @@ Available methods:
 - `query2e` - Query to entity expansion
 - `csqe` - Context-based sentence extraction
 - `thinkqe` - Multi-round reasoning-based passage expansion
+- `reformer` - Pattern-based, document-conditioned reformulation
+- `hyde` - Hypothetical document generation
 
 ### 3. Reformulate Queries
 

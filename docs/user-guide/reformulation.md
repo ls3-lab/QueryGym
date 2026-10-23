@@ -113,6 +113,19 @@ reformulator = qg.create_reformulator(
 )
 ```
 
+### HyDE
+
+Generates 8 hypothetical documents with a task-specific prompt and appends them to the query.
+
+```python
+reformulator = qg.create_reformulator(
+    "hyde",
+    model="gpt-4.1",
+    params={"task": "web search", "n_docs": 8},
+    llm_config={"temperature": 0.7, "max_tokens": 512},
+)
+```
+
 ## Method Comparison
 
 | Method | Requires Context | Type | Best For |
@@ -126,6 +139,7 @@ reformulator = qg.create_reformulator(
 | query2e | No | Entity expansion | Entity queries |
 | csqe | Yes | Sentence extraction | Precision-focused |
 | thinkqe | Yes | Iterative reasoning | Multi-round feedback |
+| hyde | No | Hypothetical documents | Zero-shot retrieval |
 
 ## Custom Parameters
 

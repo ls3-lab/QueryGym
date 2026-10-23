@@ -71,5 +71,15 @@ reformer:
     context_docs: 3   # top-N docs fed to pattern selection (step 1)
     # patterns_path: null  # override to load a custom patterns JSON file
 
+hyde:
+  llm:
+    temperature: 0.7  # HyDE paper sampling settings
+    max_tokens: 512
+    top_p: 1.0
+    stop: ["\n\n\n"]
+  params:
+    task: "web search"  # web search, scifact, arguana, trec-covid, fiqa, dbpedia-entity, trec-news
+    n_docs: 8  # Number of hypothetical documents to generate
+
 seed: 42
 retries: 2

@@ -49,6 +49,7 @@ QueryGym implements the following query reformulation methods:
 | **ThinkQE** | Multi-round reasoning-based query expansion with corpus feedback | [Lei et al., 2025](https://arxiv.org/abs/2506.09260) |
 | **Query2E** | Query to entity/keyword expansion | [Jagerman et al., 2023](https://arxiv.org/abs/2305.03653)|
 | **ReFormeR** | Pattern-based, document-conditioned reformulation via learned transformation rules | [Bigdeli et al., 2026](https://arxiv.org/abs/2604.01417) |
+| **HyDE** | Precise Zero-Shot Dense Retrieval without Relevance Labels | [Gao et al., 2022](https://arxiv.org/abs/2212.10496) |
 
 For detailed usage and parameters, see the [Methods Reference](https://querygym.readthedocs.io/en/latest/user-guide/methods-reference/).
 

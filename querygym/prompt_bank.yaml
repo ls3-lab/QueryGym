@@ -550,3 +550,108 @@
       Return only the reformulated query.
   notes: |
     ReFormeR step 2: applies the selected pattern's transformation rule to produce the final reformulated query.
+
+- id: hyde.web_search.v1
+  method_family: hyde
+  version: 1
+  introduced_by: "HyDE (Gao et al., 2022) — web search prompt"
+  license: "CC-BY-4.0"
+  authors: ["Luyu Gao", "Xueguang Ma", "Jimmy Lin", "Jamie Callan"]
+  tags: ["hypothetical-document", "generation", "expansion"]
+  template:
+    user: |-
+      Please write a passage to answer the question.
+      Question: {query}
+      Passage:
+  notes: |
+    HyDE hypothetical document prompt for the web search task, verbatim from the original promptor.py. No system message.
+
+- id: hyde.scifact.v1
+  method_family: hyde
+  version: 1
+  introduced_by: "HyDE (Gao et al., 2022) — SciFact prompt"
+  license: "CC-BY-4.0"
+  authors: ["Luyu Gao", "Xueguang Ma", "Jimmy Lin", "Jamie Callan"]
+  tags: ["hypothetical-document", "generation", "expansion"]
+  template:
+    user: |-
+      Please write a scientific paper passage to support/refute the claim.
+      Claim: {query}
+      Passage:
+  notes: |
+    HyDE hypothetical document prompt for the SciFact task, verbatim from the original promptor.py. No system message.
+
+- id: hyde.arguana.v1
+  method_family: hyde
+  version: 1
+  introduced_by: "HyDE (Gao et al., 2022) — ArguAna prompt"
+  license: "CC-BY-4.0"
+  authors: ["Luyu Gao", "Xueguang Ma", "Jimmy Lin", "Jamie Callan"]
+  tags: ["hypothetical-document", "generation", "expansion"]
+  template:
+    user: |-
+      Please write a counter argument for the passage.
+      Passage: {query}
+      Counter Argument:
+  notes: |
+    HyDE hypothetical document prompt for the ArguAna task, verbatim from the original promptor.py. No system message.
+
+- id: hyde.trec_covid.v1
+  method_family: hyde
+  version: 1
+  introduced_by: "HyDE (Gao et al., 2022) — TREC-COVID prompt"
+  license: "CC-BY-4.0"
+  authors: ["Luyu Gao", "Xueguang Ma", "Jimmy Lin", "Jamie Callan"]
+  tags: ["hypothetical-document", "generation", "expansion"]
+  template:
+    user: |-
+      Please write a scientific paper passage to answer the question.
+      Question: {query}
+      Passage:
+  notes: |
+    HyDE hypothetical document prompt for the TREC-COVID task, verbatim from the original promptor.py. No system message.
+
+- id: hyde.fiqa.v1
+  method_family: hyde
+  version: 1
+  introduced_by: "HyDE (Gao et al., 2022) — FiQA prompt"
+  license: "CC-BY-4.0"
+  authors: ["Luyu Gao", "Xueguang Ma", "Jimmy Lin", "Jamie Callan"]
+  tags: ["hypothetical-document", "generation", "expansion"]
+  template:
+    user: |-
+      Please write a financial article passage to answer the question.
+      Question: {query}
+      Passage:
+  notes: |
+    HyDE hypothetical document prompt for the FiQA task, verbatim from the original promptor.py. No system message.
+
+- id: hyde.dbpedia_entity.v1
+  method_family: hyde
+  version: 1
+  introduced_by: "HyDE (Gao et al., 2022) — DBPedia-Entity prompt"
+  license: "CC-BY-4.0"
+  authors: ["Luyu Gao", "Xueguang Ma", "Jimmy Lin", "Jamie Callan"]
+  tags: ["hypothetical-document", "generation", "expansion"]
+  template:
+    user: |-
+      Please write a passage to answer the question.
+      Question: {query}
+      Passage:
+  notes: |
+    HyDE hypothetical document prompt for the DBPedia-Entity task, verbatim from the original promptor.py. No system message.
+
+- id: hyde.trec_news.v1
+  method_family: hyde
+  version: 1
+  introduced_by: "HyDE (Gao et al., 2022) — TREC-News prompt"
+  license: "CC-BY-4.0"
+  authors: ["Luyu Gao", "Xueguang Ma", "Jimmy Lin", "Jamie Callan"]
+  tags: ["hypothetical-document", "generation", "expansion"]
+  template:
+    user: |-
+      Please write a news passage about the topic.
+      Topic: {query}
+      Passage:
+  notes: |
+    HyDE hypothetical document prompt for the TREC-News task, verbatim from the original promptor.py. No system message.
