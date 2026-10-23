@@ -281,6 +281,15 @@ def run(
                             "reformulation_5",
                         ]
                     )
+            elif method == "hyde":
+                # HyDE: qid \t passage_1 \t passage_2 \t ... \t passage_n
+                num_passages = (
+                    len(results[0].metadata.get("hypothetical_docs", [])) if results else 0
+                )
+                if not num_passages:
+                    num_passages = 8  # Default n_docs
+                header = ["qid"] + [f"passage_{i+1}" for i in range(num_passages)]
+                w.writerow(header)
             elif method == "qa_expand":
                 # QA-Expand: qid \t final_refined_query
                 w.writerow(["qid", "refined_query"])
@@ -348,6 +357,10 @@ def run(
                         parts = reformulated.replace(original, "").strip().split()
                         cleaned_parts = [clean_text(p) for p in parts]
                         w.writerow([r.qid] + cleaned_parts)
+                elif method == "hyde":
+                    # HyDE: qid \t passage_1 \t passage_2 \t ... \t passage_n
+                    passages = r.metadata.get("hypothetical_docs", [])
+                    w.writerow([r.qid] + [clean_text(p) for p in passages])
                 elif method == "query2doc":
                     # Query2Doc: qid \t passage
                     passage = r.metadata.get("pseudo_doc", "")

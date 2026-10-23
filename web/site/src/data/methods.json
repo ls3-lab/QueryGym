@@ -61,5 +61,12 @@
     "tagline": "Query-to-entity / keyword expansion.",
     "paper": "Jagerman et al., 2023",
     "paper_url": "https://arxiv.org/abs/2305.03653"
+  },
+  {
+    "id": "hyde",
+    "name": "HyDE",
+    "tagline": "Hypothetical documents written by the LLM.",
+    "paper": "Gao et al., 2022",
+    "paper_url": "https://arxiv.org/abs/2212.10496"
   }
 ]

@@ -5,6 +5,16 @@ All notable changes to querygym will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- HyDE reformulation method, from *Precise Zero-Shot Dense Retrieval without Relevance Labels* ([Gao et al., 2022](https://arxiv.org/abs/2212.10496)): generates 8 hypothetical documents per query and appends them to the query
+  - Task-specific prompts from the original implementation (`hyde.web_search.v1`, `hyde.scifact.v1`, `hyde.arguana.v1`, `hyde.trec_covid.v1`, `hyde.fiqa.v1`, `hyde.dbpedia_entity.v1`, `hyde.trec_news.v1`), selected with the `task` parameter
+  - `querygym.methods.hyde.task_for_dataset()` maps BEIR datasets to their prompt; every other dataset uses `web search`. The example pipeline uses it when `task` isn't set
+  - Paper sampling defaults in `defaults.yaml` (`temperature: 0.7`, `max_tokens: 512`, `top_p: 1.0`, `stop: ["\n\n\n"]`)
+  - `querygym run --output-format plain` writes one column per hypothetical document
+- HyDE listed in README supported methods table
+
 ## [0.3.0] - 2026-10-04
 
 ### Added
