@@ -142,6 +142,12 @@ def reformulate_queries(
         retrieval_k = method_params.get('retrieval_k', 10)
         logging.info(f"Searcher configured with retrieval_k={retrieval_k}")
     
+    # HyDE: pick the task-specific prompt from the dataset unless one was given
+    if method == 'hyde' and 'task' not in method_params:
+        from querygym.methods.hyde import task_for_dataset
+        method_params['task'] = task_for_dataset(dataset_name)
+        logging.info(f"HyDE task (from dataset): {method_params['task']}")
+
     # Create reformulator
     logging.info(f"Creating reformulator: {method}")
     logging.info(f"Model: {model}")

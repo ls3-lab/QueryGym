@@ -16,6 +16,7 @@ from ..methods.query2e import Query2E
 from ..methods.csqe import CSQE
 from ..methods.thinkqe import ThinkQE
 from ..methods.reformer import ReFormeR
+from ..methods.hyde import HyDE
 
 
 def build_llm(cfg: MethodConfig):

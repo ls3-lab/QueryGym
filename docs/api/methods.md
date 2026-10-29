@@ -135,3 +135,22 @@ reformulator = qg.create_reformulator(
 - `max_demo_len` (int): Optional word truncation for each passage before prompting (default: None)
 - `no_thinking` (bool): Prefill `</think>` to disable reasoning traces (default: False)
 - `searcher`: Pre-configured searcher instance (recommended)
+
+### HyDE
+
+Hypothetical Document Embeddings, from *Precise Zero-Shot Dense Retrieval without Relevance Labels* ([Gao et al., 2022](https://arxiv.org/abs/2212.10496)), adapted to text: the LLM generates `n_docs` hypothetical documents with a task-specific prompt, and the reformulated query is the original query followed by the documents.
+
+```python
+reformulator = qg.create_reformulator(
+    "hyde",
+    model="gpt-4.1",
+    params={"task": "scifact", "n_docs": 8},
+    llm_config={"temperature": 0.7, "max_tokens": 512, "top_p": 1.0, "stop": ["\n\n\n"]}
+)
+```
+
+**Requires Context:** No  
+**Parameters:**
+- `task` (str): Prompt template: `web search`, `scifact`, `arguana`, `trec-covid`, `fiqa`, `dbpedia-entity`, `trec-news` (default: `web search`). An unknown task raises `ValueError`
+- `n_docs` (int): Number of hypothetical documents to generate (default: 8)
+- `repeat_query_weight` (int): Times the original query appears before the documents (default: 1)

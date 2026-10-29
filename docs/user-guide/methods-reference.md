@@ -17,6 +17,7 @@ Complete reference guide for all query reformulation methods in QueryGym, includ
   - [CSQE](#csqe)
   - [ThinkQE](#thinkqe)
   - [ReFormeR](#reformer)
+  - [HyDE](#hyde)
 
 ---
 
@@ -733,6 +734,85 @@ Each pattern in the JSON must have: `pattern_name`, `description`, `transformati
 2. **Pattern application** (`reformer.pattern_application.v1`): The LLM receives the query, the selected pattern's `transformation_rule`, and its `examples`. It returns only the reformulated query string.
 
 If the pattern selection response cannot be parsed as valid JSON, the method falls back to the first pattern in the library and records `"pattern_fallback": true` in the result metadata.
+
+---
+
+### HyDE
+
+**Method Name:** `"hyde"`
+**Requires Context:** No
+**Description:** Hypothetical Document Embeddings, from *Precise Zero-Shot Dense Retrieval without Relevance Labels* ([Gao et al., 2022](https://arxiv.org/abs/2212.10496)). The LLM writes `n_docs` hypothetical documents that answer the query, using a task-specific prompt. The reformulated query is the original query followed by all generated documents: `query + doc_1 + ... + doc_8`.
+
+!!! note "Text adaptation"
+    The original HyDE averages the embeddings of the query and the hypothetical documents for dense retrieval. QueryGym emits text instead, so the output works with any retriever (BM25, SPLADE++, dense). The query appears once, matching its one-in-nine weight in the original embedding average. Dense encoders with a 512-token limit (e.g. BGE) only see the query and roughly the first document.
+
+#### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `task` | str | `"web search"` | Prompt template to use (see [Tasks](#tasks)). An unknown task raises `ValueError` |
+| `n_docs` | int | 8 | Number of hypothetical documents to generate (one LLM call each) |
+| `repeat_query_weight` | int | 1 | Number of times the original query appears before the documents |
+
+#### LLM Configuration
+
+Paper settings, used by `querygym run`:
+
+| Parameter | Value | Description |
+|-----------|---------|-------------|
+| `temperature` | 0.7 | Sampling temperature |
+| `max_tokens` | 512 | Maximum tokens per document |
+| `top_p` | 1.0 | Nucleus sampling |
+| `stop` | `["\n\n\n"]` | Stop sequences |
+
+!!! warning
+    `qg.create_reformulator` fills in `temperature=0.8` and `max_tokens=256` when `llm_config` doesn't set them, and sends `top_p` and `stop` only when they are set. Pass all four to use the paper settings: `llm_config={"temperature": 0.7, "max_tokens": 512, "top_p": 1.0, "stop": ["\n\n\n"]}`. Set `top_p` or `stop` to `null` in a config file to leave it out for a backend that rejects it.
+
+#### Tasks
+
+| `task` | Prompt ID | Prompt |
+|--------|-----------|--------|
+| `web search` | `hyde.web_search.v1` | Please write a passage to answer the question. |
+| `scifact` | `hyde.scifact.v1` | Please write a scientific paper passage to support/refute the claim. |
+| `arguana` | `hyde.arguana.v1` | Please write a counter argument for the passage. |
+| `trec-covid` | `hyde.trec_covid.v1` | Please write a scientific paper passage to answer the question. |
+| `fiqa` | `hyde.fiqa.v1` | Please write a financial article passage to answer the question. |
+| `dbpedia-entity` | `hyde.dbpedia_entity.v1` | Please write a passage to answer the question. |
+| `trec-news` | `hyde.trec_news.v1` | Please write a news passage about the topic. |
+
+The example pipeline (`examples/querygym_pyserini/`) picks the task from the dataset when `task` isn't set, using `querygym.methods.hyde.task_for_dataset()`:
+
+| Dataset | `task` |
+|---------|--------|
+| `beir-v1.0.0-scifact`, `-arguana`, `-trec-covid`, `-fiqa`, `-dbpedia-entity`, `-trec-news` | matching task |
+| Everything else (MS MARCO, DL-HARD, BRIGHT, custom query files) | `web search` |
+
+An explicit `task` always wins over the dataset mapping.
+
+#### Usage Example
+
+```python
+import querygym as qg
+
+reformulator = qg.create_reformulator(
+    "hyde",
+    model="gpt-4.1",
+    params={"task": "scifact", "n_docs": 8},
+    llm_config={"temperature": 0.7, "max_tokens": 512, "top_p": 1.0, "stop": ["\n\n\n"]},
+)
+
+result = reformulator.reformulate(qg.QueryItem("q1", "0-dimensional biomaterials show inductive properties."))
+print(result.reformulated)                    # query + 8 hypothetical documents
+print(result.metadata["hypothetical_docs"])   # the generated documents
+```
+
+#### How It Works
+
+1. **Prompt**: render the prompt for `task` with the query.
+2. **Generate**: call the LLM `n_docs` times with the same prompt. Empty generations are dropped.
+3. **Concatenate**: the original query (`repeat_query_weight` times) followed by the documents, with newlines flattened. If every generation is empty, the original query is returned.
+
+Metadata: `task`, `n_docs`, `hypothetical_docs`.
 
 ---
 

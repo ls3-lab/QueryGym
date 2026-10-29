@@ -94,6 +94,20 @@ methods:
       max_tokens: 128
     params: {}  # No special parameters
   
+  # HyDE: Hypothetical document generation (query + 8 generated passages)
+  hyde:
+    enabled: true
+    model: "qwen2.5:7b"
+    llm:
+      temperature: 0.7  # HyDE paper sampling settings
+      max_tokens: 512
+      top_p: 1.0
+      stop: ["\n\n\n"]
+    params:
+      n_docs: 8  # Number of hypothetical documents to generate
+      # Note: task is picked from the dataset (e.g. scifact for beir-v1.0.0-scifact,
+      # web search otherwise). Set task here only to force one prompt for all datasets.
+
   # LameR: Context-based passage synthesis (requires retrieval)
   lamer:
     enabled: true
