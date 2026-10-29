@@ -22,6 +22,10 @@ except ImportError:
     get_topics = None
     get_qrels = None
 
+# LLM settings used when neither the CLI nor the config file sets them
+DEFAULT_TEMPERATURE = 1.0
+DEFAULT_MAX_TOKENS = 128
+
 
 def load_dataset_registry(registry_path: str = "dataset_registry.yaml") -> Dict[str, Any]:
     """

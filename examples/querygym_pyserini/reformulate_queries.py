@@ -37,7 +37,9 @@ from examples.querygym_pyserini.utils import (
     format_time,
     print_dataset_info,
     get_method_config_from_yaml,
-    list_available_datasets
+    list_available_datasets,
+    DEFAULT_TEMPERATURE,
+    DEFAULT_MAX_TOKENS
 )
 
 
@@ -331,14 +333,14 @@ Examples:
     parser.add_argument(
         '--temperature',
         type=float,
-        default=1.0,
-        help='LLM temperature (default: 1.0)'
+        default=None,
+        help=f'LLM temperature; overrides the config file (default: {DEFAULT_TEMPERATURE})'
     )
     parser.add_argument(
         '--max-tokens',
         type=int,
-        default=128,
-        help='LLM max tokens (default: 128)'
+        default=None,
+        help=f'LLM max tokens; overrides the config file (default: {DEFAULT_MAX_TOKENS})'
     )
     parser.add_argument(
         '--retrieval-k',
@@ -439,8 +441,10 @@ Examples:
         
         model = method_config['model']
         llm_config = method_config['llm_config']
+        llm_config.setdefault('temperature', DEFAULT_TEMPERATURE)
+        llm_config.setdefault('max_tokens', DEFAULT_MAX_TOKENS)
         method_params = method_config['method_params']
-        
+
         if not model:
             parser.error("Model must be specified either in config file or via --model")
         
@@ -451,8 +455,8 @@ Examples:
         # Use CLI arguments directly
         model = args.model
         llm_config = {
-            'temperature': args.temperature,
-            'max_tokens': args.max_tokens
+            'temperature': DEFAULT_TEMPERATURE if args.temperature is None else args.temperature,
+            'max_tokens': DEFAULT_MAX_TOKENS if args.max_tokens is None else args.max_tokens
         }
         
         # Only include base_url and api_key if explicitly provided

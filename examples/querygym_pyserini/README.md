@@ -131,8 +131,8 @@ python examples/querygym_pyserini/reformulate_queries.py \
 - `--model`: LLM model name (e.g., qwen2.5:7b, llama3.1:8b, gpt-4, etc.)
 - `--base-url`: LLM API endpoint (e.g., http://localhost:11434/v1)
 - `--api-key`: LLM API key
-- `--temperature`: LLM temperature (default: 1.0)
-- `--max-tokens`: Max tokens (default: 128)
+- `--temperature`: LLM temperature; overrides the config file (default: 1.0)
+- `--max-tokens`: Max tokens; overrides the config file (default: 128)
 - `--retrieval-k`: Number of documents to retrieve for methods that need context (default: 10)
 - `--method-params`: Method-specific parameters as JSON string (e.g., `'{"mode":"fs","num_examples":4}'`)
 
