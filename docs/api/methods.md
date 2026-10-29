@@ -154,5 +154,3 @@ reformulator = qg.create_reformulator(
 - `task` (str): Prompt template: `web search`, `scifact`, `arguana`, `trec-covid`, `fiqa`, `dbpedia-entity`, `trec-news` (default: `web search`). An unknown task raises `ValueError`
 - `n_docs` (int): Number of hypothetical documents to generate (default: 8)
 - `repeat_query_weight` (int): Times the original query appears before the documents (default: 1)
-
-`querygym.methods.hyde.task_for_dataset(dataset_id)` returns the task for a dataset id (`web search` for any dataset without a dedicated prompt, or `None`).

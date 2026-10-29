@@ -122,7 +122,7 @@ reformulator = qg.create_reformulator(
     "hyde",
     model="gpt-4.1",
     params={"task": "web search", "n_docs": 8},
-    llm_config={"temperature": 0.7, "max_tokens": 512},
+    llm_config={"temperature": 0.7, "max_tokens": 512, "top_p": 1.0, "stop": ["\n\n\n"]},
 )
 ```
 

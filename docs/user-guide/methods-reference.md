@@ -756,9 +756,9 @@ If the pattern selection response cannot be parsed as valid JSON, the method fal
 
 #### LLM Configuration
 
-Defaults follow the HyDE paper:
+Paper settings, used by `querygym run`:
 
-| Parameter | Default | Description |
+| Parameter | Value | Description |
 |-----------|---------|-------------|
 | `temperature` | 0.7 | Sampling temperature |
 | `max_tokens` | 512 | Maximum tokens per document |
@@ -766,7 +766,7 @@ Defaults follow the HyDE paper:
 | `stop` | `["\n\n\n"]` | Stop sequences |
 
 !!! warning
-    `qg.create_reformulator` fills in `temperature=0.8` and `max_tokens=256` when `llm_config` doesn't set them. Pass `llm_config={"temperature": 0.7, "max_tokens": 512}` to use the paper settings. `querygym run` and the example pipeline config already use them.
+    `qg.create_reformulator` fills in `temperature=0.8` and `max_tokens=256` when `llm_config` doesn't set them, and sends `top_p` and `stop` only when they are set. Pass all four to use the paper settings: `llm_config={"temperature": 0.7, "max_tokens": 512, "top_p": 1.0, "stop": ["\n\n\n"]}`. Set `top_p` or `stop` to `null` in a config file to leave it out for a backend that rejects it.
 
 #### Tasks
 

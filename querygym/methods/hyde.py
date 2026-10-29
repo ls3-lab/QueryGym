@@ -82,16 +82,18 @@ class HyDE(BaseReformulator):
         n_docs = int(self.cfg.params.get("n_docs", 8))
         temperature = float(self.cfg.llm.get("temperature", 0.7))
         max_tokens = int(self.cfg.llm.get("max_tokens", 512))
-        top_p = float(self.cfg.llm.get("top_p", 1.0))
-        stop = self.cfg.llm.get("stop", ["\n\n\n"])
+        llm_kwargs = {"temperature": temperature, "max_tokens": max_tokens}
+        # top_p and stop are sent only when configured; not every backend accepts them
+        if self.cfg.llm.get("top_p") is not None:
+            llm_kwargs["top_p"] = float(self.cfg.llm["top_p"])
+        if self.cfg.llm.get("stop") is not None:
+            llm_kwargs["stop"] = self.cfg.llm["stop"]
 
         msgs = self.prompts.render(TASK_PROMPTS[self.task], query=q.text)
 
         hypothetical_docs: List[str] = []
         for _ in range(n_docs):
-            out = self.llm.chat(
-                msgs, temperature=temperature, max_tokens=max_tokens, top_p=top_p, stop=stop
-            )
+            out = self.llm.chat(msgs, **llm_kwargs)
             doc = out.strip()
             if doc:
                 hypothetical_docs.append(doc)

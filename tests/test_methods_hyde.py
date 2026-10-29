@@ -102,12 +102,14 @@ def test_unknown_task_raises():
 def test_sampling_params_passed_to_llm():
     meth, llm = make_hyde(params={"n_docs": 1})
     meth.reformulate(QueryItem("q1", "query"))
-    assert llm.calls[0][1] == {
-        "temperature": 0.7,
-        "max_tokens": 512,
-        "top_p": 1.0,
-        "stop": ["\n\n\n"],
-    }
+    # top_p and stop are only sent when configured
+    assert llm.calls[0][1] == {"temperature": 0.7, "max_tokens": 512}
+
+
+def test_null_sampling_params_are_not_sent():
+    meth, llm = make_hyde(params={"n_docs": 1}, llm_cfg={"top_p": None, "stop": None})
+    meth.reformulate(QueryItem("q1", "query"))
+    assert llm.calls[0][1] == {"temperature": 0.7, "max_tokens": 512}
 
 
 def test_llm_config_overrides_sampling_params():
@@ -221,3 +223,35 @@ def test_cli_run_writes_concat_and_plain(tmp_path, monkeypatch):
     plain = (tmp_path / "out_plain.tsv").read_text().splitlines()
     assert plain[0] == "\t".join(["qid"] + [f"passage_{i}" for i in range(1, 9)])
     assert plain[1] == "\t".join(["q1"] + docs)
+
+
+def test_cli_plain_rows_padded_when_generations_are_empty(tmp_path, monkeypatch):
+    from typer.testing import CliRunner
+
+    from querygym import cli
+    from querygym.core import runner
+
+    # q1: first generation empty; q2: every generation empty
+    llm = RecordingLLM([""] + [f"doc {i}" for i in range(1, 8)] + [""] * 8)
+    monkeypatch.setattr(runner, "build_llm", lambda cfg: llm)
+    queries = tmp_path / "queries.tsv"
+    queries.write_text("q1\tprime rate\nq2\tinflation\n")
+
+    result = CliRunner().invoke(
+        cli.app,
+        [
+            "run",
+            "--method",
+            "hyde",
+            "--queries-tsv",
+            str(queries),
+            "--output-tsv",
+            str(tmp_path / "out.tsv"),
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    plain = [line.split("\t") for line in (tmp_path / "out_plain.tsv").read_text().splitlines()]
+    assert plain[0] == ["qid"] + [f"passage_{i}" for i in range(1, 9)]
+    assert plain[1] == ["q1"] + [f"doc {i}" for i in range(1, 8)] + [""]
+    assert plain[2] == ["q2"] + [""] * 8

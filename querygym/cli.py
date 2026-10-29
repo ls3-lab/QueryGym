@@ -283,11 +283,8 @@ def run(
                     )
             elif method == "hyde":
                 # HyDE: qid \t passage_1 \t passage_2 \t ... \t passage_n
-                num_passages = (
-                    len(results[0].metadata.get("hypothetical_docs", [])) if results else 0
-                )
-                if not num_passages:
-                    num_passages = 8  # Default n_docs
+                # Width from the configured n_docs: empty generations are dropped
+                num_passages = max((r.metadata.get("n_docs", 0) for r in results), default=0)
                 header = ["qid"] + [f"passage_{i+1}" for i in range(num_passages)]
                 w.writerow(header)
             elif method == "qa_expand":
@@ -359,8 +356,8 @@ def run(
                         w.writerow([r.qid] + cleaned_parts)
                 elif method == "hyde":
                     # HyDE: qid \t passage_1 \t passage_2 \t ... \t passage_n
-                    passages = r.metadata.get("hypothetical_docs", [])
-                    w.writerow([r.qid] + [clean_text(p) for p in passages])
+                    passages = [clean_text(p) for p in r.metadata.get("hypothetical_docs", [])]
+                    w.writerow([r.qid] + passages + [""] * (num_passages - len(passages)))
                 elif method == "query2doc":
                     # Query2Doc: qid \t passage
                     passage = r.metadata.get("pseudo_doc", "")
