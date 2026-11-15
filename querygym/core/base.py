@@ -20,6 +20,12 @@ class QueryItem:
     qid: str
     text: str
 
+    def __post_init__(self):
+        if not isinstance(self.text, str):
+            raise TypeError(
+                f"QueryItem text must be a str, got {type(self.text).__name__} (qid={self.qid!r})"
+            )
+
 
 @dataclass
 class ReformulationResult:

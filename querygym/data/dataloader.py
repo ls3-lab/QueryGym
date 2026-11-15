@@ -15,7 +15,10 @@ from ..core.base import QueryItem
 
 
 class DataLoader:
-    """Core data loader for local files only."""
+    """Core data loader for local files only.
+
+    JSONL loaders treat a key set to null as missing and skip the record with a warning.
+    """
 
     @staticmethod
     def load_queries(
@@ -109,9 +112,9 @@ class DataLoader:
                     continue
 
                 # Check for required keys
-                if qid_key not in obj or query_key not in obj:
+                if obj.get(qid_key) is None or obj.get(query_key) is None:
                     if not warned_missing_keys:
-                        warnings.warn(f"Missing keys '{qid_key}' or '{query_key}' in {path}")
+                        warnings.warn(f"Missing or null keys '{qid_key}' or '{query_key}' in {path}")
                         warned_missing_keys = True
                     continue
 
@@ -235,9 +238,9 @@ class DataLoader:
                     continue
 
                 # Check for required keys
-                if qid_key not in obj or contexts_key not in obj:
+                if obj.get(qid_key) is None or obj.get(contexts_key) is None:
                     if not warned_missing_keys:
-                        warnings.warn(f"Missing keys '{qid_key}' or '{contexts_key}' in {path}")
+                        warnings.warn(f"Missing or null keys '{qid_key}' or '{contexts_key}' in {path}")
                         warned_missing_keys = True
                     continue
 
@@ -248,7 +251,7 @@ class DataLoader:
                     warnings.warn(f"Contexts for {qid} is not a list, skipping")
                     continue
 
-                contexts[qid] = [str(ctx) for ctx in ctx_list]
+                contexts[qid] = [str(ctx) for ctx in ctx_list if ctx is not None]
 
         if not contexts:
             raise ValueError(f"No valid contexts found in {path}")
@@ -300,9 +303,9 @@ class DataLoader:
                     continue
 
                 # Check for required keys
-                if query_key not in obj or passage_key not in obj:
+                if obj.get(query_key) is None or obj.get(passage_key) is None:
                     if not warned_missing_keys:
-                        warnings.warn(f"Missing keys '{query_key}' or '{passage_key}' in {path}")
+                        warnings.warn(f"Missing or null keys '{query_key}' or '{passage_key}' in {path}")
                         warned_missing_keys = True
                     continue
 
