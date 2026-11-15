@@ -33,7 +33,7 @@ queries = DataLoader.load_queries(
 - `qid_col` (int): Column index for query ID in TSV (default: 0)
 - `query_col` (int): Column index for query text in TSV (default: 1)
 - `qid_key` (str): JSON key for query ID in JSONL (default: "qid")
-- `query_key` (str): JSON key for query text in JSONL (default: "text")
+- `query_key` (str): JSON key for query text in JSONL (default: "query")
 
 **Returns:** `List[QueryItem]`
 
