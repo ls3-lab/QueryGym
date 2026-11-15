@@ -58,7 +58,7 @@ mugi:
     max_tokens: 1024  # Max tokens per pseudo-document generation
   params:
     num_docs: 5  # Number of pseudo-documents to generate (doc_gen in paper)
-    adaptive_times: 6  # Adaptive repetition divisor (default from paper)
+    adaptive_times: 6  # Adaptive repetition divisor (MuGI authors' implementation)
     parallel: false  # Sequential generation by default (set true for parallel)
     mode: "zs"  # "zs" (zero-shot) or "fs" (few-shot)
 

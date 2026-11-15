@@ -14,7 +14,7 @@ class MuGI(BaseReformulator):
 
     Key Parameters:
         - num_docs: Number of pseudo-documents to generate per query (default: 5)
-        - adaptive_times: Divisor for adaptive repetition ratio (default: 5)
+        - adaptive_times: Divisor for adaptive repetition ratio (default: 6)
         - max_tokens: Maximum tokens per pseudo-document (default: 1024)
         - temperature: Sampling temperature for diversity (default: 1.0)
         - mode: "zs" for zero-shot or "fs" for few-shot (default: "zs")
@@ -26,7 +26,7 @@ class MuGI(BaseReformulator):
         enhanced_query = (query + ' ') * repetition_times + all_pseudo_docs
     """
 
-    VERSION = "1.0"
+    VERSION = "1.1"
     REQUIRES_CONTEXT = False
     CONCATENATION_STRATEGY = "adaptive_query_repeat_plus_generated"
 
@@ -91,17 +91,18 @@ class MuGI(BaseReformulator):
         # Join all pseudo-documents into single text
         all_pseudo_docs = " ".join(pseudo_docs)
 
-        # Use base class concatenation with adaptive_query_repeat_plus_generated strategy
-        # This automatically handles the MuGI formula and cleaning
-        reformulated = self.concatenate_result(q.text, all_pseudo_docs)
-
-        # Calculate metrics for metadata (after concatenation)
+        # Adaptive repetition ratio (MuGI formula)
         query_len = len(q.text)
         docs_len = len(all_pseudo_docs)
         if query_len > 0:
-            repetition_times = max(1, (docs_len // query_len) // adaptive_times)
+            repetition_times = (docs_len // query_len) // adaptive_times
         else:
-            repetition_times = 1
+            repetition_times = 0
+
+        # Use base class concatenation with adaptive_query_repeat_plus_generated strategy
+        reformulated = self.concatenate_result(
+            q.text, all_pseudo_docs, query_repeats=repetition_times
+        )
 
         # Return result with metadata
         return ReformulationResult(

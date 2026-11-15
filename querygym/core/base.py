@@ -192,13 +192,10 @@ class BaseReformulator:
             result = generated_text
 
         elif strategy == "adaptive_query_repeat_plus_generated":
-            # Pattern: (query + ' ') * repetition_times + generated_content
-            # Uses adaptive repetition based on content length
+            # Pattern: (query + ' ') * query_repeats + generated_content
+            # The method computes query_repeats from the content length
             # Used by: MuGI
-            adaptive_times = self.cfg.params.get("adaptive_times", 5)
-            repetition_times = (len(generated_text) // len(original_query)) // adaptive_times
-            repetition_times = max(1, repetition_times)  # At least 1 repetition
-            result = (original_query + " ") * repetition_times + generated_text
+            result = (original_query + " ") * query_repeats + generated_text
 
         elif strategy == "interleaved_query_content":
             # Pattern: q + a1 + q + a2 + q + a3 + ... (interleaving)
