@@ -5,6 +5,15 @@ All notable changes to querygym will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- MuGI repeats the query `(len(pseudo_docs) // len(query)) // adaptive_times` times with no minimum, as in the MuGI authors' implementation. When the pseudo-documents are shorter than `adaptive_times` × the query length, the expanded query is the pseudo-documents alone; previously the query was always included at least once
+
+### Fixed
+- MuGI builds the expanded query with the same `adaptive_times` it reports in its metadata ([#52](https://github.com/ls3-lab/QueryGym/issues/52)). Without an `adaptive_times` parameter (Python API), MuGI now uses its default of 6, as in the MuGI authors' implementation, instead of 5. MuGI method version 1.1
+- MuGI no longer raises `ZeroDivisionError` on an empty query
+
 ## [0.4.0] - 2026-10-29
 
 ### Added
