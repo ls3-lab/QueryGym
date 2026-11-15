@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - MuGI builds the expanded query with the same `adaptive_times` it reports in its metadata ([#52](https://github.com/ls3-lab/QueryGym/issues/52)). Without an `adaptive_times` parameter (Python API), MuGI now uses its default of 6, as in the MuGI authors' implementation, instead of 5. MuGI method version 1.1
 - MuGI no longer raises `ZeroDivisionError` on an empty query
+- `QueryItem` raises `TypeError` when `text` is not a string, before any LLM call; a `None` query previously reached the LLM as the text "None" and failed afterwards
+- `DataLoader` JSONL loaders (`load_queries`, `load_contexts`, `load_examples`) treat a key set to `null` as missing and skip the record with a warning, and `load_contexts` drops `null` entries from a contexts list. `null` values were previously loaded as the text "None". See [JSONL records](../api/loaders.md#jsonl-records) in the loaders reference
 
 ## [0.4.0] - 2026-10-29
 

@@ -63,8 +63,43 @@ contexts = DataLoader.load_contexts("contexts.jsonl")
 
 **Parameters:**
 - `path` (str): Path to contexts JSONL file
+- `qid_key` (str): JSON key for query ID (default: "qid")
+- `contexts_key` (str): JSON key for the list of contexts (default: "contexts")
 
 **Returns:** `Dict[str, List[str]]` - Dict: qid → list of context strings
+
+**File Format:** `{"qid": "q1", "contexts": ["first passage", "second passage"]}`
+
+### load_examples
+
+Load few-shot (query, passage) examples for methods like Query2E.
+
+```python
+examples = DataLoader.load_examples("examples.jsonl")
+```
+
+**Parameters:**
+- `path` (str): Path to examples JSONL file
+- `query_key` (str): JSON key for the example query (default: "query")
+- `passage_key` (str): JSON key for the example passage (default: "passage")
+
+**Returns:** `List[Dict[str, str]]` - List of `{"query": ..., "passage": ...}` dicts
+
+**File Format:** `{"query": "how long is flea life cycle?", "passage": "The life cycle of a flea..."}`
+
+### JSONL records
+
+`load_queries` with `format="jsonl"`, `load_contexts` and `load_examples` read one JSON object per line and follow the same rules:
+
+- Blank lines are ignored.
+- A line that is not valid JSON is skipped with a warning.
+- A record whose required key is missing or set to `null` is skipped with a warning. The required keys are the ID and query keys for queries, the ID and contexts keys for contexts, and the query and passage keys for examples.
+- Other values are converted to strings, so `42` becomes `"42"`.
+- `load_queries` skips queries that are empty after stripping whitespace, with a warning. TSV files follow the same rule.
+- `load_contexts` skips a record whose contexts value is not a list, and drops `null` entries from the list.
+- If no record is valid, a `ValueError` is raised.
+
+BEIR's `load_queries` reads `queries.jsonl` through `load_queries` and follows the same rules.
 
 ### save_queries
 

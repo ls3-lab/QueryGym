@@ -16,7 +16,7 @@ query = QueryItem(qid="q1", text="what causes diabetes")
 
 **Attributes:**
 - `qid` (str): Unique query identifier
-- `text` (str): Query text content
+- `text` (str): Query text content. A non-string value raises `TypeError`
 
 **Docstring in code:** See `querygym/core/base.py`
 
