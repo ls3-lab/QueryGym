@@ -11,7 +11,7 @@ Simple usage:
     result = reformulator.reformulate(qg.QueryItem("q1", "what causes diabetes"))
 """
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 # Core data structures
 from .core.base import QueryItem, ReformulationResult, MethodConfig, BaseReformulator
