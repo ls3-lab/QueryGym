@@ -24,6 +24,10 @@
 
 ---
 
+## 📢 News
+
+- **Nov 2026**: We presented the tutorial *Query Expansion Revisited: From Classical Retrieval to Agentic Search* at CIKM 2026 (Nov 7–11). [Slides (PDF)](https://github.com/ls3-lab/QueryGym/blob/main/docs/tutorials/cikm2026-query-expansion-revisited.pdf)
+
 ## Features
 
 - Single **Prompt Bank** (YAML) with metadata
