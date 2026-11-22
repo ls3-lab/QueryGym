@@ -2,7 +2,37 @@ from __future__ import annotations
 import yaml
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Union
+
+_ROLES = ("system", "user", "assistant")
+
+
+class _UniqueKeyLoader(yaml.SafeLoader):
+    """SafeLoader that rejects duplicate mapping keys instead of keeping the last one."""
+
+
+def _construct_unique_mapping(loader, node, deep=False):
+    seen = set()
+    for key_node, _ in node.value:
+        # Merge keys (<<) are expanded, and unhashable keys reported, by construct_mapping
+        if key_node.tag == "tag:yaml.org,2002:merge":
+            continue
+        key = loader.construct_object(key_node, deep=deep)
+        try:
+            duplicate = key in seen
+        except TypeError:
+            continue
+        if duplicate:
+            raise yaml.constructor.ConstructorError(
+                None, None, f"duplicate key {key!r}", key_node.start_mark
+            )
+        seen.add(key)
+    return loader.construct_mapping(node, deep=deep)
+
+
+_UniqueKeyLoader.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping
+)
 
 
 @dataclass
@@ -13,14 +43,15 @@ class PromptSpec:
         id: Unique prompt identifier
         method_family: Method family this prompt belongs to
         version: Prompt version number
-        template: Template dict with 'system', 'user', 'assistant' keys
+        template: Template dict with 'system', 'user', 'assistant' keys, or a list of
+            {'role', 'content'} messages in conversation order
         meta: Additional metadata (authors, license, etc.)
     """
 
     id: str
     method_family: str
     version: int
-    template: Dict[str, str]
+    template: Union[Dict[str, str], List[Dict[str, str]]]
     meta: Dict[str, Any]
 
 
@@ -48,11 +79,23 @@ class PromptBank:
 
         Raises:
             FileNotFoundError: If the YAML file doesn't exist
-            yaml.YAMLError: If the YAML is malformed
+            yaml.YAMLError: If the YAML is malformed or a mapping repeats a key
+            ValueError: If a message in a list template lacks a valid role or content
         """
-        items = yaml.safe_load(Path(path).read_text()) or []
+        items = yaml.load(Path(path).read_text(), Loader=_UniqueKeyLoader) or []
         self._by_id: Dict[str, PromptSpec] = {}
         for x in items:
+            if isinstance(x["template"], list):
+                for i, m in enumerate(x["template"]):
+                    if not (
+                        isinstance(m, dict)
+                        and m.get("role") in _ROLES
+                        and isinstance(m.get("content"), str)
+                    ):
+                        raise ValueError(
+                            f"Prompt {x['id']!r}: template message {i} needs a role "
+                            f"({', '.join(_ROLES)}) and a string content"
+                        )
             self._by_id[x["id"]] = PromptSpec(
                 id=x["id"],
                 method_family=x.get("method_family", ""),
@@ -67,6 +110,9 @@ class PromptBank:
 
     def render(self, prompt_id: str, **vars) -> List[Dict[str, str]]:
         """Render a prompt template with variable substitution.
+
+        A list template is rendered message by message in its order. A dict template
+        is rendered as system, user, then assistant, each only if present.
 
         Args:
             prompt_id: ID of the prompt to render
@@ -85,6 +131,14 @@ class PromptBank:
             >>> # Returns: [{"role": "system", "content": "..."}, ...]
         """
         spec = self._by_id[prompt_id]
+
+        # Ordered messages (multi-turn, e.g. few-shot examples)
+        if isinstance(spec.template, list):
+            return [
+                {"role": m["role"], "content": m["content"].format(**vars)}
+                for m in spec.template
+            ]
+
         messages = []
 
         # System message (if present)

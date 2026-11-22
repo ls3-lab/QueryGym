@@ -300,6 +300,8 @@ messages = pb.render("genqr_keywords", query="diabetes")
 **Constructor Parameters:**
 - `path` (str | Path): Path to the prompt bank YAML file
 
+**Raises:** `yaml.YAMLError` if the YAML is malformed or a mapping repeats a key; `ValueError` if a message in a list template lacks a valid `role` or `content`
+
 **Methods:**
 
 #### render
@@ -309,7 +311,7 @@ messages = pb.render("genqr_keywords", query="diabetes")
 # Returns: [{"role": "system", "content": "..."}, {"role": "user", "content": "..."}]
 ```
 
-Render a prompt template with variable substitution.
+Render a prompt template with variable substitution. A message-list template is rendered in its order; a role-key template is rendered as system, user, then assistant. See [Prompt Bank](../user-guide/prompts.md#template-forms).
 
 **Parameters:**
 - `prompt_id` (str): ID of the prompt to render
