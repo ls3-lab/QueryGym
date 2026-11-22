@@ -14,6 +14,10 @@ A lightweight, reproducible toolkit for **LLM-based query reformulation**.
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
+## News
+
+- **Nov 2026**: We presented the tutorial *Query Expansion Revisited: From Classical Retrieval to Agentic Search* at CIKM 2026 (Nov 7–11). See [Tutorials](tutorials/index.md).
+
 ## Features
 
 - **Single Prompt Bank** (YAML) with metadata
