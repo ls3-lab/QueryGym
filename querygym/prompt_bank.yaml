@@ -440,37 +440,41 @@
   authors: ["queryGym Team"]
   tags: ["context-based", "extraction", "relevance", "fewshot"]
   template:
-    system: |
-      You are an efficient search assistant. I will provide you with a query and its initially retrieved documents.
-      You will begin by examining the initially retrieved documents and identifying the ones that are relevant, even partially, to the query.
-      Once the relevant documents are identified, you will extract the key sentences from each document that contribute to their relevance.
-    user: |
-      Query: "how are some sharks warm blooded"
-      Retrieved documents:
-      1. Most sharks are cold-blooded. Some, like the Mako and the Great white shark, are partially warmblooded (they are endotherms). Cold blooded although if you've ever seen a Great White Shark hunt sea lions you'd be thinking they would have to be hotblooded. Actually the Salmon Shark is a warm blooded shark.
-      2. Are sharks cold-blooded or warm-blooded? Sharks have a reputation as cold-blooded and despite how negative that term is, it is not entirely inaccurate. Sharks are by no means evil, vicious killers like that quote suggests. Nonetheless, sharks are, for the most part anyways, efficient ectothermic predators. Endo vs Ecto.
-      3. Great white sharks are some of the only warm blooded sharks. This allows them to swim in colder waters in addition to warm, tropical waters. Great White sharks can be found asâ¦ north as Alaska and as south as the southern tip of South America. They exist worldwide, everywhere in-between. 5 people found this useful.
-      4. Sharks' blood gives them turbo speed. Several species of shark and tuna have something special going on inside their bodies. For a long time, scientists have known that some fish species appear warm-blooded. Salmon sharks can elevate their body temperatures by up to 20 degrees compared to the surrounding water, for example.
+    - role: system
+      content: |
+        You are an efficient search assistant. I will provide you with a query and its initially retrieved documents.
+        You will begin by examining the initially retrieved documents and identifying the ones that are relevant, even partially, to the query.
+        Once the relevant documents are identified, you will extract the key sentences from each document that contribute to their relevance.
+    - role: user
+      content: |
+        Query: "how are some sharks warm blooded"
+        Retrieved documents:
+        1. Most sharks are cold-blooded. Some, like the Mako and the Great white shark, are partially warmblooded (they are endotherms). Cold blooded although if you've ever seen a Great White Shark hunt sea lions you'd be thinking they would have to be hotblooded. Actually the Salmon Shark is a warm blooded shark.
+        2. Are sharks cold-blooded or warm-blooded? Sharks have a reputation as cold-blooded and despite how negative that term is, it is not entirely inaccurate. Sharks are by no means evil, vicious killers like that quote suggests. Nonetheless, sharks are, for the most part anyways, efficient ectothermic predators. Endo vs Ecto.
+        3. Great white sharks are some of the only warm blooded sharks. This allows them to swim in colder waters in addition to warm, tropical waters. Great White sharks can be found asâ¦ north as Alaska and as south as the southern tip of South America. They exist worldwide, everywhere in-between. 5 people found this useful.
+        4. Sharks' blood gives them turbo speed. Several species of shark and tuna have something special going on inside their bodies. For a long time, scientists have known that some fish species appear warm-blooded. Salmon sharks can elevate their body temperatures by up to 20 degrees compared to the surrounding water, for example.
 
-      You will begin by examining the initially retrieved documents and identifying the ones that are relevant, even partially, to the query. Once the relevant documents are identified, you will extract the key sentences from each document that contribute to their relevance.
-    assistant: |
-      Based on the query "how are some sharks warm blooded", I have examined the initially retrieved documents. Here are the relevant documents and the key sentences extracted from each: 
-      Document 1:
-      "Most sharks are cold-blooded. Some, like the Mako and the Great white shark, are partially warm-blooded (they are endotherms)."
-      "Actually, the Salmon Shark is a warm-blooded shark."
+        You will begin by examining the initially retrieved documents and identifying the ones that are relevant, even partially, to the query. Once the relevant documents are identified, you will extract the key sentences from each document that contribute to their relevance.
+    - role: assistant
+      content: |
+        Based on the query "how are some sharks warm blooded", I have examined the initially retrieved documents. Here are the relevant documents and the key sentences extracted from each: 
+        Document 1:
+        "Most sharks are cold-blooded. Some, like the Mako and the Great white shark, are partially warm-blooded (they are endotherms)."
+        "Actually, the Salmon Shark is a warm-blooded shark."
 
-      Document 3:
-      "Great white sharks are some of the only warm-blooded sharks."
-      "This allows them to swim in colder waters in addition to warm, tropical waters."
+        Document 3:
+        "Great white sharks are some of the only warm-blooded sharks."
+        "This allows them to swim in colder waters in addition to warm, tropical waters."
 
-      Document 4:
-      "Salmon sharks can elevate their body temperatures by up to 20 degrees compared to the surrounding water, for example."
-    user: |
-      Query: "{query}"
-      Retrieved documents:
-      {contexts}
+        Document 4:
+        "Salmon sharks can elevate their body temperatures by up to 20 degrees compared to the surrounding water, for example."
+    - role: user
+      content: |
+        Query: "{query}"
+        Retrieved documents:
+        {contexts}
 
-      You will begin by examining the initially retrieved documents and identifying the ones that are relevant, even partially, to the query. Once the relevant documents are identified, you will extract the key sentences from each document that contribute to their relevance.
+        You will begin by examining the initially retrieved documents and identifying the ones that are relevant, even partially, to the query. Once the relevant documents are identified, you will extract the key sentences from each document that contribute to their relevance.
   notes: |
     CSQE (Context-based Sentence-level Query Expansion) with few-shot example. Extracts key relevant sentences from retrieved documents to enhance the query. Includes one example demonstration for better performance.
 

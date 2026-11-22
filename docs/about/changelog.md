@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Prompt bank templates can be a list of `{role, content}` messages, rendered in the order written, for prompts with more than one message per role. See [Prompt Bank](../user-guide/prompts.md#template-forms)
+
 ### Changed
+- Loading a prompt bank fails with `yaml.YAMLError` when a key appears twice in the same mapping, instead of keeping the last value
 - MuGI repeats the query `(len(pseudo_docs) // len(query)) // adaptive_times` times with no minimum, as in the MuGI authors' implementation. When the pseudo-documents are shorter than `adaptive_times` × the query length, the expanded query is the pseudo-documents alone; previously the query was always included at least once
 
 ### Fixed
+- CSQE sends its few-shot example before the query, as in the CSQE authors' implementation: system, example query and documents, example answer, then the query and its documents ([#52](https://github.com/ls3-lab/QueryGym/issues/52)). The `csqe.v1` template listed the example and the query under two `user` keys, so the example query was dropped and the example answer followed the query
 - MuGI builds the expanded query with the same `adaptive_times` it reports in its metadata ([#52](https://github.com/ls3-lab/QueryGym/issues/52)). Without an `adaptive_times` parameter (Python API), MuGI now uses its default of 6, as in the MuGI authors' implementation, instead of 5. MuGI method version 1.1
 - MuGI no longer raises `ZeroDivisionError` on an empty query
 - `QueryItem` raises `TypeError` when `text` is not a string, before any LLM call; a `None` query previously reached the LLM as the text "None" and failed afterwards

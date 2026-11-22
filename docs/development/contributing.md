@@ -89,14 +89,8 @@ class MyMethod(BaseReformulator):
     REQUIRES_CONTEXT = False  # Set to True if method needs contexts
     
     def reformulate(self, q: QueryItem, contexts: Optional[List[str]] = None) -> ReformulationResult:
-        # Get prompt
-        prompt = self.prompts.get("my_method_prompt_id")
-        
-        # Build messages
-        messages = [
-            {"role": "system", "content": prompt.template["system"]},
-            {"role": "user", "content": prompt.template["user"].format(query=q.text)}
-        ]
+        # Build messages from the prompt bank
+        messages = self.prompts.render("my_method.v1", query=q.text)
         
         # Call LLM
         response = self.llm.chat(messages)
@@ -116,17 +110,18 @@ class MyMethod(BaseReformulator):
 Add your prompt to `querygym/prompt_bank.yaml`:
 
 ```yaml
-my_method_prompt_id:
-  meta:
-    version: 1
-    introduced_by: "Your Name"
-    license: "CC-BY-4.0"
-    authors: ["Your Name"]
-  method_family: "my_method"
+- id: my_method.v1
+  method_family: my_method
+  version: 1
+  introduced_by: "Your Name"
+  license: "CC-BY-4.0"
+  authors: ["Your Name"]
   template:
     system: "You are a helpful assistant for query reformulation."
     user: "Reformulate this query: {query}"
 ```
+
+For prompts with more than one message per role (for example few-shot turns), use the message-list form described in [Prompt Bank](../user-guide/prompts.md#template-forms).
 
 ### 3. Register the Method
 
