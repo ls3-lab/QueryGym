@@ -6,9 +6,11 @@ This module provides an adapter that wraps PyTerrier's search functionality
 to implement the querygym BaseSearcher interface.
 """
 
-import pandas as pd
-from typing import List, Dict, Any, Optional
+from typing import TYPE_CHECKING, List, Dict, Any, Optional
 from ..core.searcher import BaseSearcher, SearchHit, SearcherRegistry
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class PyTerrierSearcher(BaseSearcher):
@@ -102,6 +104,8 @@ class PyTerrierSearcher(BaseSearcher):
         self, queries: List[str], k: int = 10, num_threads: int = 1, **kwargs
     ) -> List[List[SearchHit]]:
         """Search for documents using multiple queries in batch."""
+        import pandas as pd
+
         # Create query DataFrame for batch processing
         query_df = pd.DataFrame({"qid": [str(i) for i in range(len(queries))], "query": queries})
 
@@ -116,7 +120,7 @@ class PyTerrierSearcher(BaseSearcher):
 
         return batch_results
 
-    def _process_results(self, results_df: pd.DataFrame) -> List[SearchHit]:
+    def _process_results(self, results_df: "pd.DataFrame") -> List[SearchHit]:
         """Process PyTerrier results into SearchHit objects."""
         search_hits = []
 
